@@ -43,4 +43,7 @@ LIB_EASYPLAYER_API int EasyPlayer_ShowStatisticalInfo(int channelId, int show);
 LIB_EASYPLAYER_API int EasyPlayer_PlaySound(int channelId);
 LIB_EASYPLAYER_API int EasyPlayer_StopSound();
 
+
+
+
 #endif

@@ -1,9 +1,3 @@
-/*
-	Copyright (c) 2013-2015 EasyDarwin.ORG.  All rights reserved.
-	Github: https://github.com/EasyDarwin
-	WEChat: EasyDarwin
-	Website: http://www.easydarwin.org
-*/
 #ifndef __NVSOURCE_API_H__
 #define __NVSOURCE_API_H__
 
@@ -22,6 +16,9 @@
 #endif
 #ifndef MEDIA_TYPE_EVENT
 #define MEDIA_TYPE_EVENT		0x00000004
+#endif
+#ifndef MEDIA_TYPE_RTP
+#define MEDIA_TYPE_RTP			0x00000008
 #endif
 
 //video codec
@@ -74,7 +71,11 @@ typedef struct
 	float			losspacket;
 }NVS_FRAME_INFO;
 
-
+/*
+//回调:
+_mediatype:		MEDIA_TYPE_VIDEO	MEDIA_TYPE_AUDIO	MEDIA_TYPE_EVENT	
+如果在NVS_OpenStream中的参数outRtpPacket置为1, 则回调中的_mediatype为MEDIA_TYPE_RTP, pbuf为接收到的RTP包(包含rtp头信息), frameinfo->length为包长
+*/
 typedef int (CALLBACK *NVSourceCallBack)( int _chid, int *_chPtr, int _mediatype, char *pbuf, NVS_FRAME_INFO *frameinfo);
 
 
@@ -91,7 +92,7 @@ extern "C"
 
 	int	 NVSOURCE_API	NVS_SetCallback(NVS_HANDLE handle, NVSourceCallBack _callback);
 
-	int	 NVSOURCE_API	NVS_OpenStream(NVS_HANDLE handle, int _channelid, char *_url, RTP_CONNECT_TYPE _connType, unsigned int _mediaType, char *_username, char *_password, void *userPtr, int _reconn/*1000表示长连接,即如果网络断开自动重连, 其它值为连接次数*/);
+	int	 NVSOURCE_API	NVS_OpenStream(NVS_HANDLE handle, int _channelid, char *_url, RTP_CONNECT_TYPE _connType, unsigned int _mediaType, char *_username, char *_password, void *userPtr, int _reconn/*1000表示长连接,即如果网络断开自动重连, 其它值为连接次数*/, int outRtpPacket/*默认为0,即回调输出完整的帧, 如果为1,则输出RTP包*/);
 	int	 NVSOURCE_API	NVS_CloseStream(NVS_HANDLE handle);
 };
 

@@ -8,7 +8,7 @@
 	revision.h -- define the version number
 */
 
-#define kVersionString "1.0.0"
-#define kBuildString "15.0228"
+#define kVersionString "1.0.1"
+#define kBuildString "15.0303"
 
 #define kCommentString "Release/EasyDarwin; State/Development;" 

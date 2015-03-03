@@ -6,7 +6,6 @@
 */
 #pragma once
 
-
 // CDlgRender ¶Ô»°¿ò
 
 class CDlgRender : public CDialogEx

@@ -132,8 +132,14 @@ void	CDlgVideo::SetWindowId(int _windowId)
 
 	if (m_WindowId == 0)
 	{
-		if (NULL != pEdtURL)		pEdtURL->SetWindowText(TEXT("rtsp://192.168.1.108/"));
+		if (NULL != pEdtURL)		pEdtURL->SetWindowText(TEXT("rtsp://218.204.223.237:554/live/1/0547424F573B085C/gsfp90ef4k0a6iap.sdp"));
 	}
+
+	if (m_WindowId == 1)
+	{
+		if (NULL != pEdtURL)		pEdtURL->SetWindowText(TEXT("rtsp://218.204.223.237:554/live/1/66251FC11353191F/e7ooqwcfbqjoo80j.sdp"));
+	}
+	
 }
 
 void	CDlgVideo::InitialComponents()

@@ -4,7 +4,6 @@
 	WEChat: EasyDarwin
 	Website: http://www.easydarwin.org
 */
-
 #include "ChannelManager.h"
 #include <time.h>
 #include "vstime.h"
@@ -114,7 +113,7 @@ int	CChannelManager::OpenStream(const char *url, HWND hWnd, RENDER_FORMAT render
 		unsigned int mediaType = MEDIA_TYPE_VIDEO;
 		mediaType |= MEDIA_TYPE_AUDIO;		//换为NVSource, 屏蔽声音
 		NVS_SetCallback(pRealtimePlayThread[iNvsIdx].nvsHandle, __NVSourceCallBack);
-		NVS_OpenStream(pRealtimePlayThread[iNvsIdx].nvsHandle, iNvsIdx, (char*)url, RTP_OVER_TCP, mediaType, (char*)username, (char*)password, (int*)&pRealtimePlayThread[iNvsIdx], 1000);
+		NVS_OpenStream(pRealtimePlayThread[iNvsIdx].nvsHandle, iNvsIdx, (char*)url, RTP_OVER_TCP, mediaType, (char*)username, (char*)password, (int*)&pRealtimePlayThread[iNvsIdx], 1000, 0);
 
 		pRealtimePlayThread[iNvsIdx].hWnd = hWnd;
 		pRealtimePlayThread[iNvsIdx].renderFormat = (D3D_SUPPORT_FORMAT)renderFormat;
@@ -989,7 +988,7 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDisplayThread( LPVOID _pParam )
 
 		//统计信息:  编码格式 分辨率 帧率 帧类型  码流  缓存帧数
 		char sztmp[128] = {0,};
-		sprintf(sztmp, "EasyDarwin %s[%d x %d]  FPS: %d[%s]    Bitrate: %.2fMbps   Cache: %d / %d",
+		sprintf(sztmp, "%s[%d x %d]  FPS: %d[%s]    Bitrate: %.2fMbps   Cache: %d / %d",
 			pThread->yuvFrame[iDispalyYuvIdx].frameinfo.codec==0x1C?"H264":"MPEG4",
 			pThread->yuvFrame[iDispalyYuvIdx].frameinfo.width,
 			pThread->yuvFrame[iDispalyYuvIdx].frameinfo.height,
