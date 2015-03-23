@@ -1,15 +1,10 @@
-/*
-	Copyright (c) 2013-2015 EasyDarwin.ORG.  All rights reserved.
-	Github: https://github.com/EasyDarwin
-	WEChat: EasyDarwin
-	Website: http://www.easydarwin.org
-*/
 // DlgVideo.cpp : 实现文件
 //
 
 #include "stdafx.h"
 #include "DlgVideo.h"
 #include "afxdialogex.h"
+
 
 
 #include "../libEasyPlayer/libEasyPlayerAPI.h"
@@ -24,6 +19,8 @@ CDlgVideo::CDlgVideo(CWnd* pParent /*=NULL*/)
 	m_WindowId	=	-1;
 	m_ChannelId	=	-1;
 	bDrag		=	false;
+
+
 
 	InitialComponents();
 }
@@ -46,6 +43,7 @@ BEGIN_MESSAGE_MAP(CDlgVideo, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_PREVIEW, &CDlgVideo::OnBnClickedButtonPreview)
 	ON_BN_CLICKED(IDC_CHECK_OSD, &CDlgVideo::OnBnClickedCheckOsd)
 	ON_WM_HSCROLL()
+	ON_WM_RBUTTONUP()
 END_MESSAGE_MAP()
 
 
@@ -61,6 +59,22 @@ LRESULT CDlgVideo::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
+bool MByteToWChar(LPCSTR lpcszStr, LPWSTR lpwszStr, DWORD dwSize)
+{
+	// Get the required size of the buffer that receives the Unicode
+	// string.
+	DWORD dwMinSize;
+	dwMinSize = MultiByteToWideChar (CP_ACP, 0, lpcszStr, -1, NULL, 0);
+ 
+	if(dwSize < dwMinSize)
+	{
+		return false;
+	}
+ 
+	// Convert headers from ASCII to Unicode.
+	MultiByteToWideChar (CP_ACP, 0, lpcszStr, -1, lpwszStr, dwMinSize);  
+	return true;
+}
 BOOL CDlgVideo::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
@@ -78,6 +92,7 @@ BOOL CDlgVideo::DestroyWindow()
 
 	return CDialogEx::DestroyWindow();
 }
+
 
 
 void CDlgVideo::OnLButtonDblClk(UINT nFlags, CPoint point)
@@ -132,14 +147,23 @@ void	CDlgVideo::SetWindowId(int _windowId)
 
 	if (m_WindowId == 0)
 	{
-		if (NULL != pEdtURL)		pEdtURL->SetWindowText(TEXT("rtsp://218.204.223.237:554/live/1/0547424F573B085C/gsfp90ef4k0a6iap.sdp"));
+		//if (NULL != pEdtURL)		pEdtURL->SetWindowText(TEXT("rtsp://121.15.129.227"));
+		if (NULL != pEdtURL)		pEdtURL->SetWindowText(TEXT("rtsp://192.168.1.100"));
 	}
+}
+void	CDlgVideo::SetURL(char *url)
+{
+	wchar_t wszURL[128] = {0,};
+	MByteToWChar(url, wszURL, sizeof(wszURL)/sizeof(wszURL[0]));
+	if (NULL != pEdtURL)		pEdtURL->SetWindowText(wszURL);
+}
 
-	if (m_WindowId == 1)
+void	CDlgVideo::SetShownToScale(int shownToScale)
+{
+	if (m_ChannelId > 0)
 	{
-		if (NULL != pEdtURL)		pEdtURL->SetWindowText(TEXT("rtsp://218.204.223.237:554/live/1/66251FC11353191F/e7ooqwcfbqjoo80j.sdp"));
+		EasyPlayer_SetShownToScale(m_ChannelId, shownToScale);
 	}
-	
 }
 
 void	CDlgVideo::InitialComponents()
@@ -171,7 +195,7 @@ void	CDlgVideo::CreateComponents()
 
 	if (NULL != pEdtURL)		pEdtURL->SetWindowText(TEXT("rtsp://"));
 	if (NULL != pEdtUsername)	pEdtUsername->SetWindowText(TEXT("admin"));
-	if (NULL != pEdtPassword)	pEdtPassword->SetWindowText(TEXT("admin"));
+	if (NULL != pEdtPassword)	pEdtPassword->SetWindowText(TEXT("12345"));
 	if (NULL != pSliderCache)	pSliderCache->SetRange(1, 10);
 	if (NULL != pSliderCache)	pSliderCache->SetPos(3);
 
@@ -246,6 +270,8 @@ void CDlgVideo::OnBnClickedButtonPreview()
 		EasyPlayer_CloseStream(m_ChannelId);
 		m_ChannelId = -1;
 
+		if (NULL != pDlgRender)	pDlgRender->SetChannelId(m_ChannelId);
+
 		if (NULL != pDlgRender)			pDlgRender->Invalidate();
 		if (NULL != pBtnPreview)		pBtnPreview->SetWindowText(TEXT("Play"));
 	}
@@ -269,12 +295,14 @@ void CDlgVideo::OnBnClickedButtonPreview()
 
 		HWND hWnd = NULL;
 		if (NULL != pDlgRender)	hWnd = pDlgRender->GetSafeHwnd();
-		m_ChannelId = EasyPlayer_OpenStream(szURL, hWnd, (RENDER_FORMAT)RenderFormat, szUsername, szPassword);
-
+		m_ChannelId = EasyPlayer_OpenStream(szURL, hWnd, (RENDER_FORMAT)RenderFormat, 0x01, szUsername, szPassword);
+		
 		if (m_ChannelId > 0)
 		{
 			int iPos = pSliderCache->GetPos();
 			EasyPlayer_SetFrameCache(m_ChannelId, iPos);		//设置缓存
+			EasyPlayer_PlaySound(m_ChannelId);
+			if (NULL != pDlgRender)	pDlgRender->SetChannelId(m_ChannelId);
 
 			if (NULL != pBtnPreview)		pBtnPreview->SetWindowText(TEXT("Stop"));
 		}
@@ -311,4 +339,13 @@ void CDlgVideo::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 	}
 
 	CDialogEx::OnHScroll(nSBCode, nPos, pScrollBar);
+}
+
+
+
+void CDlgVideo::OnRButtonUp(UINT nFlags, CPoint point)
+{
+
+
+	CDialogEx::OnRButtonUp(nFlags, point);
 }

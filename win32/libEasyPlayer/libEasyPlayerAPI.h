@@ -1,9 +1,3 @@
-/*
-	Copyright (c) 2013-2015 EasyDarwin.ORG.  All rights reserved.
-	Github: https://github.com/EasyDarwin
-	WEChat: EasyDarwin
-	Website: http://www.easydarwin.org
-*/
 #ifndef __LIB_EASY_PLAYER_API_H__
 #define __LIB_EASY_PLAYER_API_H__
 
@@ -11,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "revision.h"
+
 
 #define LIB_EASYPLAYER_API __declspec(dllexport)
 
@@ -34,11 +28,14 @@ LIB_EASYPLAYER_API int EasyPlayer_Init();
 LIB_EASYPLAYER_API void EasyPlayer_Release();
 
 
-LIB_EASYPLAYER_API int EasyPlayer_OpenStream(const char *url, HWND hWnd, RENDER_FORMAT renderFormat, const char *username, const char *password);
+LIB_EASYPLAYER_API int EasyPlayer_OpenStream(const char *url, HWND hWnd, RENDER_FORMAT renderFormat, int rtpovertcp, const char *username, const char *password);
 LIB_EASYPLAYER_API void EasyPlayer_CloseStream(int channelId);
 LIB_EASYPLAYER_API int EasyPlayer_SetFrameCache(int channelId, int cache);
+LIB_EASYPLAYER_API int EasyPlayer_SetShownToScale(int channelId, int shownToScale);
 LIB_EASYPLAYER_API int EasyPlayer_ShowStatisticalInfo(int channelId, int show);
 
+LIB_EASYPLAYER_API int EasyPlayer_StartManuRecording(int channelId);
+LIB_EASYPLAYER_API int EasyPlayer_StopManuRecording(int channelId);
 
 LIB_EASYPLAYER_API int EasyPlayer_PlaySound(int channelId);
 LIB_EASYPLAYER_API int EasyPlayer_StopSound();

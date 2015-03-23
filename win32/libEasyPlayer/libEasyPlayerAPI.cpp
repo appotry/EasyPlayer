@@ -1,9 +1,3 @@
-/*
-	Copyright (c) 2013-2015 EasyDarwin.ORG.  All rights reserved.
-	Github: https://github.com/EasyDarwin
-	WEChat: EasyDarwin
-	Website: http://www.easydarwin.org
-*/
 #include "libEasyPlayerAPI.h"
 #include "ChannelManager.h"
 CChannelManager	*g_pChannelManager = NULL;
@@ -34,11 +28,11 @@ LIB_EASYPLAYER_API void EasyPlayer_Release()
 }
 
 
-LIB_EASYPLAYER_API int EasyPlayer_OpenStream(const char *url, HWND hWnd, RENDER_FORMAT renderFormat, const char *username, const char *password)
+LIB_EASYPLAYER_API int EasyPlayer_OpenStream(const char *url, HWND hWnd, RENDER_FORMAT renderFormat, int rtpovertcp,const char *username, const char *password)
 {
 	if (NULL == g_pChannelManager)		return -1;
 
-	return g_pChannelManager->OpenStream(url, hWnd, renderFormat, username, password);
+	return g_pChannelManager->OpenStream(url, hWnd, renderFormat, rtpovertcp, username, password);
 }
 
 LIB_EASYPLAYER_API void EasyPlayer_CloseStream(int channelId)
@@ -54,7 +48,12 @@ LIB_EASYPLAYER_API int EasyPlayer_SetFrameCache(int channelId, int cache)
 
 	return g_pChannelManager->SetFrameCache(channelId, cache);
 }
+LIB_EASYPLAYER_API int EasyPlayer_SetShownToScale(int channelId, int shownToScale)
+{
+	if (NULL == g_pChannelManager)		return -1;
 
+	return g_pChannelManager->SetShownToScale(channelId, shownToScale);
+}
 LIB_EASYPLAYER_API int EasyPlayer_ShowStatisticalInfo(int channelId, int show)
 {
 	if (NULL == g_pChannelManager)		return -1;
@@ -75,4 +74,17 @@ LIB_EASYPLAYER_API int EasyPlayer_StopSound()
 	return g_pChannelManager->StopSound();
 }
 
+LIB_EASYPLAYER_API int EasyPlayer_StartManuRecording(int channelId)
+{
+	if (NULL == g_pChannelManager)		return -1;
+
+	return g_pChannelManager->StartManuRecording(channelId);
+}
+
+LIB_EASYPLAYER_API int EasyPlayer_StopManuRecording(int channelId)
+{
+	if (NULL == g_pChannelManager)		return -1;
+
+	return g_pChannelManager->StopManuRecording(channelId);
+}
 

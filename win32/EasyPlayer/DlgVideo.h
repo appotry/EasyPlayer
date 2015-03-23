@@ -1,13 +1,10 @@
-/*
-	Copyright (c) 2013-2015 EasyDarwin.ORG.  All rights reserved.
-	Github: https://github.com/EasyDarwin
-	WEChat: EasyDarwin
-	Website: http://www.easydarwin.org
-*/
 #pragma once
 
 #include "DlgRender.h"
 // CDlgVideo 对话框
+
+
+
 
 class CDlgVideo : public CDialogEx
 {
@@ -19,6 +16,8 @@ public:
 
 
 	void	SetWindowId(int _windowId);
+	void	SetShownToScale(int shownToScale);
+	void	SetURL(char *url);
 
 	bool	bDrag;
 
@@ -35,6 +34,8 @@ public:
 	void	CreateComponents();
 	void	UpdateComponents();
 	void	DeleteComponents();
+
+
 
 // 对话框数据
 	enum { IDD = IDD_DIALOG_VIDEO };
@@ -54,4 +55,5 @@ public:
 	virtual BOOL DestroyWindow();
 	afx_msg void OnBnClickedCheckOsd();
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
 };

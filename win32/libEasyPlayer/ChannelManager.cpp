@@ -1,13 +1,8 @@
-/*
-	Copyright (c) 2013-2015 EasyDarwin.ORG.  All rights reserved.
-	Github: https://github.com/EasyDarwin
-	WEChat: EasyDarwin
-	Website: http://www.easydarwin.org
-*/
 #include "ChannelManager.h"
 #include <time.h>
 #include "vstime.h"
 #include "trace.h"
+#include "CreateDump.h"
 
 #define		CHANNEL_ID_GAIN			1000
 
@@ -87,7 +82,7 @@ void CChannelManager::Release()
 }
 
 
-int	CChannelManager::OpenStream(const char *url, HWND hWnd, RENDER_FORMAT renderFormat, const char *username, const char *password)
+int	CChannelManager::OpenStream(const char *url, HWND hWnd, RENDER_FORMAT renderFormat, int _rtpovertcp, const char *username, const char *password)
 {
 	if (NULL == pRealtimePlayThread)			return -1;
 	if ( (NULL == url) || (0==strcmp(url, "\0")))		return -1;
@@ -113,7 +108,7 @@ int	CChannelManager::OpenStream(const char *url, HWND hWnd, RENDER_FORMAT render
 		unsigned int mediaType = MEDIA_TYPE_VIDEO;
 		mediaType |= MEDIA_TYPE_AUDIO;		//换为NVSource, 屏蔽声音
 		NVS_SetCallback(pRealtimePlayThread[iNvsIdx].nvsHandle, __NVSourceCallBack);
-		NVS_OpenStream(pRealtimePlayThread[iNvsIdx].nvsHandle, iNvsIdx, (char*)url, RTP_OVER_TCP, mediaType, (char*)username, (char*)password, (int*)&pRealtimePlayThread[iNvsIdx], 1000, 0);
+		NVS_OpenStream(pRealtimePlayThread[iNvsIdx].nvsHandle, iNvsIdx, (char*)url, _rtpovertcp==0x01?RTP_OVER_TCP:RTP_OVER_UDP, mediaType, (char*)username, (char*)password, (int*)&pRealtimePlayThread[iNvsIdx], 1000, 0);
 
 		pRealtimePlayThread[iNvsIdx].hWnd = hWnd;
 		pRealtimePlayThread[iNvsIdx].renderFormat = (D3D_SUPPORT_FORMAT)renderFormat;
@@ -165,6 +160,16 @@ int	CChannelManager::SetFrameCache(int channelId, int _cache)
 	pRealtimePlayThread[iNvsIdx].frameCache = _cache;
 	return 0;
 }
+int	CChannelManager::SetShownToScale(int channelId, int ShownToScale)
+{
+	if (NULL == pRealtimePlayThread)			return -1;
+
+	int iNvsIdx = channelId - CHANNEL_ID_GAIN;
+	if (iNvsIdx < 0 || iNvsIdx>= MAX_CHANNEL_NUM)	return -1;
+
+	pRealtimePlayThread[iNvsIdx].ShownToScale = ShownToScale;
+	return 0;
+}
 
 //播放声音		2014.12.01
 int	CChannelManager::PlaySound(int channelId)
@@ -179,9 +184,12 @@ int	CChannelManager::PlaySound(int channelId)
 
 	ClearAllSoundData();		//如果当前正在播放其它音频,则清空
 
-	if (pAudioPlayThread->channelId != channelId)
+
+	int iNvsIdx = channelId - CHANNEL_ID_GAIN + 1;
+
+	if (pAudioPlayThread->channelId != iNvsIdx)
 	{
-		pAudioPlayThread->channelId = channelId;
+		pAudioPlayThread->channelId = iNvsIdx;//channelId;
 	
 		if (NULL != pAudioPlayThread->pSoundPlayer)
 		{
@@ -561,12 +569,41 @@ DECODER_OBJ	*GetDecoder(PLAY_THREAD_OBJ	*_pPlayThread, unsigned int mediaType, M
 	return NULL;
 }
 
+
+
+//异常处理函数
+LONG CrashHandler_Decode(EXCEPTION_POINTERS *pException)
+{
+	SYSTEMTIME	systemTime;
+	GetLocalTime(&systemTime);
+
+	wchar_t wszFile[MAX_PATH] = {0,};
+	wsprintf(wszFile, TEXT("decode_%04d%02d%02d %02d%02d%02d.dmp"), systemTime.wYear, systemTime.wMonth, systemTime.wDay, systemTime.wHour, systemTime.wMinute, systemTime.wSecond);
+	CreateDumpFile(wszFile, pException);
+
+	return EXCEPTION_EXECUTE_HANDLER;		//返回值EXCEPTION_EXECUTE_HANDLER	EXCEPTION_CONTINUE_SEARCH	EXCEPTION_CONTINUE_EXECUTION
+}
+LONG CrashHandler_Display(EXCEPTION_POINTERS *pException)
+{
+	SYSTEMTIME	systemTime;
+	GetLocalTime(&systemTime);
+
+	wchar_t wszFile[MAX_PATH] = {0,};
+	wsprintf(wszFile, TEXT("display_%04d%02d%02d %02d%02d%02d.dmp"), systemTime.wYear, systemTime.wMonth, systemTime.wDay, systemTime.wHour, systemTime.wMinute, systemTime.wSecond);
+	CreateDumpFile(wszFile, pException);
+
+	return EXCEPTION_EXECUTE_HANDLER;		//返回值EXCEPTION_EXECUTE_HANDLER	EXCEPTION_CONTINUE_SEARCH	EXCEPTION_CONTINUE_EXECUTION
+}
+
+
 LPTHREAD_START_ROUTINE CChannelManager::_lpDecodeThread( LPVOID _pParam )
 {
 	PLAY_THREAD_OBJ *pThread = (PLAY_THREAD_OBJ*)_pParam;
 	if (NULL == pThread)			return 0;
 
 	pThread->decodeThread.flag	=	0x02;
+
+	SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)CrashHandler_Decode);
 
 #ifdef _DEBUG
 	_TRACE("解码线程[%d]已启动. ThreadId:%d ...\n", pThread->channelId, GetCurrentThreadId());
@@ -722,6 +759,42 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDecodeThread( LPVOID _pParam )
 			}
 			if (pThread->decodeThread.flag == 0x03)		break;
 
+
+			//手动录像
+			if (NULL != pThread->mp4cHandle)
+			{
+				//30fps * 60 seconds * 30 minutes  = 手动录像必须小于30分钟
+				if (pThread->vidFrameNum >= 30*60*30 || (pThread->manuRecording == 0x00) )
+				{
+					MP4C_CloseMp4File(pThread->mp4cHandle);
+					MP4C_Deinit(&pThread->mp4cHandle);
+					pThread->mp4cHandle = NULL;
+					pThread->vidFrameNum = 0;
+				}
+				else
+				{
+					pThread->vidFrameNum ++;
+					MP4C_AddFrame(pThread->mp4cHandle, MEDIA_TYPE_VIDEO, (unsigned char*)pbuf, frameinfo.length, frameinfo.type, frameinfo.timestamp_sec, frameinfo.rtptimestamp, frameinfo.fps);
+				}
+			}
+			else if (pThread->manuRecording == 0x01 && NULL==pThread->mp4cHandle)
+			{
+				unsigned int timestamp = (unsigned int)time(NULL);
+				time_t tt = timestamp;
+				struct tm *_time = localtime(&tt);
+				char szTime[64] = {0,};
+				strftime(szTime, 32, "%Y%m%d %H%M%S", _time);
+
+				memset(pThread->manuRecordingFile, 0x00, sizeof(pThread->manuRecordingFile));
+				sprintf(pThread->manuRecordingFile, "ch%d_%s.mp4", pThread->channelId, szTime);
+				//sprintf(pThread->manuRecordingFile, "ch%d.mp4", pThread->channelId);
+
+				MP4C_Init(&pThread->mp4cHandle);
+				MP4C_SetMp4VideoInfo(pThread->mp4cHandle, VIDEO_CODEC_H264, frameinfo.width, frameinfo.height, frameinfo.fps);
+				MP4C_SetMp4AudioInfo(pThread->mp4cHandle, AUDIO_CODEC_AAC, 8000, 1);
+				MP4C_CreateMp4File(pThread->mp4cHandle, pThread->manuRecordingFile, 1024*1024*2);
+			}
+
 			//解码
 			EnterCriticalSection(&pThread->crit);
 			if (0 != FFD_DecodeVideo3(pDecoderObj->ffDecoder, pbuf, frameinfo.length, pThread->yuvFrame[pThread->decodeYuvIdx].pYuvBuf, frameinfo.width, frameinfo.height))
@@ -807,6 +880,15 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDecodeThread( LPVOID _pParam )
 		pChannelManager->pAudioPlayThread->audiochannels = 0;
 	}
 
+
+	if (NULL != pThread->mp4cHandle)
+	{
+		MP4C_CloseMp4File(pThread->mp4cHandle);
+		MP4C_Deinit(&pThread->mp4cHandle);
+		pThread->mp4cHandle = NULL;
+		pThread->vidFrameNum = 0;
+	}
+
 	delete []audio_buf;
 	delete []pbuf;
 	pbuf = NULL;
@@ -832,6 +914,8 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDisplayThread( LPVOID _pParam )
 	_TRACE("显示线程[%d]已启动. ThreadId:%d ...\n", pThread->channelId, GetCurrentThreadId());
 #endif
 
+	SetUnhandledExceptionFilter( (LPTOP_LEVEL_EXCEPTION_FILTER)CrashHandler_Display);
+
 	int width = 0;
 	int height= 0;
 	RECT	rcVideoRender;
@@ -846,6 +930,16 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDisplayThread( LPVOID _pParam )
 
 	MEDIA_FRAME_INFO	lastFrameInfo;
 	memset(&lastFrameInfo, 0x00, sizeof(MEDIA_FRAME_INFO));
+
+//#ifdef _DEBUG
+#if 1
+	float	fDisplayTimes = 0.0f;		//显示耗时统计
+	int		displayFrameNum = 0;
+	int		nDisplayTotalTimes = 0;
+	unsigned int uiLastTotalTime = 0;
+#endif
+
+	int iDelay = 0;
 
 	_VS_BEGIN_TIME_PERIOD(1);
 	QueryPerformanceFrequency(&pThread->cpuFreq);
@@ -939,7 +1033,14 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDisplayThread( LPVOID _pParam )
 		{
 			pThread->resetD3d = false;
 			//关闭d3d
-			D3D_Release(&pThread->d3dHandle);
+			if (pThread->renderFormat == GDI_FORMAT_RGB24)
+			{
+				RGB_DeinitDraw(&pThread->d3dHandle);
+			}
+			else
+			{
+				D3D_Release(&pThread->d3dHandle);
+			}
 		}
 		width = pThread->yuvFrame[iDispalyYuvIdx].frameinfo.width;
 		height= pThread->yuvFrame[iDispalyYuvIdx].frameinfo.height;
@@ -949,7 +1050,7 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDisplayThread( LPVOID _pParam )
 		//创建D3dRender
 		if (pThread->renderFormat == GDI_FORMAT_RGB24)
 		{
-
+			if (NULL == pThread->d3dHandle)	RGB_InitDraw(&pThread->d3dHandle);
 		}
 		else if ( (NULL == pThread->d3dHandle) && ((unsigned int)time(NULL)-deviceLostTime >= 2) )
 		{
@@ -988,6 +1089,7 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDisplayThread( LPVOID _pParam )
 
 		//统计信息:  编码格式 分辨率 帧率 帧类型  码流  缓存帧数
 		char sztmp[128] = {0,};
+#if 1
 		sprintf(sztmp, "%s[%d x %d]  FPS: %d[%s]    Bitrate: %.2fMbps   Cache: %d / %d",
 			pThread->yuvFrame[iDispalyYuvIdx].frameinfo.codec==0x1C?"H264":"MPEG4",
 			pThread->yuvFrame[iDispalyYuvIdx].frameinfo.width,
@@ -997,7 +1099,15 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDisplayThread( LPVOID _pParam )
 			pThread->yuvFrame[iDispalyYuvIdx].frameinfo.type==0x01?"I":"P",
 			pThread->yuvFrame[iDispalyYuvIdx].frameinfo.bitrate/1024.0f,
 			nQueueFrame, iCache);
-
+#else
+			sprintf(sztmp, "[%dx%d] fps[%d/%d] Bitrate[%.2fMbps]Cache[%d(%d+%d) / %d]  AverageTime: %.2f  Delay: %d  totaltime:%d / %d",
+				pThread->yuvFrame[iDispalyYuvIdx].frameinfo.width,
+				pThread->yuvFrame[iDispalyYuvIdx].frameinfo.height,
+				pThread->yuvFrame[iDispalyYuvIdx].frameinfo.fps, fps,//ipcFps,
+				pThread->yuvFrame[iDispalyYuvIdx].frameinfo.bitrate/1024.0f,
+				nQueueFrame,  iQue1_DecodeQueue, iQue2_DisplayQueue,  iCache, 
+				fDisplayTimes, iDelay, (int)fDisplayTimes+(iDelay>0?iDelay:0), iOneFrameUsec);
+#endif
 		D3D_OSD	osd;
 		memset(&osd, 0x00, sizeof(D3D_OSD));
 		MByteToWChar(sztmp, osd.string, sizeof(osd.string)/sizeof(osd.string[0]));
@@ -1022,12 +1132,13 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDisplayThread( LPVOID _pParam )
 
 		if (pThread->renderFormat == GDI_FORMAT_RGB24)
 		{
-			D3D_RenderRGB24ByGDI(pThread->hWnd, pThread->yuvFrame[iDispalyYuvIdx].pYuvBuf, width, height, showOSD, &osd);
+			RGB_DrawData(pThread->d3dHandle, pThread->hWnd, pThread->yuvFrame[iDispalyYuvIdx].pYuvBuf, width, height, pThread->ShownToScale, RGB(0x3c,0x3c,0x3c), 0, showOSD, &osd);
+			//D3D_RenderRGB24ByGDI(pThread->hWnd, pThread->yuvFrame[iDispalyYuvIdx].pYuvBuf, width, height, showOSD, &osd);
 		}
 		else if (NULL != pThread->d3dHandle)
 		{
 			D3D_UpdateData(pThread->d3dHandle, 0, (unsigned char*)pThread->yuvFrame[iDispalyYuvIdx].pYuvBuf, width, height, &rcSrc, NULL, showOSD, &osd);
-			ret = D3D_Render(pThread->d3dHandle, pThread->hWnd, &rcDst);
+			ret = D3D_Render(pThread->d3dHandle, pThread->hWnd, pThread->ShownToScale, &rcDst);
 			if (ret < 0)
 			{
 				deviceLostTime = (unsigned int)time(NULL);
@@ -1056,7 +1167,7 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDisplayThread( LPVOID _pParam )
 			LONGLONG lInterval = (LONGLONG)(((nowTime.QuadPart - pThread->lastRenderTime.QuadPart) / (double)pThread->cpuFreq.QuadPart * (double)1000));
 			iInterval = (int)lInterval;
 
-			int iDelay = iOneFrameUsec - iInterval;
+			iDelay = iOneFrameUsec - iInterval;
 
 			if (iDelay<1)	iDelay = 0;
 			else if (iDelay>1500)	iDelay=1500;
@@ -1070,6 +1181,27 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDisplayThread( LPVOID _pParam )
 				int ii = ((iOneFrameUsec * (nQueueFrame-iCache))/fps);
 				iDelay -= ii;
 			}
+
+//#ifdef _DEBUG
+#if 1
+			unsigned int uiCurrTime = (unsigned int)time(NULL);
+			if (uiLastTotalTime == 0x00)		uiLastTotalTime = uiCurrTime;
+
+			if (uiLastTotalTime != uiCurrTime)
+			{
+				fDisplayTimes = (float)nDisplayTotalTimes / (float)displayFrameNum;
+				//fDisplayTimes = (float)nDisplayTotalTimes / iOneFrameUsec;
+				uiLastTotalTime = uiCurrTime;
+				nDisplayTotalTimes = iInterval;
+				displayFrameNum = 1;
+			}
+			else
+			{
+				nDisplayTotalTimes += iInterval;
+				displayFrameNum ++;
+			}
+#endif
+
 			_VS_BEGIN_TIME_PERIOD(1);
 			//_TRACE("[ch%d]共用时: %d\t显示耗时:%d\t延时:%d\t缓存帧数:%d\t当前帧大小:%d  OneFrameUsec:%d\n", pThread->renderCh, iInterval+iDelay, iInterval, iDelay, nQueueFrame, frame_size, iOneFrameUsec);
 			if (iDelay>0 && iDelay<1500 && iCache>0 && iCache*2>nQueueFrame)
@@ -1082,7 +1214,14 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDisplayThread( LPVOID _pParam )
 		}
 	}
 
-	D3D_Release(&pThread->d3dHandle);
+	if (pThread->renderFormat == GDI_FORMAT_RGB24)
+	{
+		RGB_DeinitDraw(&pThread->d3dHandle);
+	}
+	else
+	{
+		D3D_Release(&pThread->d3dHandle);
+	}
 	pThread->rtpTimestamp = 0;
 
 	pThread->displayThread.flag	=	0x00;
@@ -1166,6 +1305,36 @@ int	CChannelManager::ProcessData(int _chid, int mediatype, char *pbuf, NVS_FRAME
 			frameinfo->length = 1;
 			SSQ_AddData(pRealtimePlayThread[_chid].pAVQueue, _chid, MEDIA_TYPE_EVENT, (MEDIA_FRAME_INFO*)frameinfo, "1");
 		}
+	}
+
+	return 0;
+}
+
+
+int		CChannelManager::StartManuRecording(int channelId)
+{
+	if (NULL == pRealtimePlayThread)			return -1;
+
+	int iNvsIdx = channelId - CHANNEL_ID_GAIN;
+	if (iNvsIdx < 0 || iNvsIdx>= MAX_CHANNEL_NUM)	return -1;
+
+	if (NULL == pRealtimePlayThread[iNvsIdx].mp4cHandle)
+	{
+		pRealtimePlayThread[iNvsIdx].manuRecording = 0x01;
+	}
+
+	return 0;
+}
+int		CChannelManager::StopManuRecording(int channelId)
+{
+	if (NULL == pRealtimePlayThread)			return -1;
+
+	int iNvsIdx = channelId - CHANNEL_ID_GAIN;
+	if (iNvsIdx < 0 || iNvsIdx>= MAX_CHANNEL_NUM)	return -1;
+
+	if (pRealtimePlayThread[iNvsIdx].manuRecording == 0x01)
+	{
+		pRealtimePlayThread[iNvsIdx].manuRecording = 0x00;
 	}
 
 	return 0;

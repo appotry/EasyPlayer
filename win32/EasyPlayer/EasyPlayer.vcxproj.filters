@@ -45,6 +45,9 @@
     <ClInclude Include="DlgRender.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CreateDump.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EasyPlayer.cpp">
@@ -60,6 +63,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="DlgRender.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CreateDump.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

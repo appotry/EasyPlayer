@@ -55,6 +55,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -81,6 +82,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -99,6 +101,7 @@
     <None Include="res\EasyPlayer.rc2" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CreateDump.h" />
     <ClInclude Include="DlgRender.h" />
     <ClInclude Include="DlgVideo.h" />
     <ClInclude Include="EasyPlayer.h" />
@@ -108,6 +111,9 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CreateDump.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="DlgRender.cpp" />
     <ClCompile Include="DlgVideo.cpp" />
     <ClCompile Include="EasyPlayer.cpp" />

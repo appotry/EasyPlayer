@@ -1,9 +1,4 @@
-/*
-	Copyright (c) 2013-2015 EasyDarwin.ORG.  All rights reserved.
-	Github: https://github.com/EasyDarwin
-	WEChat: EasyDarwin
-	Website: http://www.easydarwin.org
-*/
+
 // EasyPlayerDlg.cpp : 实现文件
 //
 
@@ -12,12 +7,30 @@
 #include "EasyPlayerDlg.h"
 #include "afxdialogex.h"
 
+#include "CreateDump.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
 #include "../libEasyPlayer/libEasyPlayerAPI.h"
 #pragma comment(lib, "../Debug/libEasyPlayer.lib")
+
+
+
+//异常处理函数
+LONG CrashHandler_Player(EXCEPTION_POINTERS *pException)
+{
+	SYSTEMTIME	systemTime;
+	GetLocalTime(&systemTime);
+
+	wchar_t wszFile[MAX_PATH] = {0,};
+	wsprintf(wszFile, TEXT("Player%04d%02d%02d %02d%02d%02d.dmp"), systemTime.wYear, systemTime.wMonth, systemTime.wDay, systemTime.wHour, systemTime.wMinute, systemTime.wSecond);
+	CreateDumpFile(wszFile, pException);
+
+	return EXCEPTION_EXECUTE_HANDLER;		//返回值EXCEPTION_EXECUTE_HANDLER	EXCEPTION_CONTINUE_SEARCH	EXCEPTION_CONTINUE_EXECUTION
+}
+
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
@@ -61,6 +74,9 @@ CEasyPlayerDlg::CEasyPlayerDlg(CWnd* pParent /*=NULL*/)
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
 	InitialComponents();
+
+
+	SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)CrashHandler_Player);
 }
 
 void CEasyPlayerDlg::DoDataExchange(CDataExchange* pDX)
@@ -75,6 +91,7 @@ BEGIN_MESSAGE_MAP(CEasyPlayerDlg, CDialogEx)
 	ON_MESSAGE(WM_WINDOW_MAXIMIZED, OnWindowMaximized)
 	ON_CBN_SELCHANGE(IDC_COMBO_SPLIT_SCREEN, &CEasyPlayerDlg::OnCbnSelchangeComboSplitScreen)
 	ON_CBN_SELCHANGE(IDC_COMBO_RENDER_FORMAT, &CEasyPlayerDlg::OnCbnSelchangeComboRenderFormat)
+	ON_BN_CLICKED(IDC_CHECK_SHOWNTOSCALE, &CEasyPlayerDlg::OnBnClickedCheckShowntoscale)
 END_MESSAGE_MAP()
 
 
@@ -114,6 +131,32 @@ BOOL CEasyPlayerDlg::OnInitDialog()
 	MoveWindow(0, 0, 1200, 640);
 
 	CreateComponents();
+
+	if (NULL != pVideoWindow && NULL!=pVideoWindow->pDlgVideo)
+	{
+		FILE *f = fopen("rtsp.txt", "rb");
+		if (NULL != f)
+		{
+			int idx = 0;
+			char szURL[128] = {0,};
+			while (! feof(f) && idx+1<_SURV_MAX_WINDOW_NUM)
+			{
+				memset(szURL, 0x00, sizeof(szURL));
+				fgets(szURL, sizeof(szURL), f);
+
+				if (0 != strcmp(szURL, "\0"))
+				{
+					pVideoWindow->pDlgVideo[idx++].SetURL(szURL);
+				}
+			}
+		}
+
+#ifdef _DEBUG
+		pVideoWindow->pDlgVideo[0].SetURL("rtsp://121.15.129.227");
+#endif
+	}
+
+	OnCbnSelchangeComboRenderFormat();
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -193,8 +236,8 @@ void	CEasyPlayerDlg::InitialComponents()
 	pComboxSplitScreen	=	NULL;
 	pComboxRenderFormat	=	NULL;
 	pVideoWindow	=	NULL;
+	pChkShownToScale	=	NULL;
 	pStaticCopyright	=	NULL;
-	
 
 	RenderFormat	=	DISPLAY_FORMAT_RGB565;//RGB565
 	EasyPlayer_Init();
@@ -204,6 +247,10 @@ void	CEasyPlayerDlg::CreateComponents()
 {
 	__CREATE_WINDOW(pComboxSplitScreen, CComboBox,		IDC_COMBO_SPLIT_SCREEN);
 	__CREATE_WINDOW(pComboxRenderFormat, CComboBox,		IDC_COMBO_RENDER_FORMAT);
+	__CREATE_WINDOW(pChkShownToScale, CButton,		IDC_CHECK_SHOWNTOSCALE);
+	__CREATE_WINDOW(pStaticCopyright, CStatic,		IDC_STATIC_COPYRIGHT);
+
+	if (NULL != pChkShownToScale)		pChkShownToScale->SetWindowText(TEXT("按比例显示"));
 
 	if (NULL == pVideoWindow)
 	{
@@ -221,7 +268,6 @@ void	CEasyPlayerDlg::CreateComponents()
 			pVideoWindow->pDlgVideo[i].ShowWindow(SW_HIDE);
 		}
 	}
-	__CREATE_WINDOW(pStaticCopyright, CStatic,		IDC_STATIC_COPYRIGHT);
 
 	if (NULL != pComboxSplitScreen)
 	{
@@ -233,6 +279,7 @@ void	CEasyPlayerDlg::CreateComponents()
 	}
 	if (NULL != pComboxRenderFormat)
 	{
+		pComboxRenderFormat->AddString(TEXT("YV12"));
 		pComboxRenderFormat->AddString(TEXT("YUY2"));
 		pComboxRenderFormat->AddString(TEXT("RGB565"));
 		pComboxRenderFormat->AddString(TEXT("GDI"));
@@ -257,6 +304,10 @@ void	CEasyPlayerDlg::UpdateComponents()
 	CRect	rcRenderFormat;
 	rcRenderFormat.SetRect(rcSplitScreen.right+5, rcSplitScreen.top, rcSplitScreen.right+5+100, rcSplitScreen.bottom);
 	__MOVE_WINDOW(pComboxRenderFormat, rcRenderFormat);
+
+	CRect	rcShownToScale;
+	rcShownToScale.SetRect(rcRenderFormat.right+10, rcRenderFormat.top, rcRenderFormat.right+10+110, rcRenderFormat.top+30);
+	__MOVE_WINDOW(pChkShownToScale, rcShownToScale);
 
 	CRect	rcCopyright;
 	rcCopyright.SetRect(rcClient.right-200, rcSplitScreen.top+5, rcClient.right-2, rcClient.bottom);
@@ -515,7 +566,24 @@ void CEasyPlayerDlg::OnCbnSelchangeComboRenderFormat()
 	if (NULL == pComboxRenderFormat)		return;
 
 	int iIdx = pComboxRenderFormat->GetCurSel();
-	if (iIdx == 0)	RenderFormat	=	DISPLAY_FORMAT_YUY2;//YUY2
-	else if (iIdx == 1)	RenderFormat	=	DISPLAY_FORMAT_RGB565;//RGB565
-	else if (iIdx == 2)	RenderFormat	=	DISPLAY_FORMAT_RGB24_GDI;//GDI
+	if (iIdx == 0)	RenderFormat	=	DISPLAY_FORMAT_YV12;//YV12
+	else if (iIdx == 1)	RenderFormat	=	DISPLAY_FORMAT_YUY2;//YUY2
+	else if (iIdx == 2)	RenderFormat	=	DISPLAY_FORMAT_RGB565;//RGB565
+	else if (iIdx == 3)	RenderFormat	=	DISPLAY_FORMAT_RGB24_GDI;//GDI
+}
+
+
+void CEasyPlayerDlg::OnBnClickedCheckShowntoscale()
+{
+	//IDC_CHECK_SHOWNTOSCALE
+	if (NULL == pVideoWindow)					return;
+	if (NULL == pVideoWindow->pDlgVideo)		return;
+
+	static int shownToScale = 0x00;
+	shownToScale = (shownToScale==0x00?0x01:0x00);
+
+	for (int i=0; i<_SURV_MAX_WINDOW_NUM; i++)
+	{
+		pVideoWindow->pDlgVideo[i].SetShownToScale(shownToScale);
+	}
 }

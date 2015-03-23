@@ -1,9 +1,4 @@
-/*
-	Copyright (c) 2013-2015 EasyDarwin.ORG.  All rights reserved.
-	Github: https://github.com/EasyDarwin
-	WEChat: EasyDarwin
-	Website: http://www.easydarwin.org
-*/
+
 // stdafx.h : 标准系统包含文件的包含文件，
 // 或是经常使用但不常更改的
 // 特定于项目的包含文件
@@ -46,6 +41,7 @@
 
 
 #define	WM_WINDOW_MAXIMIZED		(WM_USER+2001)
+#define	WM_MANU_RECORDING		(WM_USER+2002)
 
 #define __CREATE_WINDOW(_x, _class, _id) {if (NULL == _x) {_x = (_class*)GetDlgItem(_id);}}
 #define __MOVE_WINDOW(x, _rect)	{if (NULL != x) {x->MoveWindow(&_rect);}}

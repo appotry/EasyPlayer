@@ -1,9 +1,4 @@
-/*
-	Copyright (c) 2013-2015 EasyDarwin.ORG.  All rights reserved.
-	Github: https://github.com/EasyDarwin
-	WEChat: EasyDarwin
-	Website: http://www.easydarwin.org
-*/
+
 // EasyPlayerDlg.h : 头文件
 //
 
@@ -34,6 +29,7 @@ public:
 	CComboBox		*pComboxSplitScreen;
 	CComboBox		*pComboxRenderFormat;	//IDC_COMBO_RENDER_FORMAT
 	VIDEO_NODE_T	*pVideoWindow;		//视频窗口
+	CButton			*pChkShownToScale;	//按比例显示
 	CStatic			*pStaticCopyright;	//IDC_STATIC_COPYRIGHT
 
 	void	InitialComponents();
@@ -65,4 +61,5 @@ public:
 	virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
 	afx_msg void OnCbnSelchangeComboSplitScreen();
 	afx_msg void OnCbnSelchangeComboRenderFormat();
+	afx_msg void OnBnClickedCheckShowntoscale();
 };

@@ -1,9 +1,3 @@
-/*
-	Copyright (c) 2013-2015 EasyDarwin.ORG.  All rights reserved.
-	Github: https://github.com/EasyDarwin
-	WEChat: EasyDarwin
-	Website: http://www.easydarwin.org
-*/
 #pragma once
 
 #include "libEasyPlayerAPI.h"
@@ -15,6 +9,12 @@
 #pragma comment(lib, "NVSource/NVSource.lib")
 #pragma comment(lib, "FFDecoder/FFDecoder.lib")
 #pragma comment(lib, "D3DRender/D3DRender.lib")
+
+extern "C"
+{
+#include "mp4creator\libmp4creator.h"
+//#pragma comment(lib, "libMp4Creator.lib")
+}
 
 #define		MAX_CHANNEL_NUM		64		//可以解码显示的最大通道数
 #define		MAX_DECODER_NUM		5		//一个播放线程中最大解码器个数
@@ -82,6 +82,7 @@ typedef struct __PLAY_THREAD_OBJ
 	DECODER_OBJ		decoderObj[MAX_DECODER_NUM];
 	D3D_HANDLE		d3dHandle;		//显示句柄
 	D3D_SUPPORT_FORMAT	renderFormat;	//显示格式
+	int				ShownToScale;		//按比例显示
 
 	unsigned int	rtpTimestamp;
 	LARGE_INTEGER	cpuFreq;		//cpu频率
@@ -91,6 +92,13 @@ typedef struct __PLAY_THREAD_OBJ
 	YUV_FRAME_INFO	yuvFrame[MAX_YUV_FRAME_NUM];
 	CRITICAL_SECTION	crit;
 	bool			resetD3d;		//是否需要重建d3dRender
+
+	char			manuRecordingFile[MAX_PATH];
+	int				manuRecording;
+	MP4C_Handler	mp4cHandle;
+	int				vidFrameNum;
+
+
 }PLAY_THREAD_OBJ;
 
 
@@ -117,14 +125,19 @@ public:
 	int		Initial();
 
 	//OpenStream 返回一个可用的通道ID
-	int		OpenStream(const char *url, HWND hWnd, RENDER_FORMAT renderFormat, const char *username, const char *password);
+	int		OpenStream(const char *url, HWND hWnd, RENDER_FORMAT renderFormat, int _rtpovertcp, const char *username, const char *password);
 	void	CloseStream(int channelId);
 	int		ShowStatisticalInfo(int channelId, int _show);
 	int		SetFrameCache(int channelId, int _cache);
+	int		SetShownToScale(int channelId, int ShownToScale);
 
 	//同一时间只支持一路声音播放
 	int		PlaySound(int channelId);
 	int		StopSound();
+
+
+	int		StartManuRecording(int channelId);
+	int		StopManuRecording(int channelId);
 
 
 	static LPTHREAD_START_ROUTINE __stdcall _lpDecodeThread( LPVOID _pParam );

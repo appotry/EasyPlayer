@@ -75,7 +75,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ChannelManager.h" />
+    <ClInclude Include="CreateDump.h" />
     <ClInclude Include="libEasyPlayerAPI.h" />
+    <ClInclude Include="mp4creator\libmp4creator.h" />
     <ClInclude Include="SoundPlayer.h" />
     <ClInclude Include="ssqueue.h" />
     <ClInclude Include="trace.h" />
@@ -83,12 +85,18 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChannelManager.cpp" />
+    <ClCompile Include="CreateDump.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="libEasyPlayerAPI.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SoundPlayer.cpp" />
     <ClCompile Include="ssqueue.cpp" />
     <ClCompile Include="trace.cpp" />
     <ClCompile Include="vstime.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="mp4creator\libMp4Creator.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

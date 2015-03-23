@@ -12,7 +12,7 @@ typedef enum
 {
 	D3D_FORMAT_YUY2		=	MAKEFOURCC('Y','U','Y','2'),	//844715353			-->decode output format:	PIX_FMT_YUYV422		1
 	D3D_FORMAT_YV12		=	MAKEFOURCC('Y','V','1','2'),	//842094169
-	D3D_FORMAT_UYVY		=	MAKEFOURCC('U', 'Y', 'V', 'Y'),	//1498831189		-->decode output format:	PIX_FMT_UYVY422		17
+	D3D_FORMAT_UYVY		=	MAKEFOURCC('U','Y','V','Y'),	//1498831189		-->decode output format:	PIX_FMT_UYVY422		17
 	D3D_FORMAT_A8R8G8B8	=	21,								//					-->decode output format:	PIX_FMT_BGRA		30
 	D3D_FORMAT_X8R8G8B8	=	22,								//					-->decode output format:	PIX_FMT_BGRA		30
 	D3D_FORMAT_RGB565	=	23,								//					-->decode output format:	PIX_FMT_RGB565LE	44
@@ -130,7 +130,13 @@ extern "C"
 	int	 D3DRENDER_API D3D_GetD3DErrCode(D3D_HANDLE handle);
 
 	//GDI显示
-	int	D3DRENDER_API  D3D_RenderRGB24ByGDI(HWND hWnd, char *pBuff, int width, int height, int OSDNum=0, D3D_OSD *_osd = NULL);
+	int	D3DRENDER_API  D3D_RenderRGB24ByGDI(HWND hWnd, char *pBuff, int width, int height, int ShownToScale, int OSDNum=0, D3D_OSD *_osd = NULL);
+
+	//GDI显示
+	int	D3DRENDER_API  RGB_InitDraw(D3D_HANDLE *handle);
+	int	D3DRENDER_API  RGB_DrawData(D3D_HANDLE handle, HWND hWnd, char *pBuff, int width, int height, int ShownToScale, COLORREF bkColor, int flip=0, int OSDNum=0, D3D_OSD *_osd = NULL);
+	int	D3DRENDER_API  RGB_DeinitDraw(D3D_HANDLE *handle);
+
 
 	//=====================================================
 	//初始化,申请资源
@@ -165,7 +171,7 @@ extern "C"
 
 
 	//Render (绘制到表面)
-	int D3DRENDER_API D3D_Render(D3D_HANDLE handle, HWND hWnd, LPRECT lpRect=NULL, int osdNum=0, D3D_OSD *d3dOsd=NULL);
+	int D3DRENDER_API D3D_Render(D3D_HANDLE handle, HWND hWnd, int ShownToScale, LPRECT lpRect=NULL, int osdNum=0, D3D_OSD *d3dOsd=NULL);
 
 
 	//获取自动跟踪的区域
