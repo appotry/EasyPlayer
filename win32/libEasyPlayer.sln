@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libEasyPlayer", "libEasyPlayer\libEasyPlayer.vcxproj", "{BC0300E0-E5D5-4A49-88B4-4E79DFF5F1CC}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EasyPlayer", "EasyPlayer\EasyPlayer.vcxproj", "{4890B410-FE84-4408-8D42-4B79BCA92552}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BC0300E0-E5D5-4A49-88B4-4E79DFF5F1CC} = {BC0300E0-E5D5-4A49-88B4-4E79DFF5F1CC}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
