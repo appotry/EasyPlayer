@@ -150,10 +150,6 @@ BOOL CEasyPlayerDlg::OnInitDialog()
 				}
 			}
 		}
-
-#ifdef _DEBUG
-		pVideoWindow->pDlgVideo[0].SetURL("rtsp://121.15.129.227");
-#endif
 	}
 
 	OnCbnSelchangeComboRenderFormat();

@@ -58,8 +58,8 @@ void CChannelManager::Release()
 		{
 			if (NULL != pRealtimePlayThread[i].nvsHandle)
 			{
-				NVS_CloseStream(pRealtimePlayThread[i].nvsHandle);
-				NVS_Deinit(&pRealtimePlayThread[i].nvsHandle);
+				EasyNVS_CloseStream(pRealtimePlayThread[i].nvsHandle);
+				EasyNVS_Deinit(&pRealtimePlayThread[i].nvsHandle);
 			}
 
 			ClosePlayThread(&pRealtimePlayThread[i]);
@@ -102,13 +102,13 @@ int	CChannelManager::OpenStream(const char *url, HWND hWnd, RENDER_FORMAT render
 
 		if (iNvsIdx == -1)		break;
 
-		NVS_Init(&pRealtimePlayThread[iNvsIdx].nvsHandle);
+		EasyNVS_Init(&pRealtimePlayThread[iNvsIdx].nvsHandle);
 		if (NULL == pRealtimePlayThread[iNvsIdx].nvsHandle)		break;	//退出while循环
 
 		unsigned int mediaType = MEDIA_TYPE_VIDEO;
 		mediaType |= MEDIA_TYPE_AUDIO;		//换为NVSource, 屏蔽声音
-		NVS_SetCallback(pRealtimePlayThread[iNvsIdx].nvsHandle, __NVSourceCallBack);
-		NVS_OpenStream(pRealtimePlayThread[iNvsIdx].nvsHandle, iNvsIdx, (char*)url, _rtpovertcp==0x01?RTP_OVER_TCP:RTP_OVER_UDP, mediaType, (char*)username, (char*)password, (int*)&pRealtimePlayThread[iNvsIdx], 1000, 0);
+		EasyNVS_SetCallback(pRealtimePlayThread[iNvsIdx].nvsHandle, __NVSourceCallBack);
+		EasyNVS_OpenStream(pRealtimePlayThread[iNvsIdx].nvsHandle, iNvsIdx, (char*)url, _rtpovertcp==0x01?RTP_OVER_TCP:RTP_OVER_UDP, mediaType, (char*)username, (char*)password, (int*)&pRealtimePlayThread[iNvsIdx], 1000, 0);
 
 		pRealtimePlayThread[iNvsIdx].hWnd = hWnd;
 		pRealtimePlayThread[iNvsIdx].renderFormat = (D3D_SUPPORT_FORMAT)renderFormat;
@@ -131,8 +131,8 @@ void CChannelManager::CloseStream(int channelId)
 	EnterCriticalSection(&crit);
 
 	//关闭rtsp client
-	NVS_CloseStream(pRealtimePlayThread[iNvsIdx].nvsHandle);
-	NVS_Deinit(&pRealtimePlayThread[iNvsIdx].nvsHandle);
+	EasyNVS_CloseStream(pRealtimePlayThread[iNvsIdx].nvsHandle);
+	EasyNVS_Deinit(&pRealtimePlayThread[iNvsIdx].nvsHandle);
 	//关闭播放线程
 	ClosePlayThread(&pRealtimePlayThread[iNvsIdx]);
 

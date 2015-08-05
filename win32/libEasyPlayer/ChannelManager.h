@@ -1,12 +1,13 @@
 #pragma once
 
 #include "libEasyPlayerAPI.h"
-#include "NVSource\NVSourceAPI.h"
+#include "NVSource\EasyNVSourceAPI.h"
 #include "FFDecoder\FFDecoderAPI.h"
 #include "D3DRender\D3DRenderAPI.h"
 #include "SoundPlayer.h"
 #include "ssqueue.h"
-#pragma comment(lib, "NVSource/NVSource.lib")
+
+#pragma comment(lib, "NVSource/libEasyNVSource.lib")
 #pragma comment(lib, "FFDecoder/FFDecoder.lib")
 #pragma comment(lib, "D3DRender/D3DRender.lib")
 
@@ -63,7 +64,7 @@ typedef struct __PLAY_THREAD_OBJ
 	THREAD_OBJ		displayThread;		//显示线程
 
 
-	NVS_HANDLE		nvsHandle;
+	Easy_NVS_Handle	nvsHandle;
 	HWND			hWnd;				//显示视频的窗口句柄
 	int				channelId;			//通道号
 	int				showStatisticalInfo;//显示统计信息
