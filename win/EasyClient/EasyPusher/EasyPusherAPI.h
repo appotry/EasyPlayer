@@ -7,8 +7,7 @@
 #ifndef __EasyPusher_H__
 #define __EasyPusher_H__
 
-//#include "EasyTypes.h"
-#include "../../libEasyPlayer/RtspClient/EasyTypes.h"
+#include "EasyTypes.h"
 
 typedef struct __EASY_AV_Frame
 {
