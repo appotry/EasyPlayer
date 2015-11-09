@@ -1,4 +1,9 @@
-
+/*
+	Copyright (c) 2013-2014 EasyDarwin.ORG.  All rights reserved.
+	Github: https://github.com/EasyDarwin
+	WEChat: EasyDarwin
+	Website: http://www.EasyDarwin.org
+*/
 // EasyDarwin推送和接收源端的管理类 [11/8/2015 Dingshuai]
 // Add by SwordTwelve
 
@@ -91,9 +96,9 @@ private:
 	CEasyClientDlg* m_pMainDlg;
 	CDirectSound	m_audioCapture;
 	CCameraDS		m_videoCamera;
-	//接收网络Rtsp流进行推流
+	//接收网络RTSP流进行推流
 	EasyPlayerManager m_netStreamCapture;
-	//接收EasyDarwin推出的Rtsp流进行播放
+	//接收EasyDarwin推出的RTSP流进行播放
 	EasyPlayerManager m_netStreamPlayer;
 
 	EASY_MEDIA_INFO_T   m_mediainfo;

@@ -1,4 +1,9 @@
-
+/*
+	Copyright (c) 2013-2014 EasyDarwin.ORG.  All rights reserved.
+	Github: https://github.com/EasyDarwin
+	WEChat: EasyDarwin
+	Website: http://www.EasyDarwin.org
+*/
 // EasyClientDlg.cpp : implementation file
 //
 
@@ -93,7 +98,7 @@ BOOL CEasyClientDlg::OnInitDialog()
 	if (pSouceCombo)
 	{
 		pSouceCombo->AddString(_T("本地音视频采集"));
-		pSouceCombo->AddString(_T("网络Rtsp流采集"));
+		pSouceCombo->AddString(_T("网络RTSP流采集"));
 		pSouceCombo->AddString(_T("网络Onvif流采集"));
 		pSouceCombo->SetCurSel(0);
 	}

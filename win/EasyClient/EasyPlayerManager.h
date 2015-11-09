@@ -1,5 +1,10 @@
-
-// Rtsp流接收(播放)管理类，接收音视频流 [11/8/2015 Dingshuai]
+/*
+	Copyright (c) 2013-2014 EasyDarwin.ORG.  All rights reserved.
+	Github: https://github.com/EasyDarwin
+	WEChat: EasyDarwin
+	Website: http://www.EasyDarwin.org
+*/
+// RTSP流接收(播放)管理类，接收音视频流 [11/8/2015 Dingshuai]
 // Add by SwordTwelve
 
 #pragma once

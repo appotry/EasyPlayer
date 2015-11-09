@@ -1,4 +1,9 @@
-
+/*
+	Copyright (c) 2013-2014 EasyDarwin.ORG.  All rights reserved.
+	Github: https://github.com/EasyDarwin
+	WEChat: EasyDarwin
+	Website: http://www.EasyDarwin.org
+*/
 // EasyClient.cpp : Defines the class behaviors for the application.
 //
 
@@ -63,7 +68,7 @@ BOOL CEasyClientApp::InitInstance()
 	// Change the registry key under which our settings are stored
 	// TODO: You should modify this string to be something appropriate
 	// such as the name of your company or organization
-	SetRegistryKey(_T("Easy Camera"));
+	SetRegistryKey(_T("Easy Client"));
 
 
 	CEasyClientDlg dlg;
