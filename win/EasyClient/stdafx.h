@@ -23,8 +23,6 @@
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
 
-
-
 #ifndef _AFX_NO_OLE_SUPPORT
 #include <afxdtctl.h>           // MFC support for Internet Explorer 4 Common Controls
 #endif
@@ -32,9 +30,9 @@
 #include <afxcmn.h>             // MFC support for Windows Common Controls
 #endif // _AFX_NO_AFXCMN_SUPPORT
 
-<<<<<<< HEAD
 #include <afxcontrolbars.h>     // MFC support for ribbons and control bars
-
+//#include <afxcontrolbars.h> // MFC support for ribbons and control bars
+//#define CWinAppEx CWinApp
 
 #define	VIDEO_WINDOW_BORDER_WIDTH	3
 
@@ -45,10 +43,6 @@
 bool __WCharToMByte(LPCWSTR lpcwszStr, LPSTR lpszStr, DWORD dwSize);
 bool __MByteToWChar(LPCSTR lpcszStr, LPWSTR lpwszStr, DWORD dwSize);
 
-=======
-//#include <afxcontrolbars.h> // MFC support for ribbons and control bars
-#define CWinAppEx CWinApp
->>>>>>> df8a7330224cac3307df9716c34f8b81ae944af4
 
 #define	WM_UPDATE_LOCAL_VIDEO		(WM_USER+6001)
 #ifdef _UNICODE
