@@ -1,32 +1,33 @@
 
-// EasyClient.h : PROJECT_NAME 应用程序的主头文件
+// EasyClient.h : main header file for the PROJECT_NAME application
 //
 
 #pragma once
 
 #ifndef __AFXWIN_H__
-	#error "在包含此文件之前包含“stdafx.h”以生成 PCH 文件"
+	#error "include 'stdafx.h' before including this file for PCH"
 #endif
 
-#include "resource.h"		// 主符号
+#include "resource.h"		// main symbols
 
 
 // CEasyClientApp:
-// 有关此类的实现，请参阅 EasyClient.cpp
+// See EasyClient.cpp for the implementation of this class
 //
 
-class CEasyClientApp : public CWinAppEx
+class CEasyClientApp : public CWinApp
 {
 public:
 	CEasyClientApp();
 
-// 重写
-	public:
+// Overrides
+public:
 	virtual BOOL InitInstance();
 
-// 实现
+// Implementation
 
 	DECLARE_MESSAGE_MAP()
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 };
 
 extern CEasyClientApp theApp;

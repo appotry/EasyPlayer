@@ -1,147 +1,133 @@
 
-// EasyClientDlg.cpp : 实现文件
+// EasyClientDlg.cpp : implementation file
 //
 
 #include "stdafx.h"
 #include "EasyClient.h"
 #include "EasyClientDlg.h"
+#include "afxdialogex.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
-
-// 用于应用程序“关于”菜单项的 CAboutDlg 对话框
-
-class CAboutDlg : public CDialog
-{
-public:
-	CAboutDlg();
-
-// 对话框数据
-	enum { IDD = IDD_ABOUTBOX };
-
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
-
-// 实现
-protected:
-	DECLARE_MESSAGE_MAP()
-};
-
-CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
-{
-}
-
-void CAboutDlg::DoDataExchange(CDataExchange* pDX)
-{
-	CDialog::DoDataExchange(pDX);
-}
-
-BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
-END_MESSAGE_MAP()
-
-
-// CEasyClientDlg 对话框
-
-
-
+// CEasyClientDlg dialog
 
 CEasyClientDlg::CEasyClientDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CEasyClientDlg::IDD, pParent)
+	: CDialogEx(CEasyClientDlg::IDD, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
-	m_pMaster = NULL;
+
+	memset(&easyVideoPanelObj, 0x00, sizeof(EASY_VIDEO_PANEL_OBJ_T));
+	m_pManager = NULL;
 }
 
 void CEasyClientDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX);
 }
 
-BEGIN_MESSAGE_MAP(CEasyClientDlg, CDialog)
-	ON_WM_SYSCOMMAND()
+BEGIN_MESSAGE_MAP(CEasyClientDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-	//}}AFX_MSG_MAP
-	ON_BN_CLICKED(IDC_BUTTON_START, &CEasyClientDlg::OnBnClickedButtonStart)
-	ON_BN_CLICKED(IDC_BUTTON_STOP, &CEasyClientDlg::OnBnClickedButtonStop)
-	ON_WM_DESTROY()
+	ON_CBN_SELCHANGE(IDC_COMBO_SOURCE, &CEasyClientDlg::OnCbnSelchangeComboSource)
+	ON_BN_CLICKED(IDC_BTN_CAPTURE, &CEasyClientDlg::OnBnClickedBtnCapture)
+	ON_BN_CLICKED(IDC_BTN_PUSH, &CEasyClientDlg::OnBnClickedBtnPush)
+	ON_BN_CLICKED(IDC_BTN_PLAY, &CEasyClientDlg::OnBnClickedBtnPlay)
+	ON_MESSAGE(MSG_LOG, &CEasyClientDlg::OnLog)
 END_MESSAGE_MAP()
 
 
-// CEasyClientDlg 消息处理程序
+// CEasyClientDlg message handlers
 
 BOOL CEasyClientDlg::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+	CDialogEx::OnInitDialog();
 
-	// 将“关于...”菜单项添加到系统菜单中。
+	// Set the icon for this dialog.  The framework does this automatically
+	//  when the application's main window is not a dialog
+	SetIcon(m_hIcon, TRUE);			// Set big icon
+	SetIcon(m_hIcon, FALSE);		// Set small icon
 
-	// IDM_ABOUTBOX 必须在系统命令范围内。
-	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
-	ASSERT(IDM_ABOUTBOX < 0xF000);
+	// TODO: Add extra initialization here
 
-	CMenu* pSysMenu = GetSystemMenu(FALSE);
-	if (pSysMenu != NULL)
+	easyVideoPanelObj.pDlgLocalPanel = new CDlgLocalPanel();
+	easyVideoPanelObj.pDlgLocalPanel->Create(IDD_DIALOG_LOCAL_PANEL, this);
+	easyVideoPanelObj.pDlgLocalPanel->ShowWindow(SW_SHOW);
+
+	easyVideoPanelObj.pDlgRemotePanel = new CDlgRemotePanel();
+	easyVideoPanelObj.pDlgRemotePanel->Create(IDD_DIALOG_REMOTE_PANEL, this);
+	easyVideoPanelObj.pDlgRemotePanel->ShowWindow(SW_SHOW);
+
+	m_pManager = CSourceManager::Instance();
+	m_pManager->SetMainDlg(this);
+	CWnd* pVideoCombo = GetDlgItem(IDC_COMBO_CAMERA) ;
+	CWnd* pAudioCombo = GetDlgItem(IDC_COMBO_MIC) ;
+	CEdit* pRtspURL = (CEdit*)GetDlgItem(IDC_EDIT_SREAM_URL);
+
+	if (NULL != pRtspURL)
 	{
-		BOOL bNameValid;
-		CString strAboutMenu;
-		bNameValid = strAboutMenu.LoadString(IDS_ABOUTBOX);
-		ASSERT(bNameValid);
-		if (!strAboutMenu.IsEmpty())
-		{
-			pSysMenu->AppendMenu(MF_SEPARATOR);
-			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
-		}
+		pRtspURL->SetWindowTextW(TEXT("127.0.0.1:554/stream.sdp"));
 	}
-
-	// 设置此对话框的图标。当应用程序主窗口不是对话框时，框架将自动
-	//  执行此操作
-	SetIcon(m_hIcon, TRUE);			// 设置大图标
-	SetIcon(m_hIcon, FALSE);		// 设置小图标
-
-	// TODO: 在此添加额外的初始化代码
-	if(!m_pMaster)
+	CEdit* pIP = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_IP);
+	if (pIP)
 	{
-		m_pMaster = CMaster::Instance(this);
+		pIP->SetWindowTextW(TEXT("127.0.0.1"));
 	}
-
-	HWND hShowWnd[1];
-	hShowWnd[0] = GetDlgItem(IDC_STATIC_SHOWVIDEO)->GetSafeHwnd();
-
-	m_pMaster->InitDSCapture();
-	m_pMaster->StartDSCapture(hShowWnd, 1);
-
-	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
-}
-
-void CEasyClientDlg::OnSysCommand(UINT nID, LPARAM lParam)
-{
-	if ((nID & 0xFFF0) == IDM_ABOUTBOX)
+	CEdit* pPort = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_PORT);
+	if (pPort)
 	{
-		CAboutDlg dlgAbout;
-		dlgAbout.DoModal();
+		pPort->SetWindowTextW(TEXT("554"));
 	}
+	CEdit* pName = (CEdit*)GetDlgItem(IDC_EDIT_PUSH_NAME);
+	if (pName)
+	{
+		pName->SetWindowTextW(TEXT("stream.sdp"));
+	}
+	
+	if (m_pManager)
+	{
+		m_pManager->EnumLocalAVDevInfo(pVideoCombo, pAudioCombo);
+	}
+	CComboBox* pSouceCombo = (CComboBox*)GetDlgItem(IDC_COMBO_SOURCE);
+	if (pSouceCombo)
+	{
+		pSouceCombo->AddString(_T("本地音视频采集"));
+		pSouceCombo->AddString(_T("网络Rtsp流采集"));
+		pSouceCombo->AddString(_T("网络Onvif流采集"));
+		pSouceCombo->SetCurSel(0);
+	}
+	int nSel  = 	pSouceCombo->GetCurSel();
+	if (nSel == 0)
+	{
+		pVideoCombo->EnableWindow(TRUE);
+		pAudioCombo->EnableWindow(TRUE);
+		pRtspURL->SetReadOnly(TRUE);
+	} 
 	else
 	{
-		CDialog::OnSysCommand(nID, lParam);
+		pVideoCombo->EnableWindow(FALSE);
+		pAudioCombo->EnableWindow(FALSE);
+		pRtspURL->SetReadOnly(FALSE);
 	}
+	MoveWindow(0, 0, 954, 780);
+
+	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
-// 如果向对话框添加最小化按钮，则需要下面的代码
-//  来绘制该图标。对于使用文档/视图模型的 MFC 应用程序，
-//  这将由框架自动完成。
+// If you add a minimize button to your dialog, you will need the code below
+//  to draw the icon.  For MFC applications using the document/view model,
+//  this is automatically done for you by the framework.
 
 void CEasyClientDlg::OnPaint()
 {
 	if (IsIconic())
 	{
-		CPaintDC dc(this); // 用于绘制的设备上下文
+		CPaintDC dc(this); // device context for painting
 
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
-		// 使图标在工作区矩形中居中
+		// Center icon in client rectangle
 		int cxIcon = GetSystemMetrics(SM_CXICON);
 		int cyIcon = GetSystemMetrics(SM_CYICON);
 		CRect rect;
@@ -149,47 +135,305 @@ void CEasyClientDlg::OnPaint()
 		int x = (rect.Width() - cxIcon + 1) / 2;
 		int y = (rect.Height() - cyIcon + 1) / 2;
 
-		// 绘制图标
+		// Draw the icon
 		dc.DrawIcon(x, y, m_hIcon);
 	}
 	else
 	{
-		CDialog::OnPaint();
+		CDialogEx::OnPaint();
 	}
 }
 
-//当用户拖动最小化窗口时系统调用此函数取得光标
-//显示。
+// The system calls this function to obtain the cursor to display while the user drags
+//  the minimized window.
 HCURSOR CEasyClientDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-
-void CEasyClientDlg::OnBnClickedButtonStart()
+LRESULT CEasyClientDlg::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-	// TODO: Add your control notification handler code here
-	if (m_pMaster)
+	if (WM_PAINT == message || WM_SIZE == message || WM_MOVE == message)
 	{
-		m_pMaster->InitEncoderAndPusher();
+		UpdateComponents();
+	}
+
+	return CDialogEx::WindowProc(message, wParam, lParam);
+}
+void	CEasyClientDlg::UpdateComponents()
+{
+	CRect	rcClient;
+	GetClientRect(&rcClient);
+	if (rcClient.IsRectEmpty())		return;
+
+	int iPanelWidth = ((rcClient.Width()) / 2);
+
+	CRect	rcLocalPanel;
+	rcLocalPanel.SetRect(rcClient.left, rcClient.top+60, rcClient.left+iPanelWidth, rcClient.bottom-280);
+	__MOVE_WINDOW(easyVideoPanelObj.pDlgLocalPanel, rcLocalPanel);
+
+	CRect	rcRemotePanel;
+	rcRemotePanel.SetRect(rcLocalPanel.right, rcLocalPanel.top, rcClient.right, rcLocalPanel.bottom);
+	__MOVE_WINDOW(easyVideoPanelObj.pDlgRemotePanel, rcRemotePanel);
+}
+
+
+BOOL CEasyClientDlg::DestroyWindow()
+{
+// 	EasyPlayer_Release();
+
+	if (m_pManager)
+	{
+		m_pManager->UnInstance();
+		m_pManager = NULL;
+	}
+	__DESTROY_WINDOW(easyVideoPanelObj.pDlgLocalPanel);
+	__DESTROY_WINDOW(easyVideoPanelObj.pDlgRemotePanel);
+
+	return CDialogEx::DestroyWindow();
+}
+
+
+void CEasyClientDlg::OnCbnSelchangeComboSource()
+{
+	CComboBox* pComboxMediaSource = (CComboBox*)GetDlgItem(IDC_COMBO_SOURCE);
+	CComboBox* pVideoCombo = (CComboBox*)GetDlgItem(IDC_COMBO_CAMERA) ;
+	CComboBox* pComboxAudioSource = (CComboBox*)GetDlgItem(IDC_COMBO_MIC) ;
+	CEdit* pEdtRtspSource = (CEdit*)GetDlgItem(IDC_EDIT_SREAM_URL);
+
+	if (NULL == pComboxMediaSource)		return;
+
+	int iCount = pComboxMediaSource->GetCount();
+	int iSel = pComboxMediaSource->GetCurSel();
+	if (iSel == 0)
+	{
+		pVideoCombo->EnableWindow(TRUE);
+		pComboxAudioSource->EnableWindow(TRUE);
+		pEdtRtspSource->SetReadOnly(TRUE);
+	} 
+	else
+	{
+		pVideoCombo->EnableWindow(FALSE);
+		pComboxAudioSource->EnableWindow(FALSE);
+		pEdtRtspSource->SetReadOnly(FALSE);
+	}
+
+// 	if (NULL != pComboxAudioSource)	pComboxAudioSource->ShowWindow(iSel == iCount-1?SW_HIDE:SW_SHOW);
+// 	if (NULL != pEdtRtspSource)	pEdtRtspSource->ShowWindow(iSel == iCount-1?SW_SHOW:SW_HIDE);
+// 
+}
+
+
+void CEasyClientDlg::OnBnClickedBtnCapture()
+{
+	if (m_pManager)
+	{
+		CWnd* pCapWnd = easyVideoPanelObj.pDlgLocalPanel->GetDlgVideoHwnd();
+		BOOL bInCap = m_pManager->IsInCapture();
+		CButton* pBtnStartCapture = (CButton*)GetDlgItem(IDC_BTN_CAPTURE) ;
+		if (!bInCap)
+		{
+			CComboBox* pComboxMediaSource = (CComboBox*)GetDlgItem(IDC_COMBO_SOURCE);
+			CComboBox* pVideoCombo = (CComboBox*)GetDlgItem(IDC_COMBO_CAMERA) ;
+			CEdit* pEdtRtspSource = (CEdit*)GetDlgItem(IDC_EDIT_SREAM_URL);
+
+			SOURCE_TYPE eType = (SOURCE_TYPE)pComboxMediaSource->GetCurSel();
+			int nCamId = 0;
+			char szURL[128] = {0,};
+			CString strTemp = _T("");
+			if (eType == SOURCE_LOCAL_CAMERA)
+			{
+				nCamId = pVideoCombo->GetCurSel();
+				strTemp = _T("本地音视频采集");
+			} 
+			else
+			{
+				//Start
+				wchar_t wszURL[128] = {0,};
+				if (NULL != pEdtRtspSource)
+					pEdtRtspSource->GetWindowTextW(wszURL, sizeof(wszURL));
+				if (wcslen(wszURL) < 1)		return;
+
+				CString strURL = wszURL;
+				CString strRTSP = strURL.Mid(0,4);
+				if (strRTSP!=_T("rtsp")&&strRTSP!=_T("RTSP"))
+				{
+					strURL = _T("rtsp://")+strURL;
+				}
+				
+				__WCharToMByte(strURL, szURL, sizeof(szURL)/sizeof(szURL[0]));
+				strTemp = _T("网络音视频流采集");
+
+			}
+			int nRet = m_pManager->StartCapture( eType,  nCamId, pCapWnd->GetSafeHwnd(), szURL);
+			if (nRet>0)
+			{
+				strTemp +=_T("成功！"); 
+			} 
+			else
+			{
+				strTemp +=_T("失败！"); 
+			}
+			m_pManager->LogErr(strTemp);
+			if (NULL != pBtnStartCapture)		pBtnStartCapture->SetWindowText(TEXT("Stop"));
+
+		}
+		else
+		{
+			m_pManager->StopCapture();
+			if (NULL != pBtnStartCapture)		pBtnStartCapture->SetWindowText(TEXT("本地预览"));
+			m_pManager->LogErr(_T("本地预览停止"));
+
+			pCapWnd->Invalidate();	
+		}
 	}
 }
 
-void CEasyClientDlg::OnBnClickedButtonStop()
+
+void CEasyClientDlg::OnBnClickedBtnPush()
 {
-	if (m_pMaster)
+	if (m_pManager)
 	{
-		m_pMaster->UnInitEncoderAndPusher();
+		BOOL bInPush = m_pManager->IsInPushing();
+		CEdit* pIP = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_IP);
+		CEdit* pPort = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_PORT);
+		CEdit* pName = (CEdit*)GetDlgItem(IDC_EDIT_PUSH_NAME);
+		
+		CButton* pBtnStartPush = (CButton*)GetDlgItem(IDC_BTN_PUSH) ;
+		if (!bInPush)
+		{
+			char szIp[128] = {0,};
+			char szPort[128] = {0,};
+			char szName[128] = {0,};
+			wchar_t wszIp[128] = {0,};
+			wchar_t wszPort[128] = {0,};
+			wchar_t wszName[128] = {0,};
+			if (NULL != pIP)	
+				pIP->GetWindowTextW(wszIp, sizeof(wszIp));
+			if (wcslen(wszIp) < 1)		
+				return;
+			__WCharToMByte(wszIp, szIp, sizeof(szIp)/sizeof(szIp[0]));
+
+			if (NULL != pPort)	
+				pPort->GetWindowTextW(wszPort, sizeof(wszPort));
+			if (wcslen(wszPort) < 1)		
+				return;
+			__WCharToMByte(wszPort, szPort, sizeof(szPort)/sizeof(szPort[0]));
+			int nPort = atoi(szPort);
+
+			if (NULL != pName)	
+				pName->GetWindowTextW(wszName, sizeof(wszName));
+			if (wcslen(wszName) < 1)		
+				return;
+			__WCharToMByte(wszName, szName, sizeof(szName)/sizeof(szName[0]));
+			
+			int nRet = m_pManager->StartPush(szIp , nPort,  szName);
+			CString strMsg = _T("");
+			if (nRet>=0)
+			{
+				strMsg.Format(_T("推送EasyDarwin服务器URL：rtsp://%s:%d/%s 成功！"), wszIp, nPort, wszName);
+				if (NULL != pBtnStartPush)		pBtnStartPush->SetWindowText(TEXT("Stop"));
+			} 
+			else
+			{
+				strMsg.Format(_T("推送EasyDarwin服务器URL：rtsp://%s:%d/%s 失败！"), wszIp, nPort, wszName);
+
+			}
+			m_pManager->LogErr(strMsg);
+	
+		}
+		else
+		{
+			m_pManager->LogErr(_T("停止推送！"));
+			m_pManager->StopPush();
+			if (NULL != pBtnStartPush)		pBtnStartPush->SetWindowText(TEXT("推送->"));
+		}
+	}
+
+}
+
+void CEasyClientDlg::OnBnClickedBtnPlay()
+{
+	if (m_pManager)
+	{
+		CWnd* pPlayWnd = easyVideoPanelObj.pDlgRemotePanel->GetDlgVideo();
+		CEdit* pIP = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_IP);
+		CEdit* pPort = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_PORT);
+		CEdit* pName = (CEdit*)GetDlgItem(IDC_EDIT_PUSH_NAME);
+		CWnd* pCapWnd = easyVideoPanelObj.pDlgLocalPanel->GetDlgVideoHwnd();
+		BOOL bInPlay = m_pManager->IsInPlaying();
+		CButton* pBtnStartPlay= (CButton*)GetDlgItem(IDC_BTN_PLAY) ;
+		if (!bInPlay)
+		{
+			char szIp[128] = {0,};
+			char szPort[128] = {0,};
+			char szName[128] = {0,};
+			wchar_t wszIp[128] = {0,};
+			wchar_t wszPort[128] = {0,};
+			wchar_t wszName[128] = {0,};
+			if (NULL != pIP)	
+				pIP->GetWindowTextW(wszIp, sizeof(wszIp));
+			if (wcslen(wszIp) < 1)		
+				return;
+			__WCharToMByte(wszIp, szIp, sizeof(szIp)/sizeof(szIp[0]));
+
+			if (NULL != pPort)	
+				pPort->GetWindowTextW(wszPort, sizeof(wszPort));
+			if (wcslen(wszPort) < 1)		
+				return;
+			__WCharToMByte(wszPort, szPort, sizeof(szPort)/sizeof(szPort[0]));
+			int nPort = atoi(szPort);
+
+			if (NULL != pName)	
+				pName->GetWindowTextW(wszName, sizeof(wszName));
+			if (wcslen(wszName) < 1)		
+				return;
+			__WCharToMByte(wszName, szName, sizeof(szName)/sizeof(szName[0]));
+
+			char szURL[128]= {0,};
+			sprintf(szURL, "rtsp://%s:%d/%s", szIp,  nPort, szName );
+			int nRet = m_pManager->StartPlay(szURL, pPlayWnd->GetSafeHwnd());
+			if (NULL != pBtnStartPlay)		pBtnStartPlay->SetWindowText(TEXT("Stop"));
+			CString strMsg = _T("");
+			if (nRet>0)
+			{
+				strMsg.Format(_T("直播预览URL：rtsp://%s:%d/%s 成功！"), wszIp, nPort, wszName);
+			} 
+			else
+			{
+				strMsg.Format(_T("直播预览URL：rtsp://%s:%d/%s 失败！"), wszIp, nPort, wszName);
+
+			}
+			m_pManager->LogErr(strMsg);
+		}
+		else
+		{
+			m_pManager->StopPlay();
+			if (NULL != pBtnStartPlay)		pBtnStartPlay->SetWindowText(TEXT("直播预览"));
+			pPlayWnd->Invalidate();	
+			m_pManager->LogErr(_T("停止直播"));
+		}
 	}
 }
 
-void CEasyClientDlg::OnDestroy()
+LRESULT CEasyClientDlg::OnLog(WPARAM wParam, LPARAM lParam)
 {
-	CDialog::OnDestroy();
-	if (m_pMaster)
+	CEdit* pLog = (CEdit*)GetDlgItem(IDC_EDIT_SHOWLOG);
+	if (pLog)
 	{
-		m_pMaster->UnInstance();
-		m_pMaster = NULL;
+		CString strLog = (TCHAR*)lParam;
+		CString strTime = _T("");
+		CTime CurrentTime=CTime::GetCurrentTime(); 
+		strTime.Format(_T("%04d/%02d/%02d %02d:%02d:%02d   "),CurrentTime.GetYear(),CurrentTime.GetMonth(),
+			CurrentTime.GetDay(),CurrentTime.GetHour(),  CurrentTime.GetMinute(),
+			CurrentTime.GetSecond());
+		strLog = strTime + strLog + _T("\r\n");
+		int nLength  =  pLog->SendMessage(WM_GETTEXTLENGTH);  
+		pLog->SetSel(nLength,  nLength);  
+		pLog->ReplaceSel(strLog); 
+
 	}
-	// TODO: Add your message handler code here
+
+	return 0;
 }
+

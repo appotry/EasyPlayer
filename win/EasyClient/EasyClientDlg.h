@@ -1,40 +1,67 @@
 
-// EasyClientDlg.h : 头文件
+// EasyClientDlg.h : header file
 //
 
 #pragma once
-#include "Resource.h"
-#include "Master.h"
 
+#include "DlgLocalPanel.h"
+#include "DlgRemotePanel.h"
+#include "DlgPanel.h"
+#include "SourceManager.h"
 
-// CEasyClientDlg 对话框
-class CEasyClientDlg : public CDialog
+typedef struct __EASY_VIDEO_PANEL_OBJ_T
 {
-// 构造
-public:
-	CEasyClientDlg(CWnd* pParent = NULL);	// 标准构造函数
+	CDlgLocalPanel	*pDlgLocalPanel;
+	CDlgRemotePanel	*pDlgRemotePanel;
 
-// 对话框数据
+	//CDlgPanel	*pDlgLocalPanel;
+	//CDlgPanel	*pDlgRemotePanel;
+}EASY_VIDEO_PANEL_OBJ_T;
+
+#define MSG_LOG WM_USER +0x1001
+
+// CEasyClientDlg dialog
+class CEasyClientDlg : public CDialogEx
+{
+// Construction
+public:
+	CEasyClientDlg(CWnd* pParent = NULL);	// standard constructor
+
+
+
+// Dialog Data
 	enum { IDD = IDD_EASYCLIENT_DIALOG };
 
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
 
-// 实现
+
+	protected:
+	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
+
+
+protected:
+	EASY_VIDEO_PANEL_OBJ_T		easyVideoPanelObj;
+	void		UpdateComponents();
+
+// Implementation
 protected:
 	HICON m_hIcon;
 
-	// 生成的消息映射函数
+	// Generated message map functions
 	virtual BOOL OnInitDialog();
-	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+	virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
+public:
+	virtual BOOL DestroyWindow();
 
 private:
-	CMaster* m_pMaster;
+	CSourceManager* m_pManager;
 public:
-	afx_msg void OnBnClickedButtonStart();
-	afx_msg void OnBnClickedButtonStop();
-	afx_msg void OnDestroy();
+	afx_msg void OnCbnSelchangeComboSource();
+	afx_msg void OnBnClickedBtnCapture();
+	afx_msg void OnBnClickedBtnPush();
+	afx_msg void OnBnClickedBtnPlay();
+	LRESULT OnLog(WPARAM wParam, LPARAM lParam);
+
 };

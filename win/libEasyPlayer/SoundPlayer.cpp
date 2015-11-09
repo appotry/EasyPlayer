@@ -225,6 +225,9 @@ int	CSoundPlayer::Write(char *pbuf, int bufsize)//, unsigned int _timestamp)
 				soundObj.sleeptimes = uiSleepTimeMin;
 			}
 		}
+
+		soundObj.sleeptimes = 64;
+
 	}
 	
 	soundObj.pWaveHdr[idx].dwUser = soundObj.sleeptimes;

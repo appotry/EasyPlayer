@@ -74,6 +74,7 @@ typedef int Easy_Error;
 #define EASY_SDK_RTP_FRAME_FLAG		0x00000008		/* RTP帧标志 */
 #define EASY_SDK_SDP_FRAME_FLAG		0x00000010		/* SDP帧标志 */
 #define EASY_SDK_MEDIA_INFO_FLAG	0x00000020		/* 媒体类型标志*/
+#define	EASY_SDK_VIDEO_RAW_RGB		0x00000040
 
 /* 视频关键字标识 */
 #define EASY_SDK_VIDEO_FRAME_I		0x01		/* I帧 */

@@ -1,5 +1,5 @@
 
-// EasyClient.cpp : 定义应用程序的类行为。
+// EasyClient.cpp : Defines the class behaviors for the application.
 //
 
 #include "stdafx.h"
@@ -13,72 +13,92 @@
 
 // CEasyClientApp
 
-BEGIN_MESSAGE_MAP(CEasyClientApp, CWinAppEx)
+BEGIN_MESSAGE_MAP(CEasyClientApp, CWinApp)
 	ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
 END_MESSAGE_MAP()
 
 
-// CEasyClientApp 构造
+// CEasyClientApp construction
 
 CEasyClientApp::CEasyClientApp()
 {
-	// TODO: 在此处添加构造代码，
-	// 将所有重要的初始化放置在 InitInstance 中
+	// support Restart Manager
+	m_dwRestartManagerSupportFlags = AFX_RESTART_MANAGER_SUPPORT_RESTART;
+
+	// TODO: add construction code here,
+	// Place all significant initialization in InitInstance
 }
 
 
-// 唯一的一个 CEasyClientApp 对象
+// The one and only CEasyClientApp object
 
 CEasyClientApp theApp;
 
 
-// CEasyClientApp 初始化
+// CEasyClientApp initialization
 
 BOOL CEasyClientApp::InitInstance()
 {
-	// 如果一个运行在 Windows XP 上的应用程序清单指定要
-	// 使用 ComCtl32.dll 版本 6 或更高版本来启用可视化方式，
-	//则需要 InitCommonControlsEx()。否则，将无法创建窗口。
+	// InitCommonControlsEx() is required on Windows XP if an application
+	// manifest specifies use of ComCtl32.dll version 6 or later to enable
+	// visual styles.  Otherwise, any window creation will fail.
 	INITCOMMONCONTROLSEX InitCtrls;
 	InitCtrls.dwSize = sizeof(InitCtrls);
-	// 将它设置为包括所有要在应用程序中使用的
-	// 公共控件类。
+	// Set this to include all the common control classes you want to use
+	// in your application.
 	InitCtrls.dwICC = ICC_WIN95_CLASSES;
 	InitCommonControlsEx(&InitCtrls);
 
-	CWinAppEx::InitInstance();
+	CWinApp::InitInstance();
 
-	AfxEnableControlContainer();
 
-	// 标准初始化
-	// 如果未使用这些功能并希望减小
-	// 最终可执行文件的大小，则应移除下列
-	// 不需要的特定初始化例程
-	// 更改用于存储设置的注册表项
-	// TODO: 应适当修改该字符串，
-	// 例如修改为公司或组织名
-	SetRegistryKey(_T("应用程序向导生成的本地应用程序"));
-	if(FAILED(CoInitialize(NULL))) /*, COINIT_APARTMENTTHREADED)))*/
-	{
-		AfxMessageBox("CoInitialize Failed!\r\n"); 
-		return FALSE;
-	}
+	// Create the shell manager, in case the dialog contains
+	// any shell tree view or shell list view controls.
+	CShellManager *pShellManager = new CShellManager;
+
+	// Standard initialization
+	// If you are not using these features and wish to reduce the size
+	// of your final executable, you should remove from the following
+	// the specific initialization routines you do not need
+	// Change the registry key under which our settings are stored
+	// TODO: You should modify this string to be something appropriate
+	// such as the name of your company or organization
+	SetRegistryKey(_T("Easy Camera"));
+
 
 	CEasyClientDlg dlg;
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
 	if (nResponse == IDOK)
 	{
-		// TODO: 在此放置处理何时用
-		//  “确定”来关闭对话框的代码
+		// TODO: Place code here to handle when the dialog is
+		//  dismissed with OK
 	}
 	else if (nResponse == IDCANCEL)
 	{
-		// TODO: 在此放置处理何时用
-		//  “取消”来关闭对话框的代码
+		// TODO: Place code here to handle when the dialog is
+		//  dismissed with Cancel
 	}
 
-	// 由于对话框已关闭，所以将返回 FALSE 以便退出应用程序，
-	//  而不是启动应用程序的消息泵。
+	// Delete the shell manager created above.
+	if (pShellManager != NULL)
+	{
+		delete pShellManager;
+	}
+
+	// Since the dialog has been closed, return FALSE so that we exit the
+	//  application, rather than start the application's message pump.
 	return FALSE;
+}
+
+
+
+BOOL CEasyClientApp::PreTranslateMessage(MSG* pMsg)
+{
+	if (pMsg->wParam == VK_RETURN || pMsg->wParam == VK_ESCAPE)
+	{
+		return TRUE;
+	}
+
+	return CWinApp::PreTranslateMessage(pMsg);
 }
