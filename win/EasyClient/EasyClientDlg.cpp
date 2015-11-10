@@ -77,7 +77,7 @@ BOOL CEasyClientDlg::OnInitDialog()
 	CEdit* pIP = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_IP);
 	if (pIP)
 	{
-		pIP->SetWindowTextW(TEXT("127.0.0.1"));
+		pIP->SetWindowTextW(TEXT("easyclient.easydarwin.org"));
 	}
 	CEdit* pPort = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_PORT);
 	if (pPort)
