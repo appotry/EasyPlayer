@@ -211,17 +211,18 @@ int CSourceManager::StartCapture(SOURCE_TYPE eSourceType, int nCamId, HWND hCapW
 		char	pushHead[128]  = {0,};
 		strcpy(pushHead,szURL+7);//strlen(szURL)
 		sscanf(pushHead, "%[-_a-zA-Z0-9.]:%d%[-_a-zA-Z0-9:/.]", m_sSourceInfo.pushServerAddr, &m_sSourceInfo.pushServerPort, m_sSourceInfo.sdpName);
-		if (m_sSourceInfo.pushServerPort < 1)
-		{
-			LogErr(_T("网络视频流采集，格式输入不合法！"));
-
-			return -1;
-		}
-		if ( (int)strlen(m_sSourceInfo.sdpName) < 1)
-		{
-			LogErr(_T("网络视频流采集，格式输入不合法！"));
-			return -1;
-		}
+		// 这里不作为错误判断 [11/10/2015 Administrator]
+// 		if (m_sSourceInfo.pushServerPort < 1)
+// 		{
+// 			LogErr(_T("网络视频流采集，格式输入不合法！"));
+// 
+// 			return -1;
+// 		}
+// 		if ( (int)strlen(m_sSourceInfo.sdpName) < 1)
+// 		{
+// 			LogErr(_T("网络视频流采集，格式输入不合法！"));
+// 			return -1;
+// 		}
 
 		m_sSourceInfo.rtspSourceId = m_netStreamCapture.Start(szURL, hCapWnd, DISPLAY_FORMAT_RGB24_GDI, 0x00, "", "", &CSourceManager::__MediaSourceCallBack, (void *)&m_sSourceInfo);
 		m_netStreamCapture.Config(3, FALSE, FALSE);

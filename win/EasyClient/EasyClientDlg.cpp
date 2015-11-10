@@ -72,7 +72,7 @@ BOOL CEasyClientDlg::OnInitDialog()
 
 	if (NULL != pRtspURL)
 	{
-		pRtspURL->SetWindowTextW(TEXT("127.0.0.1:554/stream.sdp"));
+		pRtspURL->SetWindowTextW(TEXT("rtsp://127.0.0.1:554/stream.sdp"));
 	}
 	CEdit* pIP = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_IP);
 	if (pIP)
@@ -99,7 +99,7 @@ BOOL CEasyClientDlg::OnInitDialog()
 	{
 		pSouceCombo->AddString(_T("本地音视频采集"));
 		pSouceCombo->AddString(_T("网络RTSP流采集"));
-		pSouceCombo->AddString(_T("网络Onvif流采集"));
+	//	pSouceCombo->AddString(_T("网络Onvif流采集"));
 		pSouceCombo->SetCurSel(0);
 	}
 	int nSel  = 	pSouceCombo->GetCurSel();
