@@ -59,6 +59,7 @@ protected:
 	virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
 public:
 	virtual BOOL DestroyWindow();
+	void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
 
 private:
 	CSourceManager* m_pManager;

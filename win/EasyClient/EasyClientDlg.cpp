@@ -40,6 +40,8 @@ BEGIN_MESSAGE_MAP(CEasyClientDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_PUSH, &CEasyClientDlg::OnBnClickedBtnPush)
 	ON_BN_CLICKED(IDC_BTN_PLAY, &CEasyClientDlg::OnBnClickedBtnPlay)
 	ON_MESSAGE(MSG_LOG, &CEasyClientDlg::OnLog)
+	ON_WM_GETMINMAXINFO()
+
 END_MESSAGE_MAP()
 
 
@@ -115,7 +117,7 @@ BOOL CEasyClientDlg::OnInitDialog()
 		pAudioCombo->EnableWindow(FALSE);
 		pRtspURL->SetReadOnly(FALSE);
 	}
-	MoveWindow(0, 0, 954, 780);
+	MoveWindow(0, 0, 926, 727);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -158,30 +160,112 @@ HCURSOR CEasyClientDlg::OnQueryDragIcon()
 
 LRESULT CEasyClientDlg::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-	if (WM_PAINT == message || WM_SIZE == message || WM_MOVE == message)
+	if (/*WM_PAINT == message ||*/ WM_SIZE == message /*|| WM_MOVE == message*/)
 	{
 		UpdateComponents();
 	}
 
 	return CDialogEx::WindowProc(message, wParam, lParam);
 }
+
+//´°¿ÚÅ²¶¯Î»ÖÃ
 void	CEasyClientDlg::UpdateComponents()
 {
+
 	CRect	rcClient;
 	GetClientRect(&rcClient);
-	if (rcClient.IsRectEmpty())		return;
+	if (rcClient.IsRectEmpty())		
+		return;	
+	
+	CComboBox* pComboxMediaSource = (CComboBox*)GetDlgItem(IDC_COMBO_SOURCE);
+	CComboBox* pVideoCombo = (CComboBox*)GetDlgItem(IDC_COMBO_CAMERA) ;
+	CComboBox* pComboxAudioSource = (CComboBox*)GetDlgItem(IDC_COMBO_MIC) ;
+	CEdit* pEdtRtspSource = (CEdit*)GetDlgItem(IDC_EDIT_SREAM_URL);
+
+
+
+	CStatic* pStcServerIp = (CStatic*)GetDlgItem(IDC_STC_SERVER_IP);
+	CStatic* pStcServerPort = (CStatic*)GetDlgItem(IDC_STC_SERVER_PORT);
+	CStatic* pStcStreanName = (CStatic*)GetDlgItem(IDC_STC_STREAM_NAME);
+	CStatic* pStcDebugInfo = (CStatic*)GetDlgItem(IDC_STC_DEBUG_INFO);
+	CStatic* pStcVersionInfo = (CStatic*)GetDlgItem(IDC_STC_VERSION);
+
+	
+	
+	CEdit* pIP = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_IP);
+	CEdit* pPort = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_PORT);
+	CEdit* pName = (CEdit*)GetDlgItem(IDC_EDIT_PUSH_NAME);
+
+	CButton* pBtnCapture = (CButton*)GetDlgItem(IDC_BTN_CAPTURE);
+	CButton* pBtnPush = (CButton*)GetDlgItem(IDC_BTN_PUSH);
+	CButton* pBtnPlay = (CButton*)GetDlgItem(IDC_BTN_PLAY);
+
+	CEdit* pEdtShowLog = (CEdit*)GetDlgItem(IDC_EDIT_SHOWLOG);
+
+
+	CRect rcPosition;
+
+	int nWidth = rcClient.Width();
+	int nHeight = rcClient.Height();
+	int nStartX = (nWidth-210*3-140*2)/2;
+
+
+	rcPosition.SetRect(nStartX , nHeight-280+15, nStartX + 100, nHeight-280+15+24 );
+	__MOVE_WINDOW(pStcServerIp, rcPosition);
+	rcPosition.SetRect(nStartX + 100 + 5, nHeight-280+15, nStartX + 210, nHeight-280+15+24 );
+	__MOVE_WINDOW(pIP, rcPosition);
+
+	rcPosition.SetRect(nStartX +210 +140, nHeight-280+15, nStartX + 210+140+100, nHeight-280+15+24 );
+	__MOVE_WINDOW(pStcServerPort, rcPosition);
+	rcPosition.SetRect(nStartX +210 +140 + 90 +5, nHeight-280+15, nStartX +210+140 + 210, nHeight-280+15+24 );
+	__MOVE_WINDOW(pPort, rcPosition);
+
+	rcPosition.SetRect(nStartX + (210 +140)*2+40, nHeight-280+15, nStartX + (210 +140)*2+100, nHeight-280+15+24 );
+	__MOVE_WINDOW(pStcStreanName, rcPosition);
+	rcPosition.SetRect(nStartX + (210 +140)*2 + 90+5, nHeight-280+15, nStartX + (210 +140)*2 + 210, nHeight-280+15+24 );
+	__MOVE_WINDOW(pName, rcPosition);
+
+	int nBtnStartX =  (rcClient.Width()-74*3-200*2)/2;
+	rcPosition.SetRect(nBtnStartX , nHeight-280+24+25, nBtnStartX + 74, nHeight-280+25+24+24 );
+	__MOVE_WINDOW(pBtnCapture, rcPosition);
+
+	rcPosition.SetRect(nBtnStartX+74+200 , nHeight-280+24+25, nBtnStartX+74+200 + 74, nHeight-280+25+24+24 );
+	__MOVE_WINDOW(pBtnPush, rcPosition);
+	
+	rcPosition.SetRect(nBtnStartX+(74+200)*2 , nHeight-280+24+25, nBtnStartX+(74+200)*2  + 74, nHeight-280+25+24+24 );
+	__MOVE_WINDOW(pBtnPlay, rcPosition);
+
+
+	rcPosition.SetRect(10, nHeight-280+24+25+20, 100, nHeight-280+24+25+20+24 );
+	__MOVE_WINDOW(pStcDebugInfo, rcPosition);
+	
+	rcPosition.SetRect(10 , nHeight-280+24+25+44,  nWidth-10, nHeight-30 );
+	__MOVE_WINDOW(pEdtShowLog, rcPosition);
+
+	
+	rcPosition.SetRect(nWidth-420 , nHeight-25,  nWidth, nHeight );
+	__MOVE_WINDOW(pStcVersionInfo, rcPosition);
 
 	int iPanelWidth = ((rcClient.Width()) / 2);
 
+
 	CRect	rcLocalPanel;
-	rcLocalPanel.SetRect(rcClient.left, rcClient.top+60, rcClient.left+iPanelWidth, rcClient.bottom-280);
+	rcLocalPanel.SetRect(rcClient.left, rcClient.top+65, rcClient.left+iPanelWidth, rcClient.bottom-280);
 	__MOVE_WINDOW(easyVideoPanelObj.pDlgLocalPanel, rcLocalPanel);
 
 	CRect	rcRemotePanel;
 	rcRemotePanel.SetRect(rcLocalPanel.right, rcLocalPanel.top, rcClient.right, rcLocalPanel.bottom);
 	__MOVE_WINDOW(easyVideoPanelObj.pDlgRemotePanel, rcRemotePanel);
+	Invalidate();
 }
 
+void CEasyClientDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
+{
+	lpMMI->ptMinTrackSize.x = 926;//954, 780
+	lpMMI->ptMinTrackSize.y = 727;
+
+	CDialogEx::OnGetMinMaxInfo(lpMMI);
+}
 
 BOOL CEasyClientDlg::DestroyWindow()
 {
