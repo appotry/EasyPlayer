@@ -114,6 +114,7 @@ BOOL CEasyClientDlg::OnInitDialog()
 	else
 	{
 		pVideoCombo->EnableWindow(FALSE);
+
 		pAudioCombo->EnableWindow(FALSE);
 		pRtspURL->SetReadOnly(FALSE);
 	}
