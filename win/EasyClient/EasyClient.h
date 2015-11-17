@@ -14,7 +14,7 @@
 #endif
 
 #include "resource.h"		// main symbols
-
+#include "GlobalUnits.h"
 
 // CEasyClientApp:
 // See EasyClient.cpp for the implementation of this class

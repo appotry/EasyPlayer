@@ -25,6 +25,9 @@
     <Filter Include="AudioSource">
       <UniqueIdentifier>{bb1870c2-a382-4ca3-9716-968ad8b86e45}</UniqueIdentifier>
     </Filter>
+    <Filter Include="EasySkinUI">
+      <UniqueIdentifier>{f3d036e8-6769-4267-91d5-ff4149a05929}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -96,6 +99,87 @@
     <ClInclude Include="EasyClientDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="EasySkinUI\FlashControl.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\Function.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\GifImage.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\ImageEx.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\internal.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\Macro.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\MemoryDC.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\RenderManager.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\Resource.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\IEasySkinControl.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\EasySkinButton.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\EasySkinComboBox.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\EasySkinDialog.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\EasySkinEdit.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\EasySkinListBox.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\EasySkinListCtrl.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\EasySkinProgressCtrl.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\EasySkinRichEdit.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\EasySkinSliderCtrl.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\EasySkinTabCtrl.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\EasySkinToolBar.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\EasySkinTreeCtrl.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\EasySkinUI.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\EasySkinUI_ScrollBar.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinUI\EasySkinUIMenu.h">
+      <Filter>EasySkinUI</Filter>
+    </ClInclude>
+    <ClInclude Include="EasySkinManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobalUnits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -144,6 +228,78 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="EasyClientDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\FlashControl.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\Function.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\GifImage.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\ImageEx.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\MemoryDC.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\RenderManager.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\IEasySkinControl.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\EasySkinButton.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\EasySkinComboBox.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\EasySkinDialog.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\EasySkinEdit.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\EasySkinListBox.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\EasySkinListCtrl.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\EasySkinProgressCtrl.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\EasySkinRichEdit.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\EasySkinSliderCtrl.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\EasySkinTabCtrl.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\EasySkinToolBar.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\EasySkinTreeCtrl.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\EasySkinUI.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\EasySkinUI_ScrollBar.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinUI\EasySkinUIMenu.cpp">
+      <Filter>EasySkinUI</Filter>
+    </ClCompile>
+    <ClCompile Include="EasySkinManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GlobalUnits.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

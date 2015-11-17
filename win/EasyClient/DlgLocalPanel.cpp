@@ -93,7 +93,7 @@ void CDlgLocalPanel::UpdateComponents()
 	CRect	rcPushAddr, rcEdtAddr;
 
 	CRect	rcVideo;
-	rcVideo.SetRect(rcClient.left+VIDEO_WINDOW_BORDER_WIDTH, 5, 
+	rcVideo.SetRect(rcClient.left+VIDEO_WINDOW_BORDER_WIDTH, 0, 
 		rcClient.right-VIDEO_WINDOW_BORDER_WIDTH, rcClient.bottom-VIDEO_WINDOW_BORDER_WIDTH);
 
 	__MOVE_WINDOW(pDlgVideo, rcVideo);

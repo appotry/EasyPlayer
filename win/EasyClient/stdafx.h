@@ -23,10 +23,6 @@
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
 
-
-
-
-
 #ifndef _AFX_NO_OLE_SUPPORT
 #include <afxdtctl.h>           // MFC support for Internet Explorer 4 Common Controls
 #endif
@@ -37,7 +33,18 @@
 #include <afxcontrolbars.h>     // MFC support for ribbons and control bars
 
 
-#define	VIDEO_WINDOW_BORDER_WIDTH	3
+// EasySkinUI的支持
+//图片控件
+#import "ImageOle.dll" named_guids
+//头文件
+//#include "./EasySkinUI/detours.h"
+#include "./EasySkinUI/EasySkinUI_ScrollBar.h"
+#pragma comment(lib,"Gdiplus.lib")
+#include "./EasySkinUI/EasySkinUI.h"
+#define COLOR_BACK					RGB(194,247,255)//249,245,237
+
+
+#define	VIDEO_WINDOW_BORDER_WIDTH	0
 
 #define __MOVE_WINDOW(x,rect)	{if (NULL!=x){x->MoveWindow(&rect);}}//x->Invalidate();}}
 #define __DESTROY_WINDOW(x)	{if (NULL!=x){x->DestroyWindow();delete x;x=NULL;}}

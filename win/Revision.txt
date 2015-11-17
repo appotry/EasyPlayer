@@ -1,3 +1,10 @@
+15:10 2015/11/17
+EasyClient V1.0.1.2
+Add by SwordTwevle
+
+说明：
+1. 添加EasySkinUI轻量级皮肤库，优化界面；
+2. 皮肤库调用详见：界面管理类CEasySkinManager 
 
 14:05 2015/11/10
 EasyClient V1.0.0.2

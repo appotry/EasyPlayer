@@ -6,8 +6,9 @@
 */
 // EasyDarwin推送和接收源端的管理类 [11/8/2015 Dingshuai]
 // Add by SwordTwelve
-
 #pragma once
+
+#define EasyClent_VersionInfo _T("Powered By Gavin && SwordTwelve && Arno  @EasyDarwin.ORG  Version: 1.0.1.2")
 
 //本地音频捕获
 #include "AudioSource\DirectSound.h"

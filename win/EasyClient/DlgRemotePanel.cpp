@@ -77,7 +77,7 @@ void CDlgRemotePanel::UpdateComponents()
 	if (rcClient.IsRectEmpty())		return;
 
 	CRect	rcVideo;
-	rcVideo.SetRect(rcClient.left+VIDEO_WINDOW_BORDER_WIDTH, 5, rcClient.right-VIDEO_WINDOW_BORDER_WIDTH, rcClient.bottom-VIDEO_WINDOW_BORDER_WIDTH);
+	rcVideo.SetRect(rcClient.left+VIDEO_WINDOW_BORDER_WIDTH, 0, rcClient.right-VIDEO_WINDOW_BORDER_WIDTH, rcClient.bottom-VIDEO_WINDOW_BORDER_WIDTH);
 	__MOVE_WINDOW(pDlgVideo, rcVideo);
 }
 

@@ -70,6 +70,16 @@ BOOL CEasyClientApp::InitInstance()
 	// such as the name of your company or organization
 	SetRegistryKey(_T("Easy Client"));
 
+	//EasySkinUI Support
+	UIRenderEngine->GetWorkDirectory(GlobalUnits->m_szDefaultSkin,MAX_PATH<<1);
+	//加载主界面背景图片，该界面可继承于CEasySkinManager
+	StrCat(GlobalUnits->m_szDefaultSkin,TEXT("\\SkinUI\\图标\\头部背景循环.png"));//\\SkinUI\\Skin\\main14.jpg
+	CFileFind find;
+	if ( find.FindFile(GlobalUnits->m_szDefaultSkin) == FALSE )
+	{
+		AfxMessageBox(TEXT("资源加载失败"));
+		return FALSE;
+	}
 
 	CEasyClientDlg dlg;
 	m_pMainWnd = &dlg;
