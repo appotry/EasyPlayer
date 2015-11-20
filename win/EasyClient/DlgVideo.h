@@ -27,4 +27,11 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnPaint();
+
+public:
+	virtual BOOL OnInitDialog();
+
+private:
+	CImageEx	* m_pEasyLogo;
+
 };

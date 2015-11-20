@@ -516,7 +516,7 @@ DWORD WINAPI __CameraProcDataThread(LPVOID lpParam)
 	pThread->m_pMediaControl->Run();
 
 	unsigned int uiTime = (unsigned int)time(NULL);
-	fps = 30;
+	fps = 25;//30;
 	int		fps_total = 0;
 
 	LARGE_INTEGER	cpuFreq;		//cpuÆµÂÊ
@@ -610,11 +610,12 @@ DWORD WINAPI __CameraProcDataThread(LPVOID lpParam)
 			frameinfo.timestamp_sec = tv.tv_sec;
 			frameinfo.timestamp_usec = tv.tv_usec;
 
-			static unsigned int uiPts = 0;
-			frameinfo.timestamp_sec = uiPts / 1000;
-			frameinfo.timestamp_usec = (uiPts%1000) * 1000;
-			uiPts += (1000 / (fps>0?fps:30));
-
+// 			static unsigned int uiPts = 0;
+// 			frameinfo.timestamp_sec = uiPts / 1000;
+// 			frameinfo.timestamp_usec = (uiPts%1000) * 1000;
+// 			uiPts += (1000 / (fps>0?fps:30));
+// 
+			int uiPts = tv.tv_sec*1000+tv.tv_usec/1000;
 			TRACE("Video PTS: %d\n", uiPts);
 
 			pThread->pCallback(pThread->camNo, (int *)pThread->userPtr, EASY_SDK_VIDEO_FRAME_FLAG, enc_buf, &frameinfo);
