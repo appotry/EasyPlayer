@@ -8,7 +8,7 @@
 // Add by SwordTwelve
 #pragma once
 
-#define EasyClent_VersionInfo _T("Powered By Gavin && SwordTwelve && Arno  Version: 1.1.1.2")
+#define EasyClent_VersionInfo _T("Version:1.1.1.3 Powered By SwordTwelve/Gavin/Arno")
 
 //±æµÿ“Ù∆µ≤∂ªÒ
 #include "AudioSource\DirectSound.h"

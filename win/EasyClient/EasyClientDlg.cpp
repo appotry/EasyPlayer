@@ -225,12 +225,12 @@ void	CEasyClientDlg::UpdateComponents()
 	DeferWindowPos(hDwp,m_btnPush,NULL,nBtnStartX+62+212, nHeight-280+24+25,0,0,uFlags|SWP_NOSIZE);
 	DeferWindowPos(hDwp,m_btnLiveView,NULL,nBtnStartX+(62+212)*2,nHeight-280+24+25,0,0,uFlags|SWP_NOSIZE);
 
-	DeferWindowPos(hDwp,m_linkEasyDarwinWeb,NULL,nWidth-225,nHeight-23,0,0,uFlags|SWP_NOSIZE);
+	DeferWindowPos(hDwp,m_linkEasyDarwinWeb,NULL,nWidth-250,nHeight-23,0,0,uFlags|SWP_NOSIZE);
 	if (m_linkEasyDarwinWeb.m_hWnd)
 	{
 		m_linkEasyDarwinWeb.SetFocus();
 	}
-	DeferWindowPos(hDwp,m_linkEasyClientGethub,NULL,nWidth-110,nHeight-23,0,0,uFlags|SWP_NOSIZE);
+	DeferWindowPos(hDwp,m_linkEasyClientGethub,NULL,nWidth-120,nHeight-23,0,0,uFlags|SWP_NOSIZE);
 	if (m_linkEasyClientGethub.m_hWnd)
 	{
 		m_linkEasyClientGethub.SetFocus();
