@@ -17,9 +17,13 @@ EasyClient支持获取IPCamera摄像机的RTSP直播流，通过[EasyRTSPClient]
 ![EasyDarwin EasyClient](http://www.easydarwin.org/github/images/easyclient_ipc.png)
 
 ##更新记录##
-### next version (2015-12-25) ###
 
-* 优化界面.
+### v1.1.1.3 (2015-11-20) ###
+
+* 修复界面窗口最小化还原时，文本框出现不刷新的问题;
+* 增加DShow音视频采集库，修复本地音视频推送服务器出现播放不同步的问题;
+* 增加EasyDarwin官网地址和EasyClient的Github访问地址;
+* 界面布局进行部分调整.
 
 ### v1.0.1.2 (2015-11-17) ###
 
