@@ -28,6 +28,12 @@
     <Filter Include="EasySkinUI">
       <UniqueIdentifier>{f3d036e8-6769-4267-91d5-ff4149a05929}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DShowCapture">
+      <UniqueIdentifier>{d538fa9e-5442-43fe-98d7-f92c9451b3d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Encoder">
+      <UniqueIdentifier>{6d9815b3-a733-4e40-b5ce-531627e90d1d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -180,6 +186,33 @@
     <ClInclude Include="GlobalUnits.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DShowCapture\DShowCaptureAudioAndVideo_Interface.h">
+      <Filter>DShowCapture</Filter>
+    </ClInclude>
+    <ClInclude Include="YUVTransform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Encoder\faac.h">
+      <Filter>Encoder</Filter>
+    </ClInclude>
+    <ClInclude Include="Encoder\faaccfg.h">
+      <Filter>Encoder</Filter>
+    </ClInclude>
+    <ClInclude Include="Encoder\FAACEncoder.h">
+      <Filter>Encoder</Filter>
+    </ClInclude>
+    <ClInclude Include="Encoder\H264Encoder.h">
+      <Filter>Encoder</Filter>
+    </ClInclude>
+    <ClInclude Include="Encoder\H264EncoderManager.h">
+      <Filter>Encoder</Filter>
+    </ClInclude>
+    <ClInclude Include="Encoder\x264.h">
+      <Filter>Encoder</Filter>
+    </ClInclude>
+    <ClInclude Include="Encoder\x264_config.h">
+      <Filter>Encoder</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -301,6 +334,18 @@
     </ClCompile>
     <ClCompile Include="GlobalUnits.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="YUVTransform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Encoder\FAACEncoder.cpp">
+      <Filter>Encoder</Filter>
+    </ClCompile>
+    <ClCompile Include="Encoder\H264Encoder.cpp">
+      <Filter>Encoder</Filter>
+    </ClCompile>
+    <ClCompile Include="Encoder\H264EncoderManager.cpp">
+      <Filter>Encoder</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

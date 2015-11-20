@@ -17,6 +17,7 @@
 // EasySkinUI Support
 #include "EasySkinManager.h"
 #include "afxwin.h"
+#include "afxcmn.h"
 
 typedef struct __EASY_VIDEO_PANEL_OBJ_T
 {
@@ -67,6 +68,8 @@ private:
 	CEasySkinButton m_btnLocalView;
 	CEasySkinButton m_btnPush;
 	CEasySkinButton m_btnLiveView;
+	CLinkCtrl m_linkEasyDarwinWeb;
+	CLinkCtrl m_linkEasyClientGethub;
 
 public:
 	afx_msg void OnCbnSelchangeComboSource();
@@ -83,4 +86,8 @@ protected:
 	virtual void DrawClientArea(CDC*pDC,int nWidth,int nHeight);
 	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
 	void UpdataResource();
+public:
+	afx_msg void OnNMClickSyslinkEasydarwin(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnNMClickSyslinkEasyclientGithub(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 };

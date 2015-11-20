@@ -97,4 +97,8 @@ void CDlgLocalPanel::UpdateComponents()
 		rcClient.right-VIDEO_WINDOW_BORDER_WIDTH, rcClient.bottom-VIDEO_WINDOW_BORDER_WIDTH);
 
 	__MOVE_WINDOW(pDlgVideo, rcVideo);
+	if (pDlgVideo)
+	{
+		pDlgVideo->Invalidate(FALSE);
+	}
 }

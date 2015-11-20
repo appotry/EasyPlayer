@@ -20,11 +20,13 @@ IMPLEMENT_DYNAMIC(CDlgVideo, CDialogEx)
 CDlgVideo::CDlgVideo(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CDlgVideo::IDD, pParent)
 {
-
+	m_pEasyLogo = NULL;
 }
 
 CDlgVideo::~CDlgVideo()
 {
+	UIRenderEngine->RemoveImage(m_pEasyLogo);
+
 }
 
 void CDlgVideo::DoDataExchange(CDataExchange* pDX)
@@ -39,7 +41,13 @@ END_MESSAGE_MAP()
 
 
 // CDlgVideo 消息处理程序
+BOOL CDlgVideo::OnInitDialog()
+{
+	CDialogEx::OnInitDialog();
+	m_pEasyLogo = UIRenderEngine->GetImage(TEXT("SkinUI\\图标\\Easylogo.png"));
 
+	return TRUE;
+}
 
 void CDlgVideo::OnPaint()
 {
@@ -47,10 +55,16 @@ void CDlgVideo::OnPaint()
 	// TODO: Add your message handler code here
 	// Do not call CDialogEx::OnPaint() for painting messages
 	CBrush brushBkgnd; 
-	RECT rcClient;
+	CRect rcClient;
 	brushBkgnd.CreateSolidBrush(RGB(0, 0, 0));
 	GetClientRect(&rcClient);
 	dc.FillRect(&rcClient, &brushBkgnd);
 	brushBkgnd.DeleteObject(); //释放画刷 
 
+	if ( m_pEasyLogo != NULL && !m_pEasyLogo->IsNull() )
+	{
+		int nStartX = (rcClient.Width()-184)/2;
+		int nStartY =  (rcClient.Height()-184)/2;
+		m_pEasyLogo->DrawImage(CDC::FromHandle(dc.m_hDC),nStartX,nStartY);
+	}
 }

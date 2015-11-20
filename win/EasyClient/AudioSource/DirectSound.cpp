@@ -162,14 +162,18 @@ BOOL CALLBACK	DSoundEnumCallback(GUID *pGUID, LPSTR strDesc, LPSTR strDrvName, V
 
 	HWND hSoundDeviceCombo = (HWND)pContext;
 
-	//Add the string to the combo box
-	SendMessage(hSoundDeviceCombo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)strDesc);
+	if (pTemp)
+	{
+		//Add the string to the combo box
+		SendMessage(hSoundDeviceCombo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)strDesc);
 
-	//Get the index of the string in the combo box
-	INT nIndex = (INT)SendMessage(hSoundDeviceCombo, CB_FINDSTRING, 0, (LPARAM)(LPCTSTR)strDesc);
+		//Get the index of the string in the combo box
+		INT nIndex = (INT)SendMessage(hSoundDeviceCombo, CB_FINDSTRING, 0, (LPARAM)(LPCTSTR)strDesc);
 
-	//Set the item data to pointer to the static guid stored in AudioDriverGUIDs
-	SendMessage(hSoundDeviceCombo, CB_SETITEMDATA, nIndex, (LPARAM)pTemp);
+		//Set the item data to pointer to the static guid stored in AudioDriverGUIDs
+		SendMessage(hSoundDeviceCombo, CB_SETITEMDATA, nIndex, (LPARAM)pTemp);	
+	}
+
 
 	return TRUE;
 #else
@@ -553,11 +557,11 @@ BOOL CDirectSound::RecordCapturedData()
 				int ret = AAC_Encode(m_DSoundObj.ffeAudioHandle, (int*)(m_DSoundObj.pcmdata+(max_packet_size*iPacketNo)), packetSize, &pAACbuf, &enc_size);
 				if (ret == 0x00 && enc_size>0)
 				{
-					
+#if 0
 					static FILE *fAAC = NULL;
 					if (NULL == fAAC)	fAAC = fopen("1234.aac", "wb");
 					if (NULL != fAAC)	fwrite(pAACbuf, 1, enc_size, fAAC);
-					
+#endif			
 
 					RTSP_FRAME_INFO	frameinfo;
 					memset(&frameinfo, 0x00, sizeof(RTSP_FRAME_INFO));
@@ -591,12 +595,14 @@ BOOL CDirectSound::RecordCapturedData()
 						}
 					}
 
-					frameinfo.timestamp_sec = uiAudioPts / 1000;
-					frameinfo.timestamp_usec = (uiAudioPts%1000) * 1000;
-
-					uiAudioPts += 64;
-
-					//TRACE("AUDIO Packet Num: %d\n", iTotalPacketNum);
+// 					frameinfo.timestamp_sec = uiAudioPts / 1000;
+// 					frameinfo.timestamp_usec = (uiAudioPts%1000) * 1000;
+// 
+// 					uiAudioPts += 64;
+// 
+// 					//TRACE("AUDIO Packet Num: %d\n", iTotalPacketNum);
+					int uiPts = tv.tv_sec*1000+tv.tv_usec/1000;
+					TRACE("Audio PTS: %d\n", uiPts);
 
 					//m_DSoundObj.pCallback(0, (int *)m_DSoundObj.pUserPtr, EASY_SDK_AUDIO_FRAME_FLAG, (char *)m_DSoundObj.aacdata, &frameinfo);
 					m_DSoundObj.pCallback(0, (int *)m_DSoundObj.pUserPtr, EASY_SDK_AUDIO_FRAME_FLAG, (char *)pAACbuf, &frameinfo);
@@ -604,8 +610,6 @@ BOOL CDirectSound::RecordCapturedData()
 			}
 
 		}
-
-
 
 
 		//if (NULL != g_pYDFTestDlg)
