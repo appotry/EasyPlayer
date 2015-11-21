@@ -712,7 +712,7 @@ void CSourceManager::StopPush()
 //¿ªÊ¼²¥·Å
 int CSourceManager::StartPlay(char* szURL, HWND hShowWnd)
 {
-	m_sPlayInfo.rtspSourceId = m_netStreamPlayer.Start(szURL, hShowWnd, DISPLAY_FORMAT_RGB24_GDI, 0x00, "", "");
+	m_sPlayInfo.rtspSourceId = m_netStreamPlayer.Start(szURL, hShowWnd, DISPLAY_FORMAT_RGB24_GDI, 0x01, "", "");
 	m_netStreamPlayer.Config(3, TRUE, TRUE);
 	return m_sPlayInfo.rtspSourceId ;
 }

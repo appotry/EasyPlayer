@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "../libEasyPlayer/RtspClient/EasyTypes.h"
+#include "../libEasyPlayer/EasyRTSPClient/EasyTypes.h"
 #include "../libEasyPlayer/libEasyPlayerAPI.h"
 #include "../libEasyPlayer/D3DRender/D3DRenderAPI.h"
 #pragma comment(lib,  "../libEasyPlayer/D3DRender/D3DRender.lib")

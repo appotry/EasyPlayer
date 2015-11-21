@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "RtspClient\EasyRTSPClientAPI.h"
+#include "EasyRTSPClient\EasyRTSPClientAPI.h"
 
 #define LIB_EASYPLAYER_API __declspec(dllexport)
 

@@ -8,12 +8,12 @@
 #pragma once
 
 #include "libEasyPlayerAPI.h"
-#include "RtspClient\EasyRTSPClientAPI.h"
+#include "EasyRTSPClient\EasyRTSPClientAPI.h"
 #include "FFDecoder\FFDecoderAPI.h"
 #include "D3DRender\D3DRenderAPI.h"
 #include "SoundPlayer.h"
 #include "ssqueue.h"
-#pragma comment(lib, "RtspClient/libEasyRTSPClient.lib")
+#pragma comment(lib, "EasyRTSPClient/libEasyRTSPClient.lib")
 #pragma comment(lib, "FFDecoder/FFDecoder.lib")
 #pragma comment(lib, "D3DRender/D3DRender.lib")
 
