@@ -69,7 +69,7 @@ int FAACEncoder::Init()
 	{	
 		m_pfaacconf = faacEncGetCurrentConfiguration(m_hfaac);  
 		m_pfaacconf->inputFormat = FAAC_INPUT_16BIT;
-		m_pfaacconf->outputFormat=0;//0raw 1adst
+		m_pfaacconf->outputFormat=1;//0raw 1adst
 		m_pfaacconf->useTns=true;
 		m_pfaacconf->useLfe=false;
 		m_pfaacconf->aacObjectType=LOW;
