@@ -34,6 +34,11 @@ void CEasyClientDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BTN_PLAY, m_btnLiveView);
 	DDX_Control(pDX, IDC_SYSLINK_EASYDARWIN, m_linkEasyDarwinWeb);
 	DDX_Control(pDX, IDC_SYSLINK_EASYCLIENT_GITHUB, m_linkEasyClientGethub);
+	DDX_Control(pDX, IDC_EDIT_VIDOE_WIDTH, m_edtVdieoWidth);
+	DDX_Control(pDX, IDC_EDIT_VIDEO_HEIGHT, m_edtVideoHeight);
+	DDX_Control(pDX, IDC_EDIT_VIDEO_FPS, m_edtFPS);
+	DDX_Control(pDX, IDC_EDIT_VIDEO_BITRATE, m_edtVideoBitrate);
+	DDX_Control(pDX, IDC_EDIT_PUSH_BUFFER, m_edtPushBuffer);
 }
 
 BEGIN_MESSAGE_MAP(CEasyClientDlg, CEasySkinManager)
@@ -64,6 +69,8 @@ BOOL CEasyClientDlg::OnInitDialog()
 	//  when the application's main window is not a dialog
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
+
+	this->SetWindowText(_T("EasyClient"));
 
 	//更新皮肤
 	UpdataResource();
@@ -101,6 +108,12 @@ BOOL CEasyClientDlg::OnInitDialog()
 	{
 		pName->SetWindowTextW(TEXT("stream.sdp"));
 	}
+
+	m_edtVdieoWidth.SetWindowText(_T("640"));
+	m_edtVideoHeight.SetWindowText(_T("480"));
+	m_edtFPS.SetWindowText(_T("25"));
+	m_edtVideoBitrate.SetWindowText(_T("2048"));
+	m_edtPushBuffer.SetWindowText(_T("1024"));
 	
 	if (m_pManager)
 	{
@@ -120,13 +133,23 @@ BOOL CEasyClientDlg::OnInitDialog()
 		pVideoCombo->ShowWindow(SW_SHOW);
 		pAudioCombo->ShowWindow(SW_SHOW);
 		pRtspURL->ShowWindow(SW_HIDE);
+		m_edtVdieoWidth.ShowWindow(SW_SHOW);
+		m_edtVideoHeight.ShowWindow(SW_SHOW);
+		m_edtFPS.ShowWindow(SW_SHOW);
+		m_edtVideoBitrate.ShowWindow(SW_SHOW);
 	} 
 	else
 	{
 		pVideoCombo->ShowWindow(SW_HIDE);
 		pAudioCombo->ShowWindow(SW_HIDE);
 		pRtspURL->ShowWindow(SW_SHOW);
+		m_edtVdieoWidth.ShowWindow(SW_HIDE);
+		m_edtVideoHeight.ShowWindow(SW_HIDE);
+		m_edtFPS.ShowWindow(SW_HIDE);
+		m_edtVideoBitrate.ShowWindow(SW_HIDE);
+
 	}
+
 	MoveWindow(0, 0, 926, 727);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -186,15 +209,58 @@ void	CEasyClientDlg::UpdateComponents()
 	
 	//左边部分	
 	int nStartX = (nWidth/2-450)/2;
-	rcPosition.SetRect(nStartX+70 , nHeight-320+15, nStartX+70+360, nHeight-320+15+24 );
+	rcPosition.SetRect(nStartX+70 , nHeight-320+15, nStartX+70+360, nHeight-320+15+25 );
 	__MOVE_WINDOW(pComboxMediaSource, rcPosition);
-	rcPosition.SetRect(nStartX+70 , nHeight-320+15+30, nStartX+70+360, nHeight-320+15+30+24 );
+	rcPosition.SetRect(nStartX+70 , nHeight-320+15+30, nStartX+70+360, nHeight-320+15+30+25 );
 	__MOVE_WINDOW(pEdtRtspSource, rcPosition);
+	if (pEdtRtspSource)
+	{
+		//设置焦点刷新
+		pEdtRtspSource->SetFocus();
+	}
 
-	rcPosition.SetRect(nStartX+70 , nHeight-320+15+30, nStartX+70+140, nHeight-320+15+30+24 );
+	rcPosition.SetRect(nStartX+70 , nHeight-320+15+30, nStartX+70+140, nHeight-320+15+30+25 );
 	__MOVE_WINDOW(pVideoCombo, rcPosition);
-	rcPosition.SetRect(nStartX+70+220 , nHeight-320+15+30, nStartX+70+220+140, nHeight-320+15+30+24 );
+	rcPosition.SetRect(nStartX+70+220 , nHeight-320+15+30, nStartX+70+220+140, nHeight-320+15+30+25 );
 	__MOVE_WINDOW(pComboxAudioSource, rcPosition);
+
+// 	CEasySkinButton m_edtVdieoWidth;
+// 	CEasySkinButton m_edtVideoHeight;
+// 	CEasySkinButton m_edtFPS;
+// 	CEasySkinButton m_edtVideoBitrate;
+// 	CEasySkinButton m_edtPushBuffer;
+
+	//视频宽度
+	rcPosition.SetRect(nStartX+110 , nHeight-320+15+60, nStartX+110+50, nHeight-320+15+60+25 );
+	if (m_edtVdieoWidth.GetSafeHwnd())
+	{
+		m_edtVdieoWidth.MoveWindow(rcPosition);
+		m_edtVdieoWidth.SetFocus();
+	}
+	
+	//视频高度
+	rcPosition.SetRect(nStartX+190 , nHeight-320+15+60, nStartX+190+50, nHeight-320+15+60+25 );
+		if (m_edtVideoHeight.GetSafeHwnd())
+		{
+			m_edtVideoHeight.MoveWindow(rcPosition);
+			m_edtVideoHeight.SetFocus();
+		}
+
+	//视频FPS
+	rcPosition.SetRect(nStartX+270 , nHeight-320+15+60, nStartX+270+50, nHeight-320+15+60+25 );
+		if (m_edtFPS.GetSafeHwnd())
+		{
+			m_edtFPS.MoveWindow(rcPosition);
+			m_edtFPS.SetFocus();
+		}
+
+	//视频比特率
+	rcPosition.SetRect(nStartX+380 , nHeight-320+15+60, nStartX+380+50, nHeight-320+15+60+25 );
+		if (m_edtVideoBitrate.GetSafeHwnd())
+		{
+			m_edtVideoBitrate.MoveWindow(rcPosition);
+			m_edtVideoBitrate.SetFocus();
+		}
 
 	//右边部分控件位置处理
 	nStartX = nWidth/2+(nWidth/2-450)/2;
@@ -216,18 +282,31 @@ void	CEasyClientDlg::UpdateComponents()
 	{
 		pName->SetFocus();
 	}
+
+	rcPosition.SetRect(nStartX+80, nHeight-320+15+60, nStartX + 80+100, nHeight-320+15+60+25 );
+		if (m_edtPushBuffer.GetSafeHwnd())
+		{
+				m_edtPushBuffer.MoveWindow(rcPosition);
+				m_edtPushBuffer.SetFocus();
+		}
+
 // 	CEdit* pPort = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_PORT);
 // 	CEdit* pName = (CEdit*)GetDlgItem(IDC_EDIT_PUSH_NAME);
 
 	//按钮位置
 	int nBtnStartX =  (rcClient.Width()-62*3-212*2)/2;
-	DeferWindowPos(hDwp,m_btnLocalView,NULL,nBtnStartX,nHeight-280+24+25,0,0,uFlags|SWP_NOSIZE);
-	DeferWindowPos(hDwp,m_btnPush,NULL,nBtnStartX+62+212, nHeight-280+24+25,0,0,uFlags|SWP_NOSIZE);
-	DeferWindowPos(hDwp,m_btnLiveView,NULL,nBtnStartX+(62+212)*2,nHeight-280+24+25,0,0,uFlags|SWP_NOSIZE);
+	DeferWindowPos(hDwp,m_btnLocalView,NULL,nBtnStartX,nHeight-250+24+25,0,0,uFlags|SWP_NOSIZE);
+	DeferWindowPos(hDwp,m_btnPush,NULL,nBtnStartX+62+212, nHeight-250+24+25,0,0,uFlags|SWP_NOSIZE);
+	DeferWindowPos(hDwp,m_btnLiveView,NULL,nBtnStartX+(62+212)*2,nHeight-250+24+25,0,0,uFlags|SWP_NOSIZE);
+
 
 	DeferWindowPos(hDwp,m_linkEasyDarwinWeb,NULL,nWidth-250,nHeight-23,0,0,uFlags|SWP_NOSIZE);
 	if (m_linkEasyDarwinWeb.m_hWnd)
 	{
+// 		CRect rcClient;
+// 		m_linkEasyDarwinWeb.GetClientRect(&rcClient);
+// 		m_linkEasyDarwinWeb.MoveWindow( nWidth-225,nHeight-23, rcClient.Width(), rcClient.Height() );
+// 		m_linkEasyDarwinWeb.Invalidate();
 		m_linkEasyDarwinWeb.SetFocus();
 	}
 	DeferWindowPos(hDwp,m_linkEasyClientGethub,NULL,nWidth-120,nHeight-23,0,0,uFlags|SWP_NOSIZE);
@@ -242,7 +321,7 @@ void	CEasyClientDlg::UpdateComponents()
 	//大小变动控件
 	if (pEdtShowLog)
 	{
-		DeferWindowPos(hDwp, pEdtShowLog->GetSafeHwnd(), NULL, 10, nHeight-280+24+25+44, nWidth-20,157, uFlags);
+		DeferWindowPos(hDwp, pEdtShowLog->GetSafeHwnd(), NULL, 10, nHeight-250+24+25+44, nWidth-20,127, uFlags);
 		pEdtShowLog->SetFocus();
 	}
 
@@ -310,12 +389,20 @@ void CEasyClientDlg::OnCbnSelchangeComboSource()
 		pVideoCombo->ShowWindow(SW_SHOW);
 		pComboxAudioSource->ShowWindow(SW_SHOW);
 		pEdtRtspSource->ShowWindow(SW_HIDE);
+		m_edtVdieoWidth.ShowWindow(SW_SHOW);
+		m_edtVideoHeight.ShowWindow(SW_SHOW);
+		m_edtFPS.ShowWindow(SW_SHOW);
+		m_edtVideoBitrate.ShowWindow(SW_SHOW);
 	} 
 	else
 	{
 		pVideoCombo->ShowWindow(SW_HIDE);
 		pComboxAudioSource->ShowWindow(SW_HIDE);
 		pEdtRtspSource->ShowWindow(SW_SHOW);
+		m_edtVdieoWidth.ShowWindow(SW_HIDE);
+		m_edtVideoHeight.ShowWindow(SW_HIDE);
+		m_edtFPS.ShowWindow(SW_HIDE);
+		m_edtVideoBitrate.ShowWindow(SW_HIDE);
 	}
 	Invalidate();
 }
@@ -339,11 +426,51 @@ void CEasyClientDlg::OnBnClickedBtnCapture()
 			int nAudioId = 0;
 			char szURL[128] = {0,};
 			CString strTemp = _T("");
+			int nWidth = 640;
+			int nHeight = 480;
+			int nFps = 25;
+			int nBitrate = 2048;
+
 			if (eType == SOURCE_LOCAL_CAMERA)
 			{
 				nCamId = pVideoCombo->GetCurSel();
 				nAudioId = pAudioCombo->GetCurSel();
 				strTemp = _T("本地音视频采集");
+
+				//视频参数设置
+				// 			char szIp[128] = {0,};
+				char szWidth[128] = {0,};
+				wchar_t wszWidth[128] = {0,};
+				char szHeight[128] = {0,};
+				wchar_t wszHeight[128] = {0,};
+				char szFPS[128] = {0,};
+				wchar_t wszFPS[128] = {0,};
+				char szBitrate[128] = {0,};
+				wchar_t wszBitrate[128] = {0,};
+
+				m_edtVdieoWidth.GetWindowTextW(wszWidth, sizeof(wszWidth));
+				if (wcslen(wszWidth) < 1)		
+					return;
+				__WCharToMByte(wszWidth, szWidth, sizeof(szWidth)/sizeof(szWidth[0]));
+				nWidth = atoi(szWidth);
+
+				m_edtVideoHeight.GetWindowTextW(wszHeight, sizeof(wszHeight));
+				if (wcslen(wszHeight) < 1)		
+					return;
+				__WCharToMByte(wszHeight, szHeight, sizeof(szHeight)/sizeof(szHeight[0]));
+				nHeight = atoi(szHeight);
+
+				m_edtFPS.GetWindowTextW(wszFPS, sizeof(wszFPS));
+				if (wcslen(wszFPS) < 1)		
+					return;
+				__WCharToMByte(wszFPS, szFPS, sizeof(szFPS)/sizeof(szFPS[0]));
+				nFps = atoi(szFPS);
+
+				m_edtVideoBitrate.GetWindowTextW(wszBitrate, sizeof(wszBitrate));
+				if (wcslen(wszBitrate) < 1)		
+					return;
+				__WCharToMByte(wszBitrate, szBitrate, sizeof(szBitrate)/sizeof(szBitrate[0]));
+				nBitrate = atoi(szBitrate);
 			} 
 			else
 			{
@@ -362,9 +489,9 @@ void CEasyClientDlg::OnBnClickedBtnCapture()
 				
 				__WCharToMByte(strURL, szURL, sizeof(szURL)/sizeof(szURL[0]));
 				strTemp = _T("网络音视频流采集");
-
 			}
-			int nRet = m_pManager->StartCapture( eType,  nCamId, nAudioId, pCapWnd->GetSafeHwnd(), szURL);
+
+			int nRet = m_pManager->StartCapture( eType,  nCamId, nAudioId, pCapWnd->GetSafeHwnd(), szURL, nWidth, nHeight, nFps,nBitrate );
 			if (nRet>0)
 			{
 				strTemp +=_T("成功！"); 
@@ -404,9 +531,12 @@ void CEasyClientDlg::OnBnClickedBtnPush()
 			char szIp[128] = {0,};
 			char szPort[128] = {0,};
 			char szName[128] = {0,};
+			char szPushBufferSize[128]={0,};
 			wchar_t wszIp[128] = {0,};
 			wchar_t wszPort[128] = {0,};
 			wchar_t wszName[128] = {0,};
+			wchar_t wszPushBufferSize[128]={0,};
+
 			if (NULL != pIP)	
 				pIP->GetWindowTextW(wszIp, sizeof(wszIp));
 			if (wcslen(wszIp) < 1)		
@@ -425,8 +555,14 @@ void CEasyClientDlg::OnBnClickedBtnPush()
 			if (wcslen(wszName) < 1)		
 				return;
 			__WCharToMByte(wszName, szName, sizeof(szName)/sizeof(szName[0]));
-			
-			int nRet = m_pManager->StartPush(szIp , nPort,  szName);
+
+			m_edtPushBuffer.GetWindowTextW(wszPushBufferSize, sizeof(wszPushBufferSize));
+			if (wcslen(wszPushBufferSize) < 1)		
+				return;
+			__WCharToMByte(wszPushBufferSize, szPushBufferSize, sizeof(szPushBufferSize)/sizeof(szPushBufferSize[0]));
+			int nPushBufSize = atoi(szPushBufferSize);
+
+			int nRet = m_pManager->StartPush(szIp , nPort,  szName, nPushBufSize);
 			CString strMsg = _T("");
 			if (nRet>=0)
 			{
@@ -556,6 +692,25 @@ void CEasyClientDlg::DrawClientArea( CDC*pDC,int nWidth,int nHeight )
 		pDC->DrawText(strCamera,CRect(nStartX,nHeight-320+15+30,nStartX+70,nHeight-320+15+30+24),DT_LEFT| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
 		CString strMicphone = _T("麦克风:");
 		pDC->DrawText(strMicphone,CRect(nStartX+220,nHeight-320+15+30,nStartX+220+70,nHeight-320+15+30+24),DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
+		//音视频参数设置
+		CString strVideoParam = _T("视频参数设置:");
+		pDC->DrawText(strVideoParam,CRect(nStartX,nHeight-320+15+60,nStartX+80,nHeight-320+15+60+24),DT_LEFT| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
+		//宽
+		CString strVideoWidth = _T("宽:");
+		pDC->DrawText(strVideoWidth,CRect(nStartX+80,nHeight-320+15+60,nStartX+80+30,nHeight-320+15+60+24),DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
+
+		//	高
+		CString strVideoHeight = _T("高:");
+		pDC->DrawText(strVideoHeight,CRect(nStartX+160,nHeight-320+15+60,nStartX+160+30,nHeight-320+15+60+24),DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
+
+		//	帧率
+		CString strFPS = _T("FPS:");
+		pDC->DrawText(strFPS,CRect(nStartX+240,nHeight-320+15+60,nStartX+240+30,nHeight-320+15+60+24),DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
+
+		//	比特率
+		CString strVideobitrate = _T("比特率:");
+		pDC->DrawText(strVideobitrate,CRect(nStartX+320,nHeight-320+15+60,nStartX+320+60,nHeight-320+15+60+24),DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
+
 	}
 	else
 	{
@@ -593,8 +748,18 @@ void CEasyClientDlg::DrawClientArea( CDC*pDC,int nWidth,int nHeight )
 	CString strStream = _T("Stream:");
 	pDC->DrawText(strStream,rcPosition,DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
 
+	//推送参数设置
+	rcPosition.SetRect(nStartX , nHeight-320+15+60, nStartX + 80, nHeight-320+15+60+24 );
+	CString strPushParam = _T("推送缓存设置:");
+	pDC->DrawText(strPushParam,rcPosition,DT_LEFT| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
+
+	rcPosition.SetRect(nStartX+180 , nHeight-320+15+60, nStartX + 380, nHeight-320+15+60+24 );
+	CString strPushParamExplain = _T("(范围：512~2048   单位：KB)");
+	pDC->DrawText(strPushParamExplain,rcPosition,DT_LEFT| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
+
+	//下部分
 	CString strDebugInfo = _T("Trace:");
-	rcPosition.SetRect(10, nHeight-280+24+25+20, 70, nHeight-280+24+25+20+24 );
+	rcPosition.SetRect(10, nHeight-250+24+25+20, 70, nHeight-250+24+25+20+24 );
 	pDC->DrawText(strDebugInfo,rcPosition,DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
 
 	CString strVersionInfo = EasyClent_VersionInfo;
@@ -682,6 +847,20 @@ HBRUSH CEasyClientDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 		pDC->SetBkMode(TRANSPARENT);
 		//pDC->SetBkColor(RGB(0,225,225)); //设定文本的背景色
 		pDC->SetTextColor(RGB(0,0,255));   //设定文本颜色
+	}
+	TRACE("%d\r\n", pWnd->GetDlgCtrlID());
+	if (pWnd->GetDlgCtrlID()==IDC_SYSLINK_EASYDARWIN || pWnd->GetDlgCtrlID() == IDC_SYSLINK_EASYCLIENT_GITHUB)
+	{
+		pDC-> SetBkMode(TRANSPARENT); 
+		CRect rc;
+		pWnd->GetWindowRect(&rc);
+		ScreenToClient(&rc);
+
+		CDC* dc = GetDC();
+		pDC->BitBlt(0,0,rc.Width(),rc.Height(),dc,rc.left,rc.top,SRCCOPY);    //把父窗口背景先画到按钮上
+		ReleaseDC(dc);
+
+        hbr = (HBRUSH) ::GetStockObject(NULL_BRUSH);
 	}
 	
 	return hbr;

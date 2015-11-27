@@ -712,6 +712,8 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDecodeThread( LPVOID _pParam )
 	unsigned int mediatype = 0;
 	MEDIA_FRAME_INFO	frameinfo;
 	int buf_size = 1024*1024;
+	//int buf_size = 1920*1080*2;
+
 	char *pbuf = new char[buf_size];
 	if (NULL == pbuf)
 	{

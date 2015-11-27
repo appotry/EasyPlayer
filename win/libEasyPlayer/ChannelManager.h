@@ -28,6 +28,7 @@ extern "C"
 #define		MAX_YUV_FRAME_NUM	3		//解码后的最大YUV帧数
 #define		MAX_CACHE_FRAME		30		//最大帧缓存,超过该值将只播放I帧
 #define		MAX_AVQUEUE_SIZE	(1024*1024)	//队列大小
+//#define		MAX_AVQUEUE_SIZE	(1920*1080*2)	//队列大小
 
 typedef struct __CODEC_T
 {
@@ -84,7 +85,6 @@ typedef struct __PLAY_THREAD_OBJ
 
 	DWORD			dwLosspacketTime;	//丢包时间
 	DWORD			dwDisconnectTime;	//断线时间
-
 
 	DECODER_OBJ		decoderObj[MAX_DECODER_NUM];
 	D3D_HANDLE		d3dHandle;		//显示句柄

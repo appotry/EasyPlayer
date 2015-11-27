@@ -120,8 +120,14 @@ void CSourceManager::DSRealDataManager(int nDevId, unsigned char *pBuffer, int n
 			if (m_bPushing)
 			{
 				//YUV格式转换
+
 				int nVideoWidth = 640;
-				int	nVideoHeight = 480;
+				int nVideoHeight = 480;
+				if (m_pEncConfigInfo)
+				{
+					nVideoWidth = m_pEncConfigInfo->nScrVideoWidth ;
+					nVideoHeight = m_pEncConfigInfo->nScrVideoHeight ;
+				}
 				int nWidhtHeightBuf=(nVideoWidth*nVideoHeight*3)>>1;
 				BYTE* pDataBuffer=new unsigned char[nWidhtHeightBuf];
 
@@ -161,13 +167,13 @@ void CSourceManager::DSRealDataManager(int nDevId, unsigned char *pBuffer, int n
 				}
 				if (datasize>0)
 				{
-					memset(m_pFrameBuf, 0, 1024*512);
+					memset(m_pFrameBuf, 0, 1920*1080);
 
 					RTSP_FRAME_INFO	frameinfo;
 					memset(&frameinfo, 0x00, sizeof(RTSP_FRAME_INFO));
 					frameinfo.codec = EASY_SDK_VIDEO_CODEC_H264;
-					frameinfo.width	 = 640;
-					frameinfo.height = 480;
+					frameinfo.width	 = nVideoWidth;
+					frameinfo.height = nVideoHeight;
 					frameinfo.fps    = 25;
 
 					bool bKeyF = keyframe;
@@ -325,7 +331,7 @@ void CSourceManager::UpdateLocalVideo(unsigned char *pbuf, int size, int width, 
 	RGB_DrawData(m_d3dHandle, m_hCaptureWnd, (char*)pbuf, width, height, &rcClient, 0x00, RGB(0x00,0x00,0x00), 0x01);
 }
 
-int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd)
+int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd,int nVideoWidth, int nVideoHeight, int nFps, int nBitRate)
 {
 	if (m_bDSCapture)
 	{
@@ -355,9 +361,9 @@ int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd)
 		DevConfigInfo.nDeviceId = 1;
 		DevConfigInfo.nVideoId = nCamId;//摄像机视频捕获ID
 		DevConfigInfo.nAudioId = nAudioId;//音频捕获ID
-		DevConfigInfo.VideoInfo.nFrameRate = 25;
-		DevConfigInfo.VideoInfo.nHeight = 480;
-		DevConfigInfo.VideoInfo.nWidth = 640;
+		DevConfigInfo.VideoInfo.nFrameRate = nFps;
+		DevConfigInfo.VideoInfo.nWidth = nVideoWidth;
+		DevConfigInfo.VideoInfo.nHeight = nVideoHeight;
 		strcpy_s(DevConfigInfo.VideoInfo.strDataType, 64, "YUY2");
 		DevConfigInfo.VideoInfo.nRenderType = 1;
 		DevConfigInfo.VideoInfo.nPinType = 1;
@@ -372,11 +378,57 @@ int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd)
 		//初始化Pusher结构信息
 		memset(&m_mediainfo, 0x00, sizeof(EASY_MEDIA_INFO_T));
 		m_mediainfo.u32VideoCodec =  EASY_SDK_VIDEO_CODEC_H264;//0x1C;
-		m_mediainfo.u32VideoFps = 25;
+		m_mediainfo.u32VideoFps = nFps;
 		m_mediainfo.u32AudioCodec = EASY_SDK_AUDIO_CODEC_AAC;
 		m_mediainfo.u32AudioChannel = 2;
 		m_mediainfo.u32AudioSamplerate = 16000;//44100;
 
+		// 	int	width = 640;
+		// 	int height = 480;
+		// 	int fps = 25;
+		// 	int gop = 30;
+		// 	int bitrate = 512000;
+		// 	int	intputformat = 0;		//3:rgb24  0:yv12
+		// 
+		// 	m_nFrameNum = 0;
+		// 	if (!m_EncoderBuffer)
+		// 	{
+		// 		m_EncoderBuffer = new char[1920*1080];	//申请编码的内存空间
+		// 	}	
+		// 	//初始化H264编码器
+		// 	FFE_Init(&m_hFfeVideoHandle);	//初始化
+		// 	FFE_SetVideoEncodeParam(m_hFfeVideoHandle, ENCODER_H264, width, height, fps, gop, bitrate, intputformat);		//设置编码参数
+		// 	//初始化AAC编码器
+		// 	AAC_Init(&m_hFfeAudioHandle, 16000, 2);
+
+		if(!m_pEncConfigInfo)
+			m_pEncConfigInfo = new Encoder_Config_Info;
+
+		m_AACEncoderManager.Init();
+		m_pEncConfigInfo->nScrVideoWidth = nVideoWidth;
+		m_pEncConfigInfo->nScrVideoHeight = nVideoHeight;
+		m_pEncConfigInfo->nFps = nFps;
+		m_pEncConfigInfo->nMainKeyFrame = 100;
+		m_pEncConfigInfo->nMainBitRate = nBitRate;
+		m_pEncConfigInfo->nMainEncLevel = 1;
+		m_pEncConfigInfo->nMainEncQuality = 20;
+		m_pEncConfigInfo->nMainUseQuality = 0;
+
+		m_H264EncoderManager.Init(0,m_pEncConfigInfo->nScrVideoWidth,
+		m_pEncConfigInfo->nScrVideoHeight,m_pEncConfigInfo->nFps,m_pEncConfigInfo->nMainKeyFrame,
+		m_pEncConfigInfo->nMainBitRate,m_pEncConfigInfo->nMainEncLevel,
+		m_pEncConfigInfo->nMainEncQuality,m_pEncConfigInfo->nMainUseQuality);
+
+		byte  sps[100];
+		byte  pps[100];
+		long spslen=0;
+		long ppslen=0;
+		m_H264EncoderManager.GetSPSAndPPS(0,sps,spslen,pps,ppslen);
+		memcpy(m_sps, sps,100) ;
+		memcpy(m_pps, pps,100) ;
+		m_spslen = spslen;
+		m_ppslen = ppslen;
+		m_pFrameBuf	= new byte[1920*1080];
 
 		//视频可用
 		if (DevConfigInfo.nVideoId >= 0)
@@ -403,10 +455,6 @@ int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd)
 				LogErr(strTemp);
 				return -1;
 			}
-		}
-
-		if (m_pVideoManager)
-		{
 			nRet = m_pVideoManager->BulidPrivewGraph();
 			if(nRet<0)
 			{
@@ -421,6 +469,10 @@ int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd)
 			{
 				m_pVideoManager->BegineCaptureThread();
 			}
+		}
+		else
+		{
+			LogErr(_T("当前视频设备不可用!"));
 		}
 
 	//音频可用
@@ -460,13 +512,18 @@ int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd)
 			}
 		}
 	}	
+	else
+	{
+		LogErr(_T("当前音频设备不可用!"));
+	}
 	return nRet;
 }
 
 //开始捕获(采集)
 // eSourceType==SOURCE_LOCAL_CAMERA时，nCamId有效
 // eSourceType==SOURCE_RTSP_STREAM/SOURCE_ONVIF_STREAM时，szURL有效
-int CSourceManager::StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudioId, HWND hCapWnd, char* szURL)
+int CSourceManager::StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudioId,
+	HWND hCapWnd, char* szURL, int nVideoWidth, int nVideoHeight, int nFps, int nBitRate)
 {
 	if (IsInCapture())
 	{
@@ -524,7 +581,7 @@ int CSourceManager::StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudio
 // 			}
 // 		}
 		//DShow本地采集
-		nRet = StartDSCapture(nCamId, nAudioId, m_hCaptureWnd);	
+		nRet = StartDSCapture(nCamId, nAudioId, m_hCaptureWnd, nVideoWidth, nVideoHeight, nFps, nBitRate );	
 	}
 	else
 	{
@@ -578,104 +635,6 @@ void CSourceManager::StopCapture()
 	}
 	m_netStreamCapture.Close();
 	
-	m_bDSCapture = FALSE;
-}
-
-int __EasyPusher_Callback(int _id, EASY_PUSH_STATE_T _state, EASY_AV_Frame *_frame, void *_userptr)
-{
-	if (_state == EASY_PUSH_STATE_CONNECTING)               TRACE("Connecting...\n");
-	else if (_state == EASY_PUSH_STATE_CONNECTED)           TRACE("Connected\n");
-	else if (_state == EASY_PUSH_STATE_CONNECT_FAILED)      TRACE("Connect failed\n");
-	else if (_state == EASY_PUSH_STATE_CONNECT_ABORT)       TRACE("Connect abort\n");
-	else if (_state == EASY_PUSH_STATE_PUSHING)             TRACE("P->");
-	else if (_state == EASY_PUSH_STATE_DISCONNECTED)        TRACE("Disconnect.\n");
-
-	return 0;
-}
-
-//开始推流
-int CSourceManager::StartPush(char* ServerIp, int nPushPort, char* sPushName)
-{
-	// 	int	width = 640;
-	// 	int height = 480;
-	// 	int fps = 25;
-	// 	int gop = 30;
-	// 	int bitrate = 512000;
-	// 	int	intputformat = 0;		//3:rgb24  0:yv12
-	// 
-	// 	m_nFrameNum = 0;
-	// 	if (!m_EncoderBuffer)
-	// 	{
-	// 		m_EncoderBuffer = new char[1920*1080];	//申请编码的内存空间
-	// 	}	
-	// 	//初始化H264编码器
-	// 	FFE_Init(&m_hFfeVideoHandle);	//初始化
-	// 	FFE_SetVideoEncodeParam(m_hFfeVideoHandle, ENCODER_H264, width, height, fps, gop, bitrate, intputformat);		//设置编码参数
-	// 	//初始化AAC编码器
-	// 	AAC_Init(&m_hFfeAudioHandle, 16000, 2);
-
-	if(!m_pEncConfigInfo)
-		m_pEncConfigInfo = new Encoder_Config_Info;
-
-	m_AACEncoderManager.Init();
-	m_pEncConfigInfo->nScrVideoWidth = 640;
-	m_pEncConfigInfo->nScrVideoHeight = 480;
-	m_pEncConfigInfo->nFps = 25;
-	m_pEncConfigInfo->nMainKeyFrame = 50;
-	m_pEncConfigInfo->nMainBitRate = 2048;
-	m_pEncConfigInfo->nMainEncLevel = 1;
-	m_pEncConfigInfo->nMainEncQuality = 20;
-	m_pEncConfigInfo->nMainUseQuality = 0;
-
-	m_H264EncoderManager.Init(0,m_pEncConfigInfo->nScrVideoWidth,
-		m_pEncConfigInfo->nScrVideoHeight,m_pEncConfigInfo->nFps,m_pEncConfigInfo->nMainKeyFrame,
-		m_pEncConfigInfo->nMainBitRate,m_pEncConfigInfo->nMainEncLevel,
-		m_pEncConfigInfo->nMainEncQuality,m_pEncConfigInfo->nMainUseQuality);
-
-	byte  sps[100];
-	byte  pps[100];
-	long spslen=0;
-	long ppslen=0;
-	m_H264EncoderManager.GetSPSAndPPS(0,sps,spslen,pps,ppslen);
-	memcpy(m_sps, sps,100) ;
-	memcpy(m_pps, pps,100) ;
-	m_spslen = spslen;
-	m_ppslen = ppslen;
-	m_pFrameBuf	= new byte[1024*512];
-
-		m_sPushInfo.pusherHandle = EasyPusher_Create();
-		strcpy(m_sPushInfo.pushServerAddr,  ServerIp);
-		m_sPushInfo.pushServerPort = nPushPort;
-		strcpy(m_sPushInfo.sdpName, sPushName);
-		Easy_U32 nRet = 0;
-		if (NULL != m_sPushInfo.pusherHandle )
-		{
-			EasyPusher_SetEventCallback(m_sPushInfo.pusherHandle, __EasyPusher_Callback, 0, NULL);
-			Easy_U32 nRet = EasyPusher_StartStream(m_sPushInfo.pusherHandle , ServerIp, nPushPort, sPushName, "admin", "admin", (EASY_MEDIA_INFO_T*)&m_mediainfo, 1024, 0);
-			if(nRet>=0)
-			{
-				m_bPushing = TRUE;
-			}
-			else
-			{
-				StopPush();
-			}
-		}
-		return nRet;
-}
-//停止推流
-void CSourceManager::StopPush()
-{
-	//Close Pusher
-	if (NULL != m_sPushInfo.pusherHandle)
-	{
-		EasyPusher_StopStream(m_sPushInfo.pusherHandle);
-		EasyPusher_Release(m_sPushInfo.pusherHandle);
-		m_sPushInfo.pusherHandle = NULL;
-	}
-	m_bPushing = FALSE;
-	m_bAVSync = FALSE;
-
 	// 	if (m_hFfeVideoHandle)
 	// 	{
 	// 		FFE_Deinit(&m_hFfeVideoHandle);
@@ -707,6 +666,57 @@ void CSourceManager::StopPush()
 		delete[] m_pFrameBuf;
 		m_pFrameBuf = NULL;
 	}
+	m_bDSCapture = FALSE;
+}
+
+int __EasyPusher_Callback(int _id, EASY_PUSH_STATE_T _state, EASY_AV_Frame *_frame, void *_userptr)
+{
+	if (_state == EASY_PUSH_STATE_CONNECTING)               TRACE("Connecting...\n");
+	else if (_state == EASY_PUSH_STATE_CONNECTED)           TRACE("Connected\n");
+	else if (_state == EASY_PUSH_STATE_CONNECT_FAILED)      TRACE("Connect failed\n");
+	else if (_state == EASY_PUSH_STATE_CONNECT_ABORT)       TRACE("Connect abort\n");
+	else if (_state == EASY_PUSH_STATE_PUSHING)             TRACE("P->");
+	else if (_state == EASY_PUSH_STATE_DISCONNECTED)        TRACE("Disconnect.\n");
+
+	return 0;
+}
+
+//开始推流
+int CSourceManager::StartPush(char* ServerIp, int nPushPort, char* sPushName, int nPushBufSize)
+{
+	m_sPushInfo.pusherHandle = EasyPusher_Create();
+	strcpy(m_sPushInfo.pushServerAddr,  ServerIp);
+	m_sPushInfo.pushServerPort = nPushPort;
+	strcpy(m_sPushInfo.sdpName, sPushName);
+	Easy_U32 nRet = 0;
+	if (NULL != m_sPushInfo.pusherHandle )
+	{
+		EasyPusher_SetEventCallback(m_sPushInfo.pusherHandle, __EasyPusher_Callback, 0, NULL);
+		Easy_U32 nRet = EasyPusher_StartStream(m_sPushInfo.pusherHandle , 
+			ServerIp, nPushPort, sPushName, "admin", "admin", (EASY_MEDIA_INFO_T*)&m_mediainfo, nPushBufSize, 0);//512-2048
+		if(nRet>=0)
+		{
+			m_bPushing = TRUE;
+		}
+		else
+		{
+			StopPush();
+		}
+	}
+	return nRet;
+}
+//停止推流
+void CSourceManager::StopPush()
+{
+	//Close Pusher
+	if (NULL != m_sPushInfo.pusherHandle)
+	{
+		EasyPusher_StopStream(m_sPushInfo.pusherHandle);
+		EasyPusher_Release(m_sPushInfo.pusherHandle);
+		m_sPushInfo.pusherHandle = NULL;
+	}
+	m_bPushing = FALSE;
+	m_bAVSync = FALSE;
 }
 
 //开始播放

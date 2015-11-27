@@ -18,6 +18,7 @@
 #include "EasySkinManager.h"
 #include "afxwin.h"
 #include "afxcmn.h"
+#include "EasyLinkCtrl.h"
 
 typedef struct __EASY_VIDEO_PANEL_OBJ_T
 {
@@ -54,7 +55,7 @@ protected:
 
 	// Generated message map functions
 	virtual BOOL OnInitDialog();
-	afx_msg void OnPaint();
+	afx_msg void OnPaint(); 
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 	virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
@@ -68,8 +69,13 @@ private:
 	CEasySkinButton m_btnLocalView;
 	CEasySkinButton m_btnPush;
 	CEasySkinButton m_btnLiveView;
-	CLinkCtrl m_linkEasyDarwinWeb;
-	CLinkCtrl m_linkEasyClientGethub;
+	CEasyLinkCtrl m_linkEasyDarwinWeb;
+	CEasyLinkCtrl m_linkEasyClientGethub;//CEasyLinkCtrl
+	CEdit m_edtVdieoWidth;
+	CEdit m_edtVideoHeight;
+	CEdit m_edtFPS;
+	CEdit m_edtVideoBitrate;
+	CEdit m_edtPushBuffer;
 
 public:
 	afx_msg void OnCbnSelchangeComboSource();
@@ -90,4 +96,5 @@ public:
 	afx_msg void OnNMClickSyslinkEasydarwin(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnNMClickSyslinkEasyclientGithub(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+
 };

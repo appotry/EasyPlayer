@@ -16,7 +16,7 @@
 #include "VideoSource\USBCamera\CameraDS.h"
 //网络音视频流采集
 #include "EasyPlayerManager.h"
-//DShow音视频采集库头文件添加（添加该库主要是为了解决音视频同步从源头上不同步的问题）
+//DShow音视频采集库头文件添加（添加该库主要是为了解决音视频源头上不同步的问题）
 #include "./DShowCapture/DShowCaptureAudioAndVideo_Interface.h"
 #pragma comment(lib, "./DShowCapture/DShowCaptureAudioAndVideoDll.lib")
 
@@ -67,14 +67,15 @@ public:
 	static int CALLBACK __MediaSourceCallBack( int _channelId, int *_channelPtr, int _frameType, char *pBuf, RTSP_FRAME_INFO* _frameInfo);
 	int SourceManager(int _channelId, int *_channelPtr, int _frameType, char *pBuf, RTSP_FRAME_INFO* _frameInfo);
 
-	int StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd);
+	int StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd, int nVideoWidth, int nVideoHeight, int nFps, int nBitRate);
 	//开始捕获(采集)
-	int StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudioId,  HWND hCapWnd, char* szURL = NULL);
+	int StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudioId,  HWND hCapWnd, 
+		char* szURL = NULL, int nVideoWidth=640, int nVideoHeight=480, int nFps=25, int nBitRate=2048);
 	//停止采集
 	void StopCapture();
 
 	//开始推流
-	int StartPush(char* ServerIp, int nPushPort, char* sPushName);
+	int StartPush(char* ServerIp, int nPushPort, char* sPushName, int nPushBufSize = 1024);
 	//停止推流
 	void StopPush();
 	
@@ -160,6 +161,5 @@ private:
 	long m_spslen;
 	long m_ppslen;
 	byte* m_pFrameBuf; 
-
 };
 

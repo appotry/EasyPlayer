@@ -65,5 +65,3 @@ int EasyPlayerManager::InRunning()
 {
 	return m_sSourceInfo.rtspSourceId;
 }
-
-

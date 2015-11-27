@@ -120,6 +120,7 @@
     <ClInclude Include="DShowCapture\DShowCaptureAudioAndVideo_Interface.h" />
     <ClInclude Include="EasyClient.h" />
     <ClInclude Include="EasyClientDlg.h" />
+    <ClInclude Include="EasyLinkCtrl.h" />
     <ClInclude Include="EasyPlayerManager.h" />
     <ClInclude Include="EasyPusher\EasyPusherAPI.h" />
     <ClInclude Include="EasySkinManager.h" />
@@ -177,6 +178,7 @@
     <ClCompile Include="DlgVideo.cpp" />
     <ClCompile Include="EasyClient.cpp" />
     <ClCompile Include="EasyClientDlg.cpp" />
+    <ClCompile Include="EasyLinkCtrl.cpp" />
     <ClCompile Include="EasyPlayerManager.cpp" />
     <ClCompile Include="EasySkinManager.cpp" />
     <ClCompile Include="EasySkinUI\FlashControl.cpp" />

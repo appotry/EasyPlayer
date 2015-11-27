@@ -213,6 +213,9 @@
     <ClInclude Include="Encoder\x264_config.h">
       <Filter>Encoder</Filter>
     </ClInclude>
+    <ClInclude Include="EasyLinkCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -346,6 +349,9 @@
     </ClCompile>
     <ClCompile Include="Encoder\H264EncoderManager.cpp">
       <Filter>Encoder</Filter>
+    </ClCompile>
+    <ClCompile Include="EasyLinkCtrl.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
