@@ -1,3 +1,4 @@
+
 /*
 	Copyright (c) 2013-2014 EasyDarwin.ORG.  All rights reserved.
 	Github: https://github.com/EasyDarwin
@@ -43,6 +44,7 @@ class CEasySkinManager : public CEasySkinDialog
 public:
 	CImageEx						*m_pImageBack;
 	CImageEx						* m_pImageLogo;
+	CImageEx						* m_pImageTitle;
 
 	CEasySkinButton						m_btClose;
 	CEasySkinButton						m_btMin;

@@ -1,3 +1,4 @@
+
 /*
 	Copyright (c) 2013-2014 EasyDarwin.ORG.  All rights reserved.
 	Github: https://github.com/EasyDarwin
@@ -20,6 +21,7 @@ CEasySkinManager::CEasySkinManager(UINT nIDTemplate,CWnd* pParent /*=NULL*/,AFX_
 {
 	m_pImageBack = NULL;
 	m_pImageLogo = NULL;
+	m_pImageTitle = NULL;
 
 	m_enWndStyle = Style;
 	m_bIsZoomed = false;
@@ -30,6 +32,8 @@ CEasySkinManager::~CEasySkinManager()
 {
 	UIRenderEngine->RemoveImage(m_pImageBack);
 	UIRenderEngine->RemoveImage(m_pImageLogo);
+	UIRenderEngine->RemoveImage(m_pImageTitle);
+	
 }
 
 void CEasySkinManager::DoDataExchange(CDataExchange* pDX)
@@ -57,14 +61,19 @@ void CEasySkinManager::DrawClientArea( CDC*pDC,int nWidth,int nHeight )
 		m_pImageBack->DrawExtrude(pDC,CRect(0,0,nWidth,nHeight),GlobalUnits->m_bLeftDrawExtrude);
 	}
 
+	//UIRenderEngine->DrawRoundRect(pDC->GetSafeHdc(),CRect(1,33,nWidth-1,1),6,6,1,RGB(12,192,143));
+		pDC->FillSolidRect(1,32,nWidth-1,1,RGB(12,192,143));
+
 	//绘制边框
-	UIRenderEngine->DrawRoundRect(pDC->GetSafeHdc(),CRect(0,0,nWidth-1,nHeight-1),6,6,1,RGB(92,89,82));
+	UIRenderEngine->DrawRoundRect(pDC->GetSafeHdc(),CRect(0,0,nWidth-1,nHeight-1),6,6,1,RGB(92,89,82));//0cb68f
 
 	if ( m_bShowLogo )
 	{
 		if ( m_pImageLogo != NULL && !m_pImageLogo->IsNull() )
-			m_pImageLogo->DrawImage(pDC,5,5);
+			m_pImageLogo->DrawImage(pDC,4,1);
 	}
+		if ( m_pImageTitle != NULL && !m_pImageTitle->IsNull() )
+			m_pImageTitle->DrawImage(pDC,38,9);	
 }
 
 BOOL CEasySkinManager::OnInitDialog()
@@ -74,7 +83,8 @@ BOOL CEasySkinManager::OnInitDialog()
 	HDC hParentDC = GetBackDC();
 
 	m_pImageBack = UIRenderEngine->GetImage(GlobalUnits->m_szDefaultSkin);
-	m_pImageLogo = UIRenderEngine->GetImage(TEXT("SkinUI\\图标\\logo.png"));
+	m_pImageLogo = UIRenderEngine->GetImage(TEXT("SkinUI\\图标\\Easy_32.png"));//Easy_32.png logo.png
+	m_pImageTitle = UIRenderEngine->GetImage(TEXT("SkinUI\\图标\\logo.png"));//Easy_32.png 
 
 	GlobalUnits->m_WindowArray.push_back(this);
 
