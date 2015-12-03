@@ -25,9 +25,7 @@ CSourceManager::CSourceManager(void)
 	m_hFfeAudioHandle = NULL;
 	m_nFrameNum = 0;
 	m_EncoderBuffer = NULL;
-
 }
-
 
 CSourceManager::~CSourceManager(void)
 {
@@ -55,6 +53,7 @@ CSourceManager* CSourceManager::Instance()
 		s_pSourceManager = NULL;
 	}
 }
+
 //释放Master所占相关资源
 void CSourceManager::RealseManager()
 {
