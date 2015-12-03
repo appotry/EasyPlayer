@@ -358,5 +358,8 @@
     <Library Include="AudioSource\dxguid.lib">
       <Filter>AudioSource</Filter>
     </Library>
+    <Library Include="DShowCapture\DirectShow\Lib\STRMBASE.lib">
+      <Filter>DShowCapture</Filter>
+    </Library>
   </ItemGroup>
 </Project>

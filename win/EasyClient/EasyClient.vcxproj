@@ -232,6 +232,7 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="AudioSource\dxguid.lib" />
+    <Library Include="DShowCapture\DirectShow\Lib\STRMBASE.lib" />
     <Library Include="EasyPusher\libEasyPusher.lib" />
     <Library Include="FFEncoder\FFEncoder.lib" />
   </ItemGroup>
