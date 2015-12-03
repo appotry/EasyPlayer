@@ -18,14 +18,9 @@
 #include "EasyPlayerManager.h"
 //DShow音视频采集库头文件添加（添加该库主要是为了解决音视频源头上不同步的问题）
 #include "./DShowCapture/DShowCaptureAudioAndVideo_Interface.h"
-#pragma comment(lib, "./DShowCapture/DShowCaptureAudioAndVideoDll.lib")
 
 #include "./FFEncoder/FFEncoderAPI.h"
 #pragma comment(lib, "./FFEncoder/FFEncoder.lib")
-
-#include "./Encoder/FAACEncoder.h"
-#include "./Encoder/H264Encoder.h"
-#include "./Encoder/H264EncoderManager.h"
 
 
 typedef enum tagSOURCE_TYPE
@@ -90,14 +85,14 @@ public:
 	//状态
 	BOOL IsInCapture()
 	{
-// 		BOOL bCap = FALSE;
-// 		int nStreamCap = m_netStreamCapture.InRunning();
-// 		int nVideoCap = m_videoCamera.InRunning();
-// 		if (nVideoCap>0 ||nStreamCap>0 )
-// 			bCap = TRUE;
-// 		else
-// 			bCap = FALSE;
-		return m_bDSCapture;
+		BOOL bCap = FALSE;
+		int nStreamCap = m_netStreamCapture.InRunning();
+		//int nVideoCap = m_videoCamera.InRunning();
+		if (m_bDSCapture ||nStreamCap>0 )
+			bCap = TRUE;
+		else
+			bCap = FALSE;
+		return bCap ;
 	}
 	BOOL IsInPushing()
 	{
@@ -118,6 +113,10 @@ private:
 	CEasyClientDlg* m_pMainDlg;
 	CDirectSound	m_audioCapture;
 	CCameraDS		m_videoCamera;
+
+	//////////////////////////////////////////////////////////////////////////
+	// 多重参数
+	////////////////////////////////////////////////////////////////////////// 
 	//视频设备控制实例
 	LPVideoCapturer m_pVideoManager;
 	//音频设备控制实例
@@ -128,21 +127,18 @@ private:
 	//接收EasyDarwin推出的RTSP流进行播放
 	EasyPlayerManager m_netStreamPlayer;
 
+	//本地Dshow捕获参数设置
+	DEVICE_CONFIG_INFO m_sDevConfigInfo;
 	EASY_MEDIA_INFO_T   m_mediainfo;
-	CAMERA_LIST_T		*m_pCameraList;
 	EASY_LOCAL_SOURCE_T m_sSourceInfo;
 	EASY_LOCAL_SOURCE_T m_sPushInfo;
 	EASY_LOCAL_SOURCE_T m_sPlayInfo;
-	int			m_nLocalVideoWidth;
-	int			m_nLocalVideoHeight;
-	unsigned char	*rgbData;
-	int				rgbDataSize;
+
+	BOOL m_bDSCapture;
 	D3D_HANDLE		m_d3dHandle;
 	HWND m_hCaptureWnd;
 	HWND m_hPlayWnd;
 	BOOL m_bPushing;
-	BOOL m_bAVSync;//音视频同步标志
-	BOOL m_bDSCapture;
 
 	//FF---编码器相关
 	FFE_HANDLE m_hFfeVideoHandle;
@@ -150,16 +146,5 @@ private:
 	int m_nFrameNum;
 	char * m_EncoderBuffer;// = new char[1920*1080];	//申请编码的内存空间
 
-	//AAC编码器
-	FAACEncoder m_AACEncoderManager;
-	//H264编码器
-	CH264EncoderManager m_H264EncoderManager;
-	//编码信息配置
-	Encoder_Config_Info*	m_pEncConfigInfo;
-	byte m_sps[100];
-	byte  m_pps[100];
-	long m_spslen;
-	long m_ppslen;
-	byte* m_pFrameBuf; 
 };
 

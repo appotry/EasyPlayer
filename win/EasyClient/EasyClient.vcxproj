@@ -54,7 +54,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>./;./Encoder;.\EasySkinUI;C:\Program Files (x86)\Visual Leak Detector\include;.\VideoSource\USBCamera\DirectShow\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>\DShowCapture\DirectShow\Include;./;./Encoder;.\EasySkinUI;C:\Program Files (x86)\Visual Leak Detector\include;.\VideoSource\USBCamera\DirectShow\Include;.\DShowCapture\DirectShow;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -62,7 +62,8 @@
       <OutputFile>../bin/$(ProjectName).exe</OutputFile>
       <AdditionalDependencies>gdiplus.lib</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <AdditionalLibraryDirectories>./Encoder</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>.\DShowCapture\DirectShow\Lib;./Encoder</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -117,7 +118,11 @@
     <ClInclude Include="DlgPanel.h" />
     <ClInclude Include="DlgRemotePanel.h" />
     <ClInclude Include="DlgVideo.h" />
+    <ClInclude Include="DShowCapture\CaptureAudio.h" />
+    <ClInclude Include="DShowCapture\CaptureVideo.h" />
     <ClInclude Include="DShowCapture\DShowCaptureAudioAndVideo_Interface.h" />
+    <ClInclude Include="DShowCapture\DshowDef.h" />
+    <ClInclude Include="DShowCapture\SampleGrabberCB.h" />
     <ClInclude Include="EasyClient.h" />
     <ClInclude Include="EasyClientDlg.h" />
     <ClInclude Include="EasyLinkCtrl.h" />
@@ -149,13 +154,6 @@
     <ClInclude Include="EasySkinUI\EasySkinUI.h" />
     <ClInclude Include="EasySkinUI\EasySkinUIMenu.h" />
     <ClInclude Include="EasySkinUI\EasySkinUI_ScrollBar.h" />
-    <ClInclude Include="Encoder\faac.h" />
-    <ClInclude Include="Encoder\faaccfg.h" />
-    <ClInclude Include="Encoder\FAACEncoder.h" />
-    <ClInclude Include="Encoder\H264Encoder.h" />
-    <ClInclude Include="Encoder\H264EncoderManager.h" />
-    <ClInclude Include="Encoder\x264.h" />
-    <ClInclude Include="Encoder\x264_config.h" />
     <ClInclude Include="GlobalUnits.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SourceManager.h" />
@@ -176,6 +174,10 @@
     <ClCompile Include="DlgPanel.cpp" />
     <ClCompile Include="DlgRemotePanel.cpp" />
     <ClCompile Include="DlgVideo.cpp" />
+    <ClCompile Include="DShowCapture\CaptureAudio.cpp" />
+    <ClCompile Include="DShowCapture\CaptureVideo.cpp" />
+    <ClCompile Include="DShowCapture\DShowCaptureAudioAndVideo_Interface.cpp" />
+    <ClCompile Include="DShowCapture\SampleGrabberCB.cpp" />
     <ClCompile Include="EasyClient.cpp" />
     <ClCompile Include="EasyClientDlg.cpp" />
     <ClCompile Include="EasyLinkCtrl.cpp" />
@@ -203,9 +205,6 @@
     <ClCompile Include="EasySkinUI\EasySkinUI.cpp" />
     <ClCompile Include="EasySkinUI\EasySkinUIMenu.cpp" />
     <ClCompile Include="EasySkinUI\EasySkinUI_ScrollBar.cpp" />
-    <ClCompile Include="Encoder\FAACEncoder.cpp" />
-    <ClCompile Include="Encoder\H264Encoder.cpp" />
-    <ClCompile Include="Encoder\H264EncoderManager.cpp" />
     <ClCompile Include="GlobalUnits.cpp" />
     <ClCompile Include="SourceManager.cpp" />
     <ClCompile Include="stdafx.cpp">
