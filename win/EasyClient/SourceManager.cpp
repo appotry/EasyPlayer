@@ -80,9 +80,15 @@ void CSourceManager::UnInitSource()
 
 int CALLBACK CSourceManager::__MediaSourceCallBack( int _channelId, int *_channelPtr, int _frameType, char *pBuf, RTSP_FRAME_INFO* _frameInfo)
 {
-	if (s_pSourceManager)
+	//转到当前实例进行处理
+	EASY_LOCAL_SOURCE_T *pLocalSource = (EASY_LOCAL_SOURCE_T *)_channelPtr;
+	if (pLocalSource)
 	{
-		s_pSourceManager->SourceManager(_channelId, _channelPtr, _frameType, pBuf, _frameInfo);
+		CSourceManager* pMaster = (CSourceManager*)pLocalSource->pMaster;
+		if (pMaster)
+		{
+			pMaster->SourceManager(_channelId, _channelPtr, _frameType, pBuf, _frameInfo);
+		}
 	}
 	
 	return 0;
@@ -97,6 +103,7 @@ int  CSourceManager::RealDataCallbackFunc(int nDevId, unsigned char *pBuffer, in
 	{
 		return -1;
 	}
+	//转到当前实例进行处理
 	CSourceManager* pThis = (CSourceManager*)pMaster;
 	if (pThis)
 	{
@@ -435,7 +442,7 @@ int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd,int nV
 				m_sDevConfigInfo.VideoInfo.nHeight,     m_sDevConfigInfo.VideoInfo.strDataType, 
 				m_sDevConfigInfo.VideoInfo.nRenderType, m_sDevConfigInfo.VideoInfo.nPinType, 1, bUseThread);
 
-			m_pVideoManager->SetDShowCaptureCallback((RealDataCallback)(CSourceManager::RealDataCallbackFunc), (void*)s_pSourceManager);
+			m_pVideoManager->SetDShowCaptureCallback((RealDataCallback)(CSourceManager::RealDataCallbackFunc), (void*)/*s_pSourceManager*/this);
 
 			// 3.创建获取视频的图像
 			nRet =m_pVideoManager->CreateCaptureGraph();
@@ -481,7 +488,7 @@ int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd,int nV
 			m_sDevConfigInfo.AudioInfo.nBytesPerSample,  m_sDevConfigInfo.AudioInfo.nSampleRate, 
 			m_sDevConfigInfo.AudioInfo.nAudioBufferType, m_sDevConfigInfo.AudioInfo.nPinType, 2, bUseThread);
 
-		m_pAudioManager->SetDShowCaptureCallback((RealDataCallback)(CSourceManager::RealDataCallbackFunc), (void*)s_pSourceManager);
+		m_pAudioManager->SetDShowCaptureCallback((RealDataCallback)(CSourceManager::RealDataCallbackFunc), (void*)this);
 
 		nRet =m_pAudioManager->CreateCaptureGraph();
 		if(nRet<=0)
@@ -603,6 +610,7 @@ int CSourceManager::StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudio
 // 			return -1;
 // 		}
 
+		m_sSourceInfo.pMaster = this;
 		m_sSourceInfo.rtspSourceId = m_netStreamCapture.Start(szURL, hCapWnd, DISPLAY_FORMAT_RGB24_GDI, 0x00, "", "", &CSourceManager::__MediaSourceCallBack, (void *)&m_sSourceInfo);
 		m_netStreamCapture.Config(3, FALSE, FALSE);
 		if (m_sSourceInfo.rtspSourceId<=0)

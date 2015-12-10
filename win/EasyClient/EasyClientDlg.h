@@ -1,8 +1,8 @@
 /*
-	Copyright (c) 2013-2014 EasyDarwin.ORG.  All rights reserved.
-	Github: https://github.com/EasyDarwin
-	WEChat: EasyDarwin
-	Website: http://www.EasyDarwin.org
+Copyright (c) 2013-2014 EasyDarwin.ORG.  All rights reserved.
+Github: https://github.com/EasyDarwin
+WEChat: EasyDarwin
+Website: http://www.EasyDarwin.org
 */
 // EasyClientDlg.h : header file
 //
@@ -20,36 +20,44 @@
 #include "afxcmn.h"
 #include "EasyLinkCtrl.h"
 
-typedef struct __EASY_VIDEO_PANEL_OBJ_T
-{
-	CDlgLocalPanel	*pDlgLocalPanel;
-	CDlgRemotePanel	*pDlgRemotePanel;
-
-	//CDlgPanel	*pDlgLocalPanel;
-	//CDlgPanel	*pDlgRemotePanel;
-}EASY_VIDEO_PANEL_OBJ_T;
-
+#define MAX_VIDEO_WND 1
 #define MSG_LOG WM_USER +0x1001
+
+#define	 MAX_VIDEO_WINDOW_NUM		16
+
+typedef struct __VIDEO_NODE_T
+{
+	bool		fullscreen;
+	int		maximizedId;
+	int		selectedId;
+	int		channels;
+	CDlgPanel	* pDlgVideo;
+}VIDEO_NODE_T;
+
 
 // CEasyClientDlg dialog
 class CEasyClientDlg : public CEasySkinManager
 {
-// Construction
+	// Construction
 public:
 	CEasyClientDlg(CWnd* pParent = NULL);	// standard constructor
 
-// Dialog Data
+	// Dialog Data
 	enum { IDD = IDD_EASYCLIENT_DIALOG };
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
 
 
 protected:
-	EASY_VIDEO_PANEL_OBJ_T		easyVideoPanelObj;
 	void		UpdateComponents();
 
-// Implementation
+	void CreateVideoComponents();
+
+	void UpdateVideoComponents(LPRECT lpRect);
+	void DeleteVideoComponents();
+
+	// Implementation
 protected:
 	HICON m_hIcon;
 
@@ -76,6 +84,7 @@ private:
 	CEdit m_edtFPS;
 	CEdit m_edtVideoBitrate;
 	CEdit m_edtPushBuffer;
+	VIDEO_NODE_T	*m_pVideoWindow;		//视频窗口
 
 public:
 	afx_msg void OnCbnSelchangeComboSource();
@@ -85,6 +94,10 @@ public:
 	LRESULT OnLog(WPARAM wParam, LPARAM lParam);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+	afx_msg void OnNMClickSyslinkEasydarwin(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnNMClickSyslinkEasyclientGithub(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+	afx_msg void OnCbnSelchangeComboWndMode();
 
 	//EasySkinUI 界面美化
 protected:
@@ -93,8 +106,5 @@ protected:
 	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
 	void UpdataResource();
 public:
-	afx_msg void OnNMClickSyslinkEasydarwin(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnNMClickSyslinkEasyclientGithub(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
-
+	void GetPushServerInfo(ServerURLInfo* pPushServerInfo);
 };

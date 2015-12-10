@@ -22,8 +22,8 @@ CEasyClientDlg::CEasyClientDlg(CWnd* pParent /*=NULL*/)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
-	memset(&easyVideoPanelObj, 0x00, sizeof(EASY_VIDEO_PANEL_OBJ_T));
 	m_pManager = NULL;
+	m_pVideoWindow = NULL;
 }
 
 void CEasyClientDlg::DoDataExchange(CDataExchange* pDX)
@@ -56,6 +56,7 @@ BEGIN_MESSAGE_MAP(CEasyClientDlg, CEasySkinManager)
 	ON_NOTIFY(NM_CLICK, IDC_SYSLINK_EASYDARWIN, &CEasyClientDlg::OnNMClickSyslinkEasydarwin)
 	ON_NOTIFY(NM_CLICK, IDC_SYSLINK_EASYCLIENT_GITHUB, &CEasyClientDlg::OnNMClickSyslinkEasyclientGithub)
 	ON_WM_ERASEBKGND()
+	ON_CBN_SELCHANGE(IDC_COMBO_WND_MODE, &CEasyClientDlg::OnCbnSelchangeComboWndMode)
 END_MESSAGE_MAP()
 
 
@@ -75,13 +76,18 @@ BOOL CEasyClientDlg::OnInitDialog()
 	//更新皮肤
 	UpdataResource();
 
-	easyVideoPanelObj.pDlgLocalPanel = new CDlgLocalPanel();
-	easyVideoPanelObj.pDlgLocalPanel->Create(IDD_DIALOG_LOCAL_PANEL, this);
-	easyVideoPanelObj.pDlgLocalPanel->ShowWindow(SW_SHOW);
+	CComboBox* pComboxWndMode = (CComboBox*)GetDlgItem(IDC_COMBO_WND_MODE);
+	if (pComboxWndMode)
+	{
+		pComboxWndMode->AddString(_T("四画面"));
+		pComboxWndMode->AddString(_T("八画面"));
+		pComboxWndMode->AddString(_T("九画面"));
+		pComboxWndMode->AddString(_T("16画面"));
+		pComboxWndMode->SetCurSel(0);
+	}
 
-	easyVideoPanelObj.pDlgRemotePanel = new CDlgRemotePanel();
-	easyVideoPanelObj.pDlgRemotePanel->Create(IDD_DIALOG_REMOTE_PANEL, this);
-	easyVideoPanelObj.pDlgRemotePanel->ShowWindow(SW_SHOW);
+	//创建视频窗口组
+	CreateVideoComponents();
 
 	m_pManager = CSourceManager::Instance();
 	m_pManager->SetMainDlg(this);
@@ -127,30 +133,29 @@ BOOL CEasyClientDlg::OnInitDialog()
 	//	pSouceCombo->AddString(_T("网络Onvif流采集"));
 		pSouceCombo->SetCurSel(0);
 	}
-	int nSel  = 	pSouceCombo->GetCurSel();
-	if (nSel == 0)
-	{
-		pVideoCombo->ShowWindow(SW_SHOW);
-		pAudioCombo->ShowWindow(SW_SHOW);
-		pRtspURL->ShowWindow(SW_HIDE);
-		m_edtVdieoWidth.ShowWindow(SW_SHOW);
-		m_edtVideoHeight.ShowWindow(SW_SHOW);
-		m_edtFPS.ShowWindow(SW_SHOW);
-		m_edtVideoBitrate.ShowWindow(SW_SHOW);
-	} 
-	else
-	{
-		pVideoCombo->ShowWindow(SW_HIDE);
-		pAudioCombo->ShowWindow(SW_HIDE);
-		pRtspURL->ShowWindow(SW_SHOW);
-		m_edtVdieoWidth.ShowWindow(SW_HIDE);
-		m_edtVideoHeight.ShowWindow(SW_HIDE);
-		m_edtFPS.ShowWindow(SW_HIDE);
-		m_edtVideoBitrate.ShowWindow(SW_HIDE);
+// 	int nSel  = 	pSouceCombo->GetCurSel();
+// 	if (nSel == 0)
+// 	{
+// 		pVideoCombo->ShowWindow(SW_SHOW);
+// 		pAudioCombo->ShowWindow(SW_SHOW);
+// 		pRtspURL->ShowWindow(SW_HIDE);
+// 		m_edtVdieoWidth.ShowWindow(SW_SHOW);
+// 		m_edtVideoHeight.ShowWindow(SW_SHOW);
+// 		m_edtFPS.ShowWindow(SW_SHOW);
+// 		m_edtVideoBitrate.ShowWindow(SW_SHOW);
+// 	} 
+// 	else
+// 	{
+// 		pVideoCombo->ShowWindow(SW_HIDE);
+// 		pAudioCombo->ShowWindow(SW_HIDE);
+// 		pRtspURL->ShowWindow(SW_SHOW);
+// 		m_edtVdieoWidth.ShowWindow(SW_HIDE);
+// 		m_edtVideoHeight.ShowWindow(SW_HIDE);
+// 		m_edtFPS.ShowWindow(SW_HIDE);
+// 		m_edtVideoBitrate.ShowWindow(SW_HIDE);
+// 	}
 
-	}
-
-	MoveWindow(0, 0, 926, 727);
+	MoveWindow(0, 0, 1024,768 );//926, 727
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -180,7 +185,7 @@ LRESULT CEasyClientDlg::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 //窗口挪动位置
 void	CEasyClientDlg::UpdateComponents()
 {
-		//移动准备
+	//移动准备
 	HDWP hDwp=BeginDeferWindowPos(64);
 	UINT uFlags=SWP_NOACTIVATE|SWP_NOCOPYBITS|SWP_NOZORDER;
 
@@ -203,95 +208,45 @@ void	CEasyClientDlg::UpdateComponents()
 	CComboBox* pComboxAudioSource = (CComboBox*)GetDlgItem(IDC_COMBO_MIC) ;
 	CEdit* pEdtRtspSource = (CEdit*)GetDlgItem(IDC_EDIT_SREAM_URL);
 
+	CComboBox* pComboxWndMode = (CComboBox*)GetDlgItem(IDC_COMBO_WND_MODE);
+	
 	CRect rcPosition;
 	int nWidth = rcClient.Width();
 	int nHeight = rcClient.Height();	
 	
-	//左边部分	
-	int nStartX = (nWidth/2-450)/2;
-	rcPosition.SetRect(nStartX+70 , nHeight-320+15, nStartX+70+360, nHeight-320+15+25 );
-	__MOVE_WINDOW(pComboxMediaSource, rcPosition);
-	rcPosition.SetRect(nStartX+70 , nHeight-320+15+30, nStartX+70+360, nHeight-320+15+30+25 );
-	__MOVE_WINDOW(pEdtRtspSource, rcPosition);
-	if (pEdtRtspSource)
+	rcPosition.SetRect(87, 39, 87 + 80, 58 );
+	__MOVE_WINDOW(pComboxWndMode, rcPosition);
+	if (pComboxWndMode)
 	{
-		//设置焦点刷新
-		pEdtRtspSource->SetFocus();
+		pComboxWndMode->SetFocus();
 	}
 
-	rcPosition.SetRect(nStartX+70 , nHeight-320+15+30, nStartX+70+140, nHeight-320+15+30+25 );
-	__MOVE_WINDOW(pVideoCombo, rcPosition);
-	rcPosition.SetRect(nStartX+70+220 , nHeight-320+15+30, nStartX+70+220+140, nHeight-320+15+30+25 );
-	__MOVE_WINDOW(pComboxAudioSource, rcPosition);
-
-// 	CEasySkinButton m_edtVdieoWidth;
-// 	CEasySkinButton m_edtVideoHeight;
-// 	CEasySkinButton m_edtFPS;
-// 	CEasySkinButton m_edtVideoBitrate;
-// 	CEasySkinButton m_edtPushBuffer;
-
-	//视频宽度
-	rcPosition.SetRect(nStartX+110 , nHeight-320+15+60, nStartX+110+50, nHeight-320+15+60+25 );
-	if (m_edtVdieoWidth.GetSafeHwnd())
-	{
-		m_edtVdieoWidth.MoveWindow(rcPosition);
-		m_edtVdieoWidth.SetFocus();
-	}
-	
-	//视频高度
-	rcPosition.SetRect(nStartX+190 , nHeight-320+15+60, nStartX+190+50, nHeight-320+15+60+25 );
-		if (m_edtVideoHeight.GetSafeHwnd())
-		{
-			m_edtVideoHeight.MoveWindow(rcPosition);
-			m_edtVideoHeight.SetFocus();
-		}
-
-	//视频FPS
-	rcPosition.SetRect(nStartX+270 , nHeight-320+15+60, nStartX+270+50, nHeight-320+15+60+25 );
-		if (m_edtFPS.GetSafeHwnd())
-		{
-			m_edtFPS.MoveWindow(rcPosition);
-			m_edtFPS.SetFocus();
-		}
-
-	//视频比特率
-	rcPosition.SetRect(nStartX+380 , nHeight-320+15+60, nStartX+380+50, nHeight-320+15+60+25 );
-		if (m_edtVideoBitrate.GetSafeHwnd())
-		{
-			m_edtVideoBitrate.MoveWindow(rcPosition);
-			m_edtVideoBitrate.SetFocus();
-		}
-
-	//右边部分控件位置处理
-	nStartX = nWidth/2+(nWidth/2-450)/2;
-	rcPosition.SetRect(nStartX+20, nHeight-320+15+30, nStartX + 20+180, nHeight-320+15+30+25 );
+	int nStartX =420;
+	rcPosition.SetRect(nStartX, 39, nStartX + 150, 58 );
 	__MOVE_WINDOW(pIP, rcPosition);
 	if (pIP)
 	{
 		pIP->SetFocus();
 	}
-	rcPosition.SetRect(nStartX+240, nHeight-320+15+30, nStartX + 240+40, nHeight-320+15+30+25 );
+	rcPosition.SetRect(nStartX+200, 39, nStartX+200+60, 58 );
 	__MOVE_WINDOW(pPort, rcPosition);
 	if (pPort)
 	{
 		pPort->SetFocus();
 	}
-	rcPosition.SetRect(nStartX+340, nHeight-320+15+30, nStartX + 340+100, nHeight-320+15+30+25 );
+	rcPosition.SetRect(nStartX+330, 39, nStartX+330 + 80, 58 );
 	__MOVE_WINDOW(pName, rcPosition);
 	if (pName)
 	{
 		pName->SetFocus();
 	}
 
-	rcPosition.SetRect(nStartX+80, nHeight-320+15+60, nStartX + 80+100, nHeight-320+15+60+25 );
-		if (m_edtPushBuffer.GetSafeHwnd())
-		{
-				m_edtPushBuffer.MoveWindow(rcPosition);
-				m_edtPushBuffer.SetFocus();
-		}
-
-// 	CEdit* pPort = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_PORT);
-// 	CEdit* pName = (CEdit*)GetDlgItem(IDC_EDIT_PUSH_NAME);
+	rcPosition.SetRect(nStartX+510, 39, nStartX+510 + 70, 58 );
+	if (m_edtPushBuffer.GetSafeHwnd())
+	{
+			m_edtPushBuffer.MoveWindow(rcPosition);
+			m_edtPushBuffer.SetFocus();
+	}
 
 	//按钮位置
 	int nBtnStartX =  (rcClient.Width()-62*3-212*2)/2;
@@ -299,14 +254,9 @@ void	CEasyClientDlg::UpdateComponents()
 	DeferWindowPos(hDwp,m_btnPush,NULL,nBtnStartX+62+212, nHeight-250+24+25,0,0,uFlags|SWP_NOSIZE);
 	DeferWindowPos(hDwp,m_btnLiveView,NULL,nBtnStartX+(62+212)*2,nHeight-250+24+25,0,0,uFlags|SWP_NOSIZE);
 
-
 	DeferWindowPos(hDwp,m_linkEasyDarwinWeb,NULL,nWidth-250,nHeight-23,0,0,uFlags|SWP_NOSIZE);
 	if (m_linkEasyDarwinWeb.m_hWnd)
 	{
-// 		CRect rcClient;
-// 		m_linkEasyDarwinWeb.GetClientRect(&rcClient);
-// 		m_linkEasyDarwinWeb.MoveWindow( nWidth-225,nHeight-23, rcClient.Width(), rcClient.Height() );
-// 		m_linkEasyDarwinWeb.Invalidate();
 		m_linkEasyDarwinWeb.SetFocus();
 	}
 	DeferWindowPos(hDwp,m_linkEasyClientGethub,NULL,nWidth-120,nHeight-23,0,0,uFlags|SWP_NOSIZE);
@@ -316,8 +266,7 @@ void	CEasyClientDlg::UpdateComponents()
 	}
 
 	rcPosition.SetRect(10 , nHeight-280+24+25+44,  nWidth-10, nHeight-30 );
-	//__MOVE_WINDOW(pEdtShowLog, rcPosition);
-	//DeferWindowPos(hDwp,pEdtShowLog->GetSafeHwnd(),NULL,10,nHeight-280+24+25+44,0,0,uFlags|SWP_NOSIZE);
+
 	//大小变动控件
 	if (pEdtShowLog)
 	{
@@ -330,29 +279,32 @@ void	CEasyClientDlg::UpdateComponents()
 	EndDeferWindowPos(hDwp);
 	UnlockWindowUpdate();
 
-	int iPanelWidth = ((rcClient.Width()) / 2);
+	int iPanelWidth = rcClient.Width();
 
-	CRect	rcLocalPanel;
-	rcLocalPanel.SetRect(rcClient.left+2, rcClient.top+60, rcClient.left+iPanelWidth-2, rcClient.bottom-320);
-	__MOVE_WINDOW(easyVideoPanelObj.pDlgLocalPanel, rcLocalPanel);
-	if (easyVideoPanelObj.pDlgLocalPanel)
-	{
-		easyVideoPanelObj.pDlgLocalPanel->Invalidate(FALSE);
-	}
+	CRect	rcPanel;
+	rcPanel.SetRect(rcClient.left+2, rcClient.top+65, rcClient.left+iPanelWidth-4, rcClient.bottom-180);//320
+// 	__MOVE_WINDOW(easyVideoPanelObj.pDlgLocalPanel, rcLocalPanel);
+// 	if (easyVideoPanelObj.pDlgLocalPanel)
+// 	{
+// 		easyVideoPanelObj.pDlgLocalPanel->Invalidate(FALSE);
+// 	}
+// 
+// 	CRect	rcRemotePanel;
+// 	rcRemotePanel.SetRect(rcLocalPanel.right+1, rcLocalPanel.top, rcClient.right-3, rcLocalPanel.bottom);
+// 	__MOVE_WINDOW(easyVideoPanelObj.pDlgRemotePanel, rcRemotePanel);
+// 	if (easyVideoPanelObj.pDlgRemotePanel)
+// 	{
+// 		easyVideoPanelObj.pDlgRemotePanel->Invalidate(FALSE);
+// 	}
+	//Update Video Wnd
+	UpdateVideoComponents(&rcPanel);
 
-	CRect	rcRemotePanel;
-	rcRemotePanel.SetRect(rcLocalPanel.right+1, rcLocalPanel.top, rcClient.right-3, rcLocalPanel.bottom);
-	__MOVE_WINDOW(easyVideoPanelObj.pDlgRemotePanel, rcRemotePanel);
-	if (easyVideoPanelObj.pDlgRemotePanel)
-	{
-		easyVideoPanelObj.pDlgRemotePanel->Invalidate(FALSE);
-	}
 }
 
 void CEasyClientDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 {
-	lpMMI->ptMinTrackSize.x = 926;//954, 780
-	lpMMI->ptMinTrackSize.y = 727;
+	lpMMI->ptMinTrackSize.x = 1024;//926;//954, 780
+	lpMMI->ptMinTrackSize.y = 768;//727;
 
 	CEasySkinManager::OnGetMinMaxInfo(lpMMI);
 }
@@ -366,8 +318,9 @@ BOOL CEasyClientDlg::DestroyWindow()
 		m_pManager->UnInstance();
 		m_pManager = NULL;
 	}
-	__DESTROY_WINDOW(easyVideoPanelObj.pDlgLocalPanel);
-	__DESTROY_WINDOW(easyVideoPanelObj.pDlgRemotePanel);
+
+	//Delete Video Wnd
+	DeleteVideoComponents();
 
 	return CEasySkinManager::DestroyWindow();
 }
@@ -411,7 +364,7 @@ void CEasyClientDlg::OnBnClickedBtnCapture()
 {
 	if (m_pManager)
 	{
-		CWnd* pCapWnd = easyVideoPanelObj.pDlgLocalPanel->GetDlgVideoHwnd();
+		CWnd* pCapWnd = NULL;//easyVideoPanelObj.pDlgLocalPanel->GetDlgVideo();
 		BOOL bInCap = m_pManager->IsInCapture();
 		CButton* pBtnStartCapture = (CButton*)GetDlgItem(IDC_BTN_CAPTURE) ;
 		if (!bInCap)
@@ -590,11 +543,11 @@ void CEasyClientDlg::OnBnClickedBtnPlay()
 {
 	if (m_pManager)
 	{
-		CWnd* pPlayWnd = easyVideoPanelObj.pDlgRemotePanel->GetDlgVideo();
+		CWnd* pPlayWnd = NULL;//easyVideoPanelObj.pDlgRemotePanel->GetDlgVideo();
 		CEdit* pIP = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_IP);
 		CEdit* pPort = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_PORT);
 		CEdit* pName = (CEdit*)GetDlgItem(IDC_EDIT_PUSH_NAME);
-		CWnd* pCapWnd = easyVideoPanelObj.pDlgLocalPanel->GetDlgVideoHwnd();
+		CWnd* pCapWnd = NULL;//easyVideoPanelObj.pDlgLocalPanel->GetDlgVideo();
 		BOOL bInPlay = m_pManager->IsInPlaying();
 		CButton* pBtnStartPlay= (CButton*)GetDlgItem(IDC_BTN_PLAY) ;
 		if (!bInPlay)
@@ -679,83 +632,34 @@ void CEasyClientDlg::DrawClientArea( CDC*pDC,int nWidth,int nHeight )
 
 	//绘制静态文本 （有没有更好的方法呢？？？--!）
 	//左部分	
-	int nStartX = (nWidth/2-450)/2;
 	CFont *pOldFont=pDC->SelectObject(&m_ftSaticDefault);
-	CString strSourceType = _T("选择源类型:");
-	pDC->DrawText(strSourceType,CRect(nStartX,nHeight-320+15,nStartX+70,nHeight-320+15+24),DT_LEFT| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
-
-	CComboBox* pSouceCombo = (CComboBox*)GetDlgItem(IDC_COMBO_SOURCE);
-	int nSel  = 	pSouceCombo->GetCurSel();
-	if (nSel == 0)
-	{
-		CString strCamera = _T("摄像头:");
-		pDC->DrawText(strCamera,CRect(nStartX,nHeight-320+15+30,nStartX+70,nHeight-320+15+30+24),DT_LEFT| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
-		CString strMicphone = _T("麦克风:");
-		pDC->DrawText(strMicphone,CRect(nStartX+220,nHeight-320+15+30,nStartX+220+70,nHeight-320+15+30+24),DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
-		//音视频参数设置
-		CString strVideoParam = _T("视频参数设置:");
-		pDC->DrawText(strVideoParam,CRect(nStartX,nHeight-320+15+60,nStartX+80,nHeight-320+15+60+24),DT_LEFT| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
-		//宽
-		CString strVideoWidth = _T("宽:");
-		pDC->DrawText(strVideoWidth,CRect(nStartX+80,nHeight-320+15+60,nStartX+80+30,nHeight-320+15+60+24),DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
-
-		//	高
-		CString strVideoHeight = _T("高:");
-		pDC->DrawText(strVideoHeight,CRect(nStartX+160,nHeight-320+15+60,nStartX+160+30,nHeight-320+15+60+24),DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
-
-		//	帧率
-		CString strFPS = _T("FPS:");
-		pDC->DrawText(strFPS,CRect(nStartX+240,nHeight-320+15+60,nStartX+240+30,nHeight-320+15+60+24),DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
-
-		//	比特率
-		CString strVideobitrate = _T("比特率:");
-		pDC->DrawText(strVideobitrate,CRect(nStartX+320,nHeight-320+15+60,nStartX+320+60,nHeight-320+15+60+24),DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
-
-	}
-	else
-	{
-		CString strNetStream = _T("网络串流:");
-		pDC->DrawText(strNetStream,CRect(nStartX,nHeight-320+15+30,nStartX+70,nHeight-320+15+30+24),DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
-	}
 
 	CRect rcPosition;
-	nStartX = (nWidth/2-60)/2;
-	rcPosition.SetRect(nStartX , 39, nStartX + 67, 50 );
-	CString strLocalVideo = _T("本地视频");
-	pDC->DrawText(strLocalVideo,rcPosition,DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
+	rcPosition.SetRect(20 , 39, 20 + 67, 58 );
+	CString strWndMode = _T("窗口模式");
+	pDC->DrawText(strWndMode,rcPosition,DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
 	
-	rcPosition.SetRect(nStartX+nWidth/2 , 39, nStartX+nWidth/2 + 67, 50 );
-	CString strServerlVideo = _T("直播视频");
-	pDC->DrawText(strServerlVideo,rcPosition,DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
-
-	//右部分
-	//控件位置处理
-	nStartX = nWidth/2+(nWidth/2-450)/2;
-	//rcPosition.SetRect(nStartX , nHeight-280+15, nStartX + 100, nHeight-280+15+24 );
-	rcPosition.SetRect(nStartX , nHeight-320+15, nStartX + 420, nHeight-320+15+24 );
-	CString strServerIp = _T("EasyDarwin服务器流URL:  (服务器流 推送地址/直播地址)");
+	rcPosition.SetRect(187 , 39, 187 + 210, 58 );
+	CString strServerIp = _T("EasyDarwin服务器推流地址参数设置: ");
 	pDC->DrawText(strServerIp,rcPosition,DT_LEFT| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
 
- 	rcPosition.SetRect(nStartX, nHeight-320+15+30, nStartX + 30, nHeight-320+15+30+25 );
+ 	rcPosition.SetRect(400, 39, 400 + 30, 58 );
 	CString strIp = _T("IP:");
  	pDC->DrawText(strIp,rcPosition,DT_LEFT| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
 
-	rcPosition.SetRect(nStartX+210, nHeight-320+15+30, nStartX + 210+30, nHeight-320+15+30+25 );
+ 	rcPosition.SetRect(400+160, 39, 400 + 160+60, 58 );
 	CString strPort = _T("Port:");
 	pDC->DrawText(strPort,rcPosition,DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
 
-	rcPosition.SetRect(nStartX+280, nHeight-320+15+30, nStartX + 280+60, nHeight-320+15+30+25 );
+ 	rcPosition.SetRect(400+290, 39, 400 + 290+60, 58 );
 	CString strStream = _T("Stream:");
 	pDC->DrawText(strStream,rcPosition,DT_CENTER| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
 
 	//推送参数设置
-	rcPosition.SetRect(nStartX , nHeight-320+15+60, nStartX + 80, nHeight-320+15+60+24 );
-	CString strPushParam = _T("推送缓存设置:");
+ 	rcPosition.SetRect(870, 39, 870+60, 58 );
+	CString strPushParam = _T("推送缓存:");
 	pDC->DrawText(strPushParam,rcPosition,DT_LEFT| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
 
-	rcPosition.SetRect(nStartX+180 , nHeight-320+15+60, nStartX + 380, nHeight-320+15+60+24 );
-	CString strPushParamExplain = _T("(范围：512~2048   单位：KB)");
-	pDC->DrawText(strPushParamExplain,rcPosition,DT_LEFT| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
 
 	//下部分
 	CString strDebugInfo = _T("Trace:");
@@ -848,20 +752,6 @@ HBRUSH CEasyClientDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 		//pDC->SetBkColor(RGB(0,225,225)); //设定文本的背景色
 		pDC->SetTextColor(RGB(0,0,255));   //设定文本颜色
 	}
-	TRACE("%d\r\n", pWnd->GetDlgCtrlID());
-	if (pWnd->GetDlgCtrlID()==IDC_SYSLINK_EASYDARWIN || pWnd->GetDlgCtrlID() == IDC_SYSLINK_EASYCLIENT_GITHUB)
-	{
-		pDC-> SetBkMode(TRANSPARENT); 
-		CRect rc;
-		pWnd->GetWindowRect(&rc);
-		ScreenToClient(&rc);
-
-		CDC* dc = GetDC();
-		pDC->BitBlt(0,0,rc.Width(),rc.Height(),dc,rc.left,rc.top,SRCCOPY);    //把父窗口背景先画到按钮上
-		ReleaseDC(dc);
-
-        hbr = (HBRUSH) ::GetStockObject(NULL_BRUSH);
-	}
 	
 	return hbr;
 }
@@ -891,7 +781,305 @@ void CEasyClientDlg::OnNMClickSyslinkEasyclientGithub(NMHDR *pNMHDR, LRESULT *pR
 
 BOOL CEasyClientDlg::OnEraseBkgnd(CDC* pDC)
 {
-	// TODO: Add your message handler code here and/or call default
-
 	return CEasySkinManager::OnEraseBkgnd(pDC);
+}
+
+void CEasyClientDlg::CreateVideoComponents()
+{
+	if (NULL == m_pVideoWindow)
+	{
+		m_pVideoWindow = new VIDEO_NODE_T;
+		m_pVideoWindow->fullscreen    = false;
+		m_pVideoWindow->maximizedId	=	-1;
+		m_pVideoWindow->selectedId	=	-1;
+		m_pVideoWindow->channels		=	4;
+		if (m_pVideoWindow->channels>MAX_VIDEO_WINDOW_NUM)	m_pVideoWindow->channels=MAX_VIDEO_WINDOW_NUM;
+		m_pVideoWindow->pDlgVideo	=	new CDlgPanel[MAX_VIDEO_WINDOW_NUM];//gAppInfo.maxchannels
+		for (int i=0; i<MAX_VIDEO_WINDOW_NUM; i++)
+		{
+			m_pVideoWindow->pDlgVideo[i].SetMainDlg(this, i);
+			m_pVideoWindow->pDlgVideo[i].Create(IDD_DIALOG_PANEL, this);
+			m_pVideoWindow->pDlgVideo[i].ShowWindow(SW_HIDE);
+		}
+	}
+}
+void CEasyClientDlg::UpdateVideoComponents(LPRECT lpRect)
+{
+		CRect rcClient;
+	if (NULL == lpRect)
+	{
+		GetClientRect(&rcClient);
+		lpRect = &rcClient;
+	}
+
+	if (NULL == m_pVideoWindow)		return;
+
+	//CRect rcClient;
+	rcClient.CopyRect(lpRect);
+
+	CRect rcTmp;
+	rcTmp.SetRect(rcClient.left, rcClient.top, rcClient.left+rcClient.Width()/2, rcClient.top+rcClient.Height()/2);
+
+	//
+
+	if (m_pVideoWindow->maximizedId==-1)
+	{
+		int nTimes = 2;
+		int nLeft = lpRect->left;
+		int nTop  = lpRect->top;
+
+		for (int i=m_pVideoWindow->channels; i<MAX_VIDEO_WINDOW_NUM; i++)
+		{
+			if (m_pVideoWindow->pDlgVideo[i].IsWindowVisible())
+				m_pVideoWindow->pDlgVideo[i].ShowWindow(SW_HIDE);
+		}
+
+		switch (m_pVideoWindow->channels)
+		{
+		case 4:
+		case 9:
+		case 16:
+		case 25:
+		case 36:
+		case 64:
+		default:
+			{
+				nTimes = 2;
+				if (m_pVideoWindow->channels == 2)		nTimes	=	1;
+				if (m_pVideoWindow->channels == 4)		nTimes	=	2;
+				if (m_pVideoWindow->channels == 9)		nTimes	=	3;
+				if (m_pVideoWindow->channels == 16)		nTimes	=	4;
+				if (m_pVideoWindow->channels == 25)		nTimes	=	5;
+				if (m_pVideoWindow->channels == 36)		nTimes	=	6;
+				if (m_pVideoWindow->channels == 64)		nTimes	=	8;
+
+				RECT rcTmp;
+				SetRectEmpty(&rcTmp);
+
+				int n = 0;//videoPatrol.patrolStartId;
+				for (int i = 0; i < nTimes; i++)
+				{
+					for (int j = 0; j < nTimes; j ++)
+					{
+						//SetRect(&rcTmp, nLeft, nTop, nLeft + imgSize.cx / nTimes, nTop + imgSize.cy / nTimes);
+						SetRect(&rcTmp, nLeft, nTop, nLeft + rcClient.Width() / nTimes, nTop + rcClient.Height() / nTimes);
+						//CopyRect(&vidRenderHandle[n].drawvid.rect, &rcTmp);
+
+						if (j+1==nTimes && rcTmp.right<rcClient.right)
+						{
+							rcTmp.right = rcClient.right;
+						}
+						if (i+1==nTimes && rcTmp.bottom<rcClient.bottom)
+						{
+							rcTmp.bottom = rcClient.bottom;
+						}
+
+
+						m_pVideoWindow->pDlgVideo[n].MoveWindow(&rcTmp);
+						if (! m_pVideoWindow->pDlgVideo[n].IsWindowVisible())
+							m_pVideoWindow->pDlgVideo[n].ShowWindow(SW_SHOW);
+
+
+						n ++;
+
+						nLeft += rcClient.Width() / nTimes;
+					}
+					nLeft = rcClient.left;
+					nTop  += (rcClient.Height()) / nTimes;
+				}
+			}
+			break;
+		case 6:		//6·??á
+			{
+				int nWidth = rcClient.Width() / 3;
+				int nHeight= rcClient.Height()/ 3;
+
+				int nRight = 0;
+				int nBottom= 0;
+				if (rcClient.right > nWidth*3)	nRight = rcClient.Width()-nWidth*3;
+				if (rcClient.bottom> nHeight*3)	nBottom= rcClient.Height()-nHeight*3;
+			
+				nLeft = rcClient.left;
+				nTop  = rcClient.top+nHeight*2;
+				for (int i=3; i<6; i++)
+				{
+					rcTmp.SetRect(nLeft, nTop, nLeft+nWidth, nTop+nHeight);
+					if (i+1==6)			rcTmp.right += nRight;
+					if (nBottom > 0)	rcTmp.bottom += nBottom;
+					m_pVideoWindow->pDlgVideo[i].MoveWindow(&rcTmp);
+					if (! m_pVideoWindow->pDlgVideo[i].IsWindowVisible())
+						m_pVideoWindow->pDlgVideo[i].ShowWindow(SW_SHOW);
+				
+					nLeft += nWidth;
+				}
+				nLeft -= nWidth;
+				nTop  = rcClient.top;
+				for (int i=1; i<3; i++)
+				{
+					rcTmp.SetRect(nLeft, nTop, nLeft+nWidth, nTop+nHeight);
+					if (nRight>0)	rcTmp.right += nRight;
+					m_pVideoWindow->pDlgVideo[i].MoveWindow(&rcTmp);
+					if (! m_pVideoWindow->pDlgVideo[i].IsWindowVisible())
+						m_pVideoWindow->pDlgVideo[i].ShowWindow(SW_SHOW);
+					nTop += nHeight;
+				}
+			
+				rcTmp.SetRect(rcClient.left, rcClient.top, rcTmp.left, rcTmp.bottom);
+				m_pVideoWindow->pDlgVideo[0].MoveWindow(&rcTmp);
+				if (! m_pVideoWindow->pDlgVideo[0].IsWindowVisible())
+					m_pVideoWindow->pDlgVideo[0].ShowWindow(SW_SHOW);
+			}
+			break;
+		case 8:		//8分屏
+			{
+
+				int nWidth = rcClient.Width() / 4;
+				int nHeight= rcClient.Height()/ 4;
+
+				int nRight = 0;
+				int nBottom= 0;
+				if (rcClient.right > nWidth*4)	nRight = rcClient.Width()-nWidth*4;
+				if (rcClient.bottom> nHeight*4)	nBottom= rcClient.Height()-nHeight*4;
+
+				nLeft = rcClient.left;
+				nTop  = rcClient.top+nHeight*3;
+				for (int i=4; i<8; i++)
+				{
+					rcTmp.SetRect(nLeft, nTop, nLeft+nWidth, nTop+nHeight);
+					if (i+1==8)			rcTmp.right += nRight;
+					if (nBottom > 0)	rcTmp.bottom += nBottom;
+					m_pVideoWindow->pDlgVideo[i].MoveWindow(&rcTmp);
+					if (! m_pVideoWindow->pDlgVideo[i].IsWindowVisible())
+							m_pVideoWindow->pDlgVideo[i].ShowWindow(SW_SHOW);
+
+					nLeft += nWidth;
+				}
+				nLeft -= nWidth;
+				nTop  = rcClient.top;
+				for (int i=1; i<4; i++)
+				{
+					rcTmp.SetRect(nLeft, nTop, nLeft+nWidth, nTop+nHeight);
+					if (nRight>0)	rcTmp.right += nRight;
+					m_pVideoWindow->pDlgVideo[i].MoveWindow(&rcTmp);
+					if (! m_pVideoWindow->pDlgVideo[i].IsWindowVisible())
+						m_pVideoWindow->pDlgVideo[i].ShowWindow(SW_SHOW);
+					nTop += nHeight;
+				}
+
+				rcTmp.SetRect(rcClient.left, rcClient.top, rcTmp.left, rcTmp.bottom);
+				m_pVideoWindow->pDlgVideo[0].MoveWindow(&rcTmp);
+				if (! m_pVideoWindow->pDlgVideo[0].IsWindowVisible())
+					m_pVideoWindow->pDlgVideo[0].ShowWindow(SW_SHOW);
+
+			}
+			break;
+		}
+
+		for (int vid=0; vid<MAX_VIDEO_WINDOW_NUM; vid++)
+		{
+			//m_pVideoWindow->pDlgVideo[vid].SetSelectedChannel(m_pVideoWindow->selectedId==vid);
+		}
+	}
+	else
+	{
+		for (int i=0; i<MAX_VIDEO_WINDOW_NUM; i++)
+		{
+			if (m_pVideoWindow->pDlgVideo[i].IsWindowVisible() && i!=m_pVideoWindow->maximizedId)
+			{
+				m_pVideoWindow->pDlgVideo[i].ShowWindow(SW_HIDE);
+			}
+		}
+		rcTmp.SetRect(lpRect->left, lpRect->top, lpRect->right, lpRect->bottom);
+		m_pVideoWindow->pDlgVideo[m_pVideoWindow->maximizedId].MoveWindow(&rcTmp);
+		m_pVideoWindow->pDlgVideo[m_pVideoWindow->maximizedId].ShowWindow(SW_SHOW);
+	}
+}
+void CEasyClientDlg::DeleteVideoComponents()
+{
+	if (NULL != m_pVideoWindow)
+	{
+		if (NULL != m_pVideoWindow->pDlgVideo)
+		{
+			for (int i=0; i<MAX_VIDEO_WINDOW_NUM; i++)
+			{
+				m_pVideoWindow->pDlgVideo[i].DestroyWindow();
+			}
+			delete []m_pVideoWindow->pDlgVideo;
+			m_pVideoWindow->pDlgVideo = NULL;
+		}
+		delete m_pVideoWindow;
+		m_pVideoWindow = NULL;
+	}
+}
+
+void CEasyClientDlg::OnCbnSelchangeComboWndMode()
+{
+	if (NULL == m_pVideoWindow)		return;
+
+	int nSplitWindow = 4;
+	CComboBox* pComboxWndMode = (CComboBox*)GetDlgItem(IDC_COMBO_WND_MODE);
+	if (pComboxWndMode)
+	{
+		int nIdx = pComboxWndMode->GetCurSel();
+		if (nIdx == 0)	nSplitWindow = 4;
+		else if (nIdx == 1)	nSplitWindow = 8;
+		else if (nIdx == 2)	nSplitWindow = 9;
+		else if (nIdx == 3)	nSplitWindow = 16;
+
+		m_pVideoWindow->channels		=	nSplitWindow;
+		UpdateComponents();
+	}
+}
+
+
+void CEasyClientDlg::GetPushServerInfo(ServerURLInfo* pPushServerInfo)
+{
+	UpdateData(TRUE);
+	CEdit* pIP = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_IP);
+	CEdit* pPort = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_PORT);
+	CEdit* pName = (CEdit*)GetDlgItem(IDC_EDIT_PUSH_NAME);
+
+	char szIp[128] = {0,};
+	char szPort[128] = {0,};
+	char szName[128] = {0,};
+	char szPushBufferSize[128]={0,};
+	wchar_t wszIp[128] = {0,};
+	wchar_t wszPort[128] = {0,};
+	wchar_t wszName[128] = {0,};
+	wchar_t wszPushBufferSize[128]={0,};
+
+	if (NULL != pIP)	
+		pIP->GetWindowTextW(wszIp, sizeof(wszIp));
+	if (wcslen(wszIp) < 1)		
+		return;
+	__WCharToMByte(wszIp, szIp, sizeof(szIp)/sizeof(szIp[0]));
+
+	if (NULL != pPort)	
+		pPort->GetWindowTextW(wszPort, sizeof(wszPort));
+	if (wcslen(wszPort) < 1)		
+		return;
+	__WCharToMByte(wszPort, szPort, sizeof(szPort)/sizeof(szPort[0]));
+	int nPort = atoi(szPort);
+
+	if (NULL != pName)	
+		pName->GetWindowTextW(wszName, sizeof(wszName));
+	if (wcslen(wszName) < 1)		
+		return;
+	__WCharToMByte(wszName, szName, sizeof(szName)/sizeof(szName[0]));
+
+	m_edtPushBuffer.GetWindowTextW(wszPushBufferSize, sizeof(wszPushBufferSize));
+	if (wcslen(wszPushBufferSize) < 1)		
+		return;
+	__WCharToMByte(wszPushBufferSize, szPushBufferSize, sizeof(szPushBufferSize)/sizeof(szPushBufferSize[0]));
+	int nPushBufSize = atoi(szPushBufferSize);
+
+	int nRet = m_pManager->StartPush(szIp , nPort,  szName, nPushBufSize);
+	if (pPushServerInfo)
+	{
+		pPushServerInfo->pushServerPort = nPort;
+		pPushServerInfo->nPushBufferLenth = nPushBufSize;
+		strcpy_s(pPushServerInfo->pushServerAddr , 128,  szIp);
+		pPushServerInfo->pushServerPort = nPort;
+		strcpy_s(pPushServerInfo->sdpName , 64,  szName);
+	}
 }

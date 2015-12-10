@@ -67,16 +67,15 @@
 #include "./EasySkinUI/EasySkinUI.h"
 #define COLOR_BACK					RGB(194,247,255)//249,245,237
 
-
 #define	VIDEO_WINDOW_BORDER_WIDTH	0
 
-#define __MOVE_WINDOW(x,rect)	{if (NULL!=x){x->MoveWindow(&rect);}}//x->Invalidate();}}
-#define __DESTROY_WINDOW(x)	{if (NULL!=x){x->DestroyWindow();delete x;x=NULL;}}
-
+#define __CREATE_WINDOW(_x, _class, _id) {if (NULL == _x) {_x = (_class*)GetDlgItem(_id);}}
+#define __MOVE_WINDOW(x, _rect)	{if (NULL != x) {x->MoveWindow(&_rect);}}
+#define __MOVE_WINDOW_INVALIDATE(x, _rect)	{if (NULL != x) {x->MoveWindow(&_rect); x->Invalidate();}}
+#define __DESTROY_WINDOW(x)	{if (NULL != x) {x->DestroyWindow(); delete x; x=NULL;}}
 
 bool __WCharToMByte(LPCWSTR lpcwszStr, LPSTR lpszStr, DWORD dwSize);
 bool __MByteToWChar(LPCSTR lpcszStr, LPWSTR lpwszStr, DWORD dwSize);
-
 
 #define	WM_UPDATE_LOCAL_VIDEO		(WM_USER+6001)
 #ifdef _UNICODE

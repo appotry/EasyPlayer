@@ -111,8 +111,7 @@ int		SSQ_Init(SS_QUEUE_OBJ_T *pObj, unsigned int sharememory, unsigned int chann
 		}
 	}
 
-	//Create data map
-	
+	//Create data map	
 	if (sharememory == 0x01)
 	{
 		wsprintf(wszDataName, TEXT("%s%d_b"), sharename, channelid);
@@ -591,7 +590,6 @@ int		SSQ_GetData(SS_QUEUE_OBJ_T *pObj, unsigned int *channelid, unsigned int *me
 	}
 #else
 
-
 	if (pObj->pQueHeader->readpos == pObj->pQueHeader->bufsize)
 	{
 		SSQ_TRACE("ÖØÖÃ¶ÁÎ»ÖÃ[%d / %d]..\n", pObj->pQueHeader->readpos, pObj->pQueHeader->bufsize);
@@ -704,7 +702,6 @@ int		SSQ_GetData(SS_QUEUE_OBJ_T *pObj, unsigned int *channelid, unsigned int *me
 					if (NULL!=pbuf)	memcpy(pbuf+remain, pObj->pQueData, frameinfo->length-remain);
 					//memset(pObj->pQueData, 0x00, frameinfo->length-remain);	//clear
 				
-
 					pObj->pQueHeader->readpos = frameinfo->length-remain;
 					pObj->pQueHeader->totalsize -= frameinfo->length;
 					pObj->pQueHeader->totalsize -= sizeof(SS_BUF_T);

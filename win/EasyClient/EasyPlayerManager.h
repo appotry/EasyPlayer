@@ -30,6 +30,7 @@ typedef struct __EASY_LOCAL_SOURCE_T
 	char	pushServerAddr[128];
 	int		pushServerPort;
 	char	sdpName[64];
+	void* pMaster;
 }EASY_LOCAL_SOURCE_T;
 
 class EasyPlayerManager

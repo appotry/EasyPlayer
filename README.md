@@ -1,4 +1,4 @@
-# EasyClient #
+﻿# EasyClient #
 
 EasyClient是EasyDarwin开源流媒体团队提供的一套直观、功能丰富的客户端项目，目前支持Windows、Android版本，后续将支持ios版本，PC版本的EasyClient支持多种源接入，包括Windows摄像头、麦克风、RTSP摄像机、屏幕桌面等，采集后经过x264编码、EasyPusher推送到EasyDarwin流媒体服务器进行转发，同时EasyClient还支持通过EasyRTSPClient拉取EasyDarwin直播流，进行显示、播放，非常稳定、易用，用户可以基于EasyClient项目，开发类似于课堂直播、视频对讲等项目！
 
@@ -18,10 +18,16 @@ EasyClient支持获取IPCamera摄像机的RTSP直播流，通过[EasyRTSPClient]
 
 ##更新记录##
 
-### next version (2015-12-10)
+### next version (2015-12-17)
 
-* 多窗口显示与播放
+* 屏幕截取推送
 * MP4录像功能
+
+### v1.2.1.5 (2015-12-10) ###
+
+* 参考EasyPlayer，增加多窗口界面布局，实现多路同时采集编码推送，或者直播；
+* 修改Pannel窗口类，用作单视频窗口功能实现；
+* 修改SourceManager唯一实例化代码，支持多次调用；
 
 ### v1.1.1.5 (2015-12-3) ###
 
