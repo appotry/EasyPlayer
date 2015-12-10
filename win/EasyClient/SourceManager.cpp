@@ -13,7 +13,6 @@ CSourceManager* CSourceManager::s_pSourceManager = NULL;
 
 CSourceManager::CSourceManager(void)
 {
-	s_pSourceManager = NULL;
 	m_bPushing = FALSE;
 	m_sPushInfo.pusherHandle = 0;
 	//视频设备控制实例
@@ -61,7 +60,6 @@ void CSourceManager::RealseManager()
 	StopPush();
 	StopCapture();
 	UnInitSource();
-
 }
 
 //执行视频源初始化操作
@@ -761,7 +759,7 @@ void CSourceManager::EnumLocalAVDevInfo(CWnd* pComboxMediaSource, CWnd* pComboxA
 				__MByteToWChar(pCameraInfo->friendlyName, wszCameraName, sizeof(wszCameraName)/sizeof(wszCameraName[0]));
 
 				pVideoSource->AddString(wszCameraName);
-
+				//CAMERA_INFO_T	*pCameraInfo
 				pCameraInfo = pCameraInfo->pNext;
 			}
 		}

@@ -39,6 +39,7 @@ void CEasyClientDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT_VIDEO_FPS, m_edtFPS);
 	DDX_Control(pDX, IDC_EDIT_VIDEO_BITRATE, m_edtVideoBitrate);
 	DDX_Control(pDX, IDC_EDIT_PUSH_BUFFER, m_edtPushBuffer);
+	DDX_Control(pDX, IDC_EDIT_SERVER_IP, m_edtIp);
 }
 
 BEGIN_MESSAGE_MAP(CEasyClientDlg, CEasySkinManager)
@@ -96,11 +97,13 @@ BOOL CEasyClientDlg::OnInitDialog()
 	{
 		pRtspURL->SetWindowTextW(TEXT("rtsp://127.0.0.1:554/stream.sdp"));
 	}
-	CEdit* pIP = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_IP);
-	if (pIP)
-	{
-		pIP->SetWindowTextW(TEXT("easyclient.easydarwin.org"));
-	}
+// 	CEdit* pIP = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_IP);
+// 	if (pIP)
+// 	{
+// 		pIP->SetWindowTextW(TEXT("easyclient.easydarwin.org"));
+// 	}
+	m_edtIp.SetWindowTextW(TEXT("easyclient.easydarwin.org"));
+
 	CEdit* pPort = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_PORT);
 	if (pPort)
 	{
@@ -195,9 +198,9 @@ void	CEasyClientDlg::UpdateComponents()
 	if (rcClient.IsRectEmpty())		
 		return;	
 	
-	CEdit* pIP = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_IP);
 	CEdit* pPort = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_PORT);
 	CEdit* pName = (CEdit*)GetDlgItem(IDC_EDIT_PUSH_NAME);
+	CEdit* pIP = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_IP);
 
 	CButton* pBtnCapture = (CButton*)GetDlgItem(IDC_BTN_CAPTURE);
 	CButton* pBtnPush = (CButton*)GetDlgItem(IDC_BTN_PUSH);
@@ -215,7 +218,7 @@ void	CEasyClientDlg::UpdateComponents()
 	int nWidth = rcClient.Width();
 	int nHeight = rcClient.Height();	
 	
-	rcPosition.SetRect(87, 39, 87 + 80, 58 );
+	rcPosition.SetRect(87, 37, 87 + 80, 57 );
 	__MOVE_WINDOW(pComboxWndMode, rcPosition);
 	if (pComboxWndMode)
 	{
@@ -224,10 +227,16 @@ void	CEasyClientDlg::UpdateComponents()
 
 	int nStartX =420;
 	rcPosition.SetRect(nStartX, 39, nStartX + 150, 58 );
-	__MOVE_WINDOW(pIP, rcPosition);
-	if (pIP)
+// 	__MOVE_WINDOW(pIP, rcPosition);
+// 	if (pIP)
+// 	{
+// 		pIP->Invalidate();
+// 		pIP->SetFocus();
+// 	}
+	if (m_edtIp.GetSafeHwnd())
 	{
-		pIP->SetFocus();
+		m_edtIp.MoveWindow(rcPosition);
+		m_edtIp.SetFocus();
 	}
 	rcPosition.SetRect(nStartX+200, 39, nStartX+200+60, 58 );
 	__MOVE_WINDOW(pPort, rcPosition);
@@ -275,7 +284,7 @@ void	CEasyClientDlg::UpdateComponents()
 		pEdtShowLog->SetFocus();
 	}
 
-		//结束调整
+	//结束调整
 	LockWindowUpdate();
 	EndDeferWindowPos(hDwp);
 	UnlockWindowUpdate();
@@ -1030,7 +1039,7 @@ void CEasyClientDlg::OnCbnSelchangeComboWndMode()
 
 void CEasyClientDlg::GetPushServerInfo(ServerURLInfo* pPushServerInfo)
 {
-	UpdateData(TRUE);
+	//UpdateData(TRUE);
 	CEdit* pIP = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_IP);
 	CEdit* pPort = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_PORT);
 	CEdit* pName = (CEdit*)GetDlgItem(IDC_EDIT_PUSH_NAME);
@@ -1105,5 +1114,4 @@ void CEasyClientDlg::GetLocalDevInfo(CComboBox* pCam, CComboBox*  pMic)
 			pMic->AddString(strItem);
 		}
 	}
-
 }

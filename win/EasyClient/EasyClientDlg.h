@@ -108,4 +108,5 @@ protected:
 public:
 	void GetPushServerInfo(ServerURLInfo* pPushServerInfo);
 	void GetLocalDevInfo(CComboBox* pCam, CComboBox*  pMic);
+	CEdit m_edtIp;
 };

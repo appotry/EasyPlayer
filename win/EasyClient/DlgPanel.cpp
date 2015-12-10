@@ -431,22 +431,22 @@ void CDlgPanel::UpdateComponents()
 	int nLeft = rcClient.left;
 	int nBottom = rcClient.bottom-30;
 	int nRight = rcClient.right;
-	//拉升视频窗口比例调整
-	double dbWScale = (double)16/9;
-	double dbHScale = (double)4/3;
-	double dbRealScale = ((double)(rcClient.right-rcClient.left)/(double)(rcClient.bottom-30-rcClient.top));
-	if (dbRealScale>dbWScale)
-	{
-		int nRealWidth = dbWScale*(rcClient.bottom-30-rcClient.top);
-		nLeft = ((rcClient.right-rcClient.left)-nRealWidth)/2;
-		nRight =  nRealWidth+nLeft;
-	}
-	else if (dbRealScale<dbHScale)
-	{
-		int nRealHeight = (rcClient.right-rcClient.left)/dbHScale;
-		nTop = ((rcClient.bottom-30-rcClient.top)-nRealHeight)/2;
-		nBottom =  nRealHeight+nTop;
-	}
+// 	//拉升视频窗口比例调整
+// 	double dbWScale = (double)16/9;
+// 	double dbHScale = (double)4/3;
+// 	double dbRealScale = ((double)(rcClient.right-rcClient.left)/(double)(rcClient.bottom-30-rcClient.top));
+// 	if (dbRealScale>dbWScale)
+// 	{
+// 		int nRealWidth = dbWScale*(rcClient.bottom-30-rcClient.top);
+// 		nLeft = ((rcClient.right-rcClient.left)-nRealWidth)/2;
+// 		nRight =  nRealWidth+nLeft;
+// 	}
+// 	else if (dbRealScale<dbHScale)
+// 	{
+// 		int nRealHeight = (rcClient.right-rcClient.left)/dbHScale;
+// 		nTop = ((rcClient.bottom-30-rcClient.top)-nRealHeight)/2;
+// 		nBottom =  nRealHeight+nTop;
+// 	}
 	CRect	rcVideo;
 	rcVideo.SetRect(nLeft, nTop, nRight, nBottom);
 
@@ -460,23 +460,42 @@ void CDlgPanel::UpdateComponents()
 	//类型选择
 	rcCtrl.SetRect(30, nStartH+5, 30+60,  nStartH+5+25);
 	__MOVE_WINDOW(m_pCmbType, rcCtrl);
+	if (m_pCmbType)
+	{
+		m_pCmbType->SetFocus();
+	}
 
 	//源类型选择
 	rcCtrl.SetRect(80+10, nStartH+5, 80+10+125,  nStartH+5+25);
 	__MOVE_WINDOW(m_pCmbSourceType, rcCtrl);
+	if (m_pCmbSourceType)
+	{
+		m_pCmbSourceType->SetFocus();
+	}
 
 	//Rtsp流地址
 	rcCtrl.SetRect(180+40, nStartH+5, rcClient.right-42,  nStartH+5+25);
 	__MOVE_WINDOW(m_pEdtRtspStream, rcCtrl);
+	if (m_pEdtRtspStream)
+	{
+		m_pEdtRtspStream->SetFocus();
+	}
 
 	int nCmbWidth = (rcClient.right-10-215-42)/2;
 	//Camera
 	rcCtrl.SetRect(215+10, nStartH+5, 215+10+nCmbWidth,  nStartH+5+25);
 	__MOVE_WINDOW(m_pCmbCamera, rcCtrl);
-
+	if (m_pCmbCamera)
+	{
+		m_pCmbCamera->SetFocus();
+	}
 	//Mic
 	rcCtrl.SetRect(215+10+nCmbWidth+5, nStartH+5, rcClient.right-42,  nStartH+5+25);
 	__MOVE_WINDOW(m_pCmbMic, rcCtrl);
+	if (m_pCmbMic)
+	{
+		m_pCmbMic->SetFocus();
+	}
 
 	rcCtrl.SetRect(rcClient.right-41, nStartH+3, rcClient.right-2,  nStartH+3+24);
 	if (m_btnStart.GetSafeHwnd())
@@ -599,7 +618,7 @@ void CDlgPanel::OnCbnSelchangeComboPannelSource()
 
 BOOL CDlgPanel::OnEraseBkgnd(CDC* pDC)
 {
-	return TRUE;//CEasySkinDialog::OnEraseBkgnd(pDC);
+	return CEasySkinDialog::OnEraseBkgnd(pDC);
 }
 
 
