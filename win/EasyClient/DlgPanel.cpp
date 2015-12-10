@@ -108,9 +108,15 @@ BOOL CDlgPanel::OnInitDialog()
 		m_pManager->InitSource();
 		m_pManager->SetMainDlg(m_pMainDlg);
 	}
-	if (m_pManager)
+// 	if (m_pManager)
+// 	{
+// 		m_pManager->EnumLocalAVDevInfo(m_pCmbCamera, m_pCmbMic);
+// 	}
+	if (m_pMainDlg)
 	{
-		m_pManager->EnumLocalAVDevInfo(m_pCmbCamera, m_pCmbMic);
+		m_pMainDlg->GetLocalDevInfo(m_pCmbCamera, m_pCmbMic);
+		m_pCmbCamera->SetCurSel(0); 
+		m_pCmbMic->SetCurSel(0); 
 	}
 	if (m_pCmbType)
 	{
@@ -421,8 +427,29 @@ void CDlgPanel::UpdateComponents()
 	GetClientRect(&rcClient);
 	if (rcClient.IsRectEmpty())		return;
 
+	int nTop = rcClient.top;
+	int nLeft = rcClient.left;
+	int nBottom = rcClient.bottom-30;
+	int nRight = rcClient.right;
+	//拉升视频窗口比例调整
+	double dbWScale = (double)16/9;
+	double dbHScale = (double)4/3;
+	double dbRealScale = ((double)(rcClient.right-rcClient.left)/(double)(rcClient.bottom-30-rcClient.top));
+	if (dbRealScale>dbWScale)
+	{
+		int nRealWidth = dbWScale*(rcClient.bottom-30-rcClient.top);
+		nLeft = ((rcClient.right-rcClient.left)-nRealWidth)/2;
+		nRight =  nRealWidth+nLeft;
+	}
+	else if (dbRealScale<dbHScale)
+	{
+		int nRealHeight = (rcClient.right-rcClient.left)/dbHScale;
+		nTop = ((rcClient.bottom-30-rcClient.top)-nRealHeight)/2;
+		nBottom =  nRealHeight+nTop;
+	}
 	CRect	rcVideo;
-	rcVideo.SetRect(rcClient.left, rcClient.top, rcClient.right, rcClient.bottom-30);
+	rcVideo.SetRect(nLeft, nTop, nRight, nBottom);
+
 	__MOVE_WINDOW(pDlgVideo, rcVideo);
 	if (pDlgVideo)
 	{
@@ -431,24 +458,24 @@ void CDlgPanel::UpdateComponents()
 	int nStartH = rcClient.bottom-30;
 	CRect rcCtrl;
 	//类型选择
-	rcCtrl.SetRect(30, nStartH+5, 30+50,  nStartH+5+25);
+	rcCtrl.SetRect(30, nStartH+5, 30+60,  nStartH+5+25);
 	__MOVE_WINDOW(m_pCmbType, rcCtrl);
 
 	//源类型选择
-	rcCtrl.SetRect(70+10, nStartH+5, 70+10+110,  nStartH+5+25);
+	rcCtrl.SetRect(80+10, nStartH+5, 80+10+125,  nStartH+5+25);
 	__MOVE_WINDOW(m_pCmbSourceType, rcCtrl);
 
 	//Rtsp流地址
 	rcCtrl.SetRect(180+40, nStartH+5, rcClient.right-42,  nStartH+5+25);
 	__MOVE_WINDOW(m_pEdtRtspStream, rcCtrl);
 
-	int nCmbWidth = (rcClient.right-10-190-42)/2;
+	int nCmbWidth = (rcClient.right-10-215-42)/2;
 	//Camera
-	rcCtrl.SetRect(190+10, nStartH+5, 190+10+nCmbWidth,  nStartH+5+25);
+	rcCtrl.SetRect(215+10, nStartH+5, 215+10+nCmbWidth,  nStartH+5+25);
 	__MOVE_WINDOW(m_pCmbCamera, rcCtrl);
 
 	//Mic
-	rcCtrl.SetRect(190+10+nCmbWidth+5, nStartH+5, rcClient.right-42,  nStartH+5+25);
+	rcCtrl.SetRect(215+10+nCmbWidth+5, nStartH+5, rcClient.right-42,  nStartH+5+25);
 	__MOVE_WINDOW(m_pCmbMic, rcCtrl);
 
 	rcCtrl.SetRect(rcClient.right-41, nStartH+3, rcClient.right-2,  nStartH+3+24);
@@ -481,6 +508,9 @@ void CDlgPanel::DrawClientArea( CDC*pDC,int nWidth,int nHeight )
 	CRect	rcClient;
 	GetClientRect(&rcClient);
 	if (rcClient.IsRectEmpty())		return;
+
+	//设置区域化
+	pDC->FillSolidRect(0,nHeight-30,nWidth,1,RGB(100,100,100));
 
 	CFont *pOldFont=pDC->SelectObject(&m_ftSaticDefault);
 

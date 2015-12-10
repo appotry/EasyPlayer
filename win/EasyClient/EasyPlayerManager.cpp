@@ -39,12 +39,14 @@ int EasyPlayerManager::Start(char* szURL, HWND hShowWnd,
 	return	m_sSourceInfo.rtspSourceId ;
 }
  
-void EasyPlayerManager::Config(int nFrameCache,  BOOL bPlaySound, BOOL  bShowStatisticInfo )
+void EasyPlayerManager::Config(int nFrameCache,  BOOL bPlaySound, BOOL bShowToScale, BOOL  bShowStatisticInfo )
 {
 	if (m_sSourceInfo.rtspSourceId > 0)
 	{
 		EasyPlayer_SetFrameCache(m_sSourceInfo.rtspSourceId, nFrameCache);		//设置缓存
 		EasyPlayer_ShowStatisticalInfo(m_sSourceInfo.rtspSourceId, bShowStatisticInfo);
+		//按比例显示
+		EasyPlayer_SetShownToScale(m_sSourceInfo.rtspSourceId, bShowToScale );
 		if (bPlaySound)
 		{
 			EasyPlayer_PlaySound(m_sSourceInfo.rtspSourceId);

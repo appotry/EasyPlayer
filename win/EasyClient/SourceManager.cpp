@@ -612,7 +612,7 @@ int CSourceManager::StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudio
 
 		m_sSourceInfo.pMaster = this;
 		m_sSourceInfo.rtspSourceId = m_netStreamCapture.Start(szURL, hCapWnd, DISPLAY_FORMAT_RGB24_GDI, 0x00, "", "", &CSourceManager::__MediaSourceCallBack, (void *)&m_sSourceInfo);
-		m_netStreamCapture.Config(3, FALSE, FALSE);
+		m_netStreamCapture.Config(3, FALSE, TRUE);
 		if (m_sSourceInfo.rtspSourceId<=0)
 		{
 			LogErr(_T("ÍøÂçÊÓÆµÁ÷²É¼¯Ê§°Ü£¡"));
@@ -717,9 +717,10 @@ void CSourceManager::StopPush()
 int CSourceManager::StartPlay(char* szURL, HWND hShowWnd)
 {
 	m_sPlayInfo.rtspSourceId = m_netStreamPlayer.Start(szURL, hShowWnd, DISPLAY_FORMAT_RGB24_GDI, 0x01, "", "");
-	m_netStreamPlayer.Config(3, TRUE, TRUE);
+	m_netStreamPlayer.Config(3, TRUE, TRUE, TRUE);
 	return m_sPlayInfo.rtspSourceId ;
 }
+
 //Í£Ö¹²¥·Å
 void CSourceManager::StopPlay()
 {

@@ -107,4 +107,5 @@ protected:
 	void UpdataResource();
 public:
 	void GetPushServerInfo(ServerURLInfo* pPushServerInfo);
+	void GetLocalDevInfo(CComboBox* pCam, CComboBox*  pMic);
 };

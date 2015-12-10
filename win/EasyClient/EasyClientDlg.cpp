@@ -86,9 +86,6 @@ BOOL CEasyClientDlg::OnInitDialog()
 		pComboxWndMode->SetCurSel(0);
 	}
 
-	//创建视频窗口组
-	CreateVideoComponents();
-
 	m_pManager = CSourceManager::Instance();
 	m_pManager->SetMainDlg(this);
 	CWnd* pVideoCombo = GetDlgItem(IDC_COMBO_CAMERA) ;
@@ -125,6 +122,10 @@ BOOL CEasyClientDlg::OnInitDialog()
 	{
 		m_pManager->EnumLocalAVDevInfo(pVideoCombo, pAudioCombo);
 	}
+
+	//创建视频窗口组
+	CreateVideoComponents();
+
 	CComboBox* pSouceCombo = (CComboBox*)GetDlgItem(IDC_COMBO_SOURCE);
 	if (pSouceCombo)
 	{
@@ -660,7 +661,6 @@ void CEasyClientDlg::DrawClientArea( CDC*pDC,int nWidth,int nHeight )
 	CString strPushParam = _T("推送缓存:");
 	pDC->DrawText(strPushParam,rcPosition,DT_LEFT| DT_VCENTER |DT_SINGLELINE|DT_END_ELLIPSIS);
 
-
 	//下部分
 	CString strDebugInfo = _T("Trace:");
 	rcPosition.SetRect(10, nHeight-250+24+25+20, 70, nHeight-250+24+25+20+24 );
@@ -770,14 +770,12 @@ void CEasyClientDlg::OnNMClickSyslinkEasydarwin(NMHDR *pNMHDR, LRESULT *pResult)
 	ShellExecute(NULL, NULL, _T("http://www.easydarwin.org/"), NULL,NULL, SW_SHOWNORMAL); 
 }
 
-
 void CEasyClientDlg::OnNMClickSyslinkEasyclientGithub(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	*pResult = 0;
 	ShellExecute(NULL, NULL, _T("https://github.com/EasyDarwin/EasyClient"), NULL,NULL, SW_SHOWNORMAL); 
 
 }
-
 
 BOOL CEasyClientDlg::OnEraseBkgnd(CDC* pDC)
 {
@@ -805,7 +803,7 @@ void CEasyClientDlg::CreateVideoComponents()
 }
 void CEasyClientDlg::UpdateVideoComponents(LPRECT lpRect)
 {
-		CRect rcClient;
+	CRect rcClient;
 	if (NULL == lpRect)
 	{
 		GetClientRect(&rcClient);
@@ -819,8 +817,6 @@ void CEasyClientDlg::UpdateVideoComponents(LPRECT lpRect)
 
 	CRect rcTmp;
 	rcTmp.SetRect(rcClient.left, rcClient.top, rcClient.left+rcClient.Width()/2, rcClient.top+rcClient.Height()/2);
-
-	//
 
 	if (m_pVideoWindow->maximizedId==-1)
 	{
@@ -1082,4 +1078,32 @@ void CEasyClientDlg::GetPushServerInfo(ServerURLInfo* pPushServerInfo)
 		pPushServerInfo->pushServerPort = nPort;
 		strcpy_s(pPushServerInfo->sdpName , 64,  szName);
 	}
+}
+
+void CEasyClientDlg::GetLocalDevInfo(CComboBox* pCam, CComboBox*  pMic)
+{
+	CComboBox* pVideoCombo = (CComboBox*)GetDlgItem(IDC_COMBO_CAMERA) ;
+	CComboBox* pAudioCombo = (CComboBox*)GetDlgItem(IDC_COMBO_MIC) ;
+	if (pCam&&pVideoCombo)
+	{
+		int nCount = pVideoCombo->GetCount();
+		for (int nI = 0; nI<nCount; nI++)
+		{
+			CString strItem ;
+			pVideoCombo->GetLBText(nI, strItem);
+			pCam->AddString(strItem);
+		}
+	}
+
+	if (pMic&&pAudioCombo)
+	{
+		int nCount = pAudioCombo->GetCount();
+		for (int nI = 0; nI<nCount; nI++)
+		{
+			CString strItem ;
+			pAudioCombo->GetLBText(nI, strItem);
+			pMic->AddString(strItem);
+		}
+	}
+
 }
