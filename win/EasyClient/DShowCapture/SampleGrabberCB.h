@@ -1,4 +1,9 @@
-
+/*
+	Copyright (c) 2013-2014 EasyDarwin.ORG.  All rights reserved.
+	Github: https://github.com/EasyDarwin
+	WEChat: EasyDarwin
+	Website: http://www.EasyDarwin.org
+*/
 #if _MSC_VER > 1000
 #pragma once
 #endif // _MSC_VER > 1000
