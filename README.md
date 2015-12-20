@@ -74,7 +74,9 @@ EasyClient支持获取IPCamera摄像机的RTSP直播流，通过[EasyRTSPClient]
 
 WEB：[www.EasyDarwin.org](http://www.easydarwin.org)
 
-Author：SwordTwevle@EasyDarwin.org
+Author：[SwordTwevle@EasyDarwin.org](mailto:SwordTwevle@EasyDarwin.org "EasyDarwin SwordTwelve")
+
+Blog：[http://blog.csdn.net/SwordTwelve/](http://blog.csdn.net/SwordTwelve/ "EasyClient Blog")
 
 Copyright &copy; EasyDarwin.org 2012-2015
 
