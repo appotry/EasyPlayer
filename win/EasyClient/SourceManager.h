@@ -8,7 +8,7 @@
 // Add by SwordTwelve
 #pragma once
 
-#define EasyClent_VersionInfo _T("Version:1.2.1.5 Powered By SwordTwelve/Gavin/Arno")
+#define EasyClent_VersionInfo _T("Version:1.2.2.6 Powered By SwordTwelve/Gavin/Arno")
 
 //本地音频捕获
 #include "AudioSource\DirectSound.h"
@@ -18,9 +18,12 @@
 #include "EasyPlayerManager.h"
 //DShow音视频采集库头文件添加（添加该库主要是为了解决音视频源头上不同步的问题）
 #include "./DShowCapture/DShowCaptureAudioAndVideo_Interface.h"
+#include "CaptureScreen.h"
 
 #include "./FFEncoder/FFEncoderAPI.h"
 #pragma comment(lib, "./FFEncoder/FFEncoder.lib")
+
+#include "EasyMP4Writer.h"
 
 typedef struct tagPushServerURLInfo
 {
@@ -34,7 +37,8 @@ typedef enum tagSOURCE_TYPE
 {
 	SOURCE_LOCAL_CAMERA = 0,//本地音视频
 	SOURCE_RTSP_STREAM=1,//RTSP流
-	SOURCE_ONVIF_STREAM=2//Onvif流
+	SOURCE_SCREEN_CAPTURE =2//屏幕捕获
+	// 	//SOURCE_ONVIF_STREAM=3,//Onvif流
 
 }SOURCE_TYPE;
 
@@ -69,10 +73,14 @@ public:
 	static int CALLBACK __MediaSourceCallBack( int _channelId, int *_channelPtr, int _frameType, char *pBuf, RTSP_FRAME_INFO* _frameInfo);
 	int SourceManager(int _channelId, int *_channelPtr, int _frameType, char *pBuf, RTSP_FRAME_INFO* _frameInfo);
 
-	int StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd, int nVideoWidth, int nVideoHeight, int nFps, int nBitRate);
+	static int CALLBACK CaptureScreenCallBack(int nId, unsigned char *pBuffer, int nBufSize,  RealDataStreamType realDataType, /*RealDataStreamInfo*/void* realDataInfo, void* pMaster);
+	void CaptureScreenManager(int nId, unsigned char *pBuffer, int nBufSize,  RealDataStreamType realDataType, /*RealDataStreamInfo*/void* realDataInfo);
+
+	int StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd, int nVideoWidth, int nVideoHeight, int nFps, int nBitRate, char* szDataype = "YUY2");
+
 	//开始捕获(采集)
 	int StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudioId,  HWND hCapWnd, 
-		char* szURL = NULL, int nVideoWidth=640, int nVideoHeight=480, int nFps=25, int nBitRate=2048);
+		char* szURL = NULL, int nVideoWidth=640, int nVideoHeight=480, int nFps=25, int nBitRate=2048, char* szDataType = "YUY2", BOOL bWriteMp4 = FALSE);
 	//停止采集
 	void StopCapture();
 
@@ -88,6 +96,19 @@ public:
 	void SetMainDlg(	CEasyClientDlg* pMainDlg);
 	void LogErr(CString strLog);
 	void EnumLocalAVDevInfo(CWnd* pComboxMediaSource, CWnd* pComboxAudioSource);
+	void ResizeVideoWnd();
+
+	//屏幕采集
+	int StartScreenCapture(HWND hShowWnd, int nCapMode);
+	void StopScreenCapture();
+	void RealseScreenCapture();
+	int GetScreenCapSize(int& nWidth, int& nHeight);
+
+	//写MP4文件(录制相关)
+	int CreateMP4Writer(char* sFileName, int nFlag=ZOUTFILE_FLAG_FULL);
+	int WriteMP4VideoFrame(unsigned char* pdata, int datasize, bool keyframe, long nTimestamp, int nWidth, int nHeight);
+	int WriteMP4AudioFrame(unsigned char* pdata,int datasize, long timestamp);
+	void CloseMP4Writer();
 
 	//状态
 	BOOL IsInCapture()
@@ -110,7 +131,11 @@ public:
 	{
 		return m_netStreamPlayer.InRunning()>0?TRUE:FALSE;
 	}
-	void ResizeVideoWnd();
+
+	BOOL IsRecording()
+	{
+		return m_bRecording;
+	}
 
 protected:
 		void	UpdateLocalVideo(unsigned char *pbuf, int size, int width, int height);
@@ -120,6 +145,10 @@ private:
 	CEasyClientDlg* m_pMainDlg;
 	CDirectSound	m_audioCapture;
 	CCameraDS		m_videoCamera;
+	CCaptureScreen* m_pScreenCaptrue;
+	int m_nScreenCaptureId;
+
+	EasyMP4Writer* m_pMP4Writer;
 
 	//////////////////////////////////////////////////////////////////////////
 	// 多重参数
@@ -146,12 +175,11 @@ private:
 	HWND m_hCaptureWnd;
 	HWND m_hPlayWnd;
 	BOOL m_bPushing;
-
+	BOOL m_bRecording;
 	//FF---编码器相关
 	FFE_HANDLE m_hFfeVideoHandle;
 	FFE_HANDLE m_hFfeAudioHandle;
 	int m_nFrameNum;
 	char * m_EncoderBuffer;// = new char[1920*1080];	//申请编码的内存空间
-
 };
 

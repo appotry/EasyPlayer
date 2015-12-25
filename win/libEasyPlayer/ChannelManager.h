@@ -70,7 +70,6 @@ typedef struct __PLAY_THREAD_OBJ
 	THREAD_OBJ		decodeThread;		//解码线程
 	THREAD_OBJ		displayThread;		//显示线程
 
-
 	Easy_RTSP_Handle		nvsHandle;
 	HWND			hWnd;				//显示视频的窗口句柄
 	int				channelId;			//通道号
@@ -107,7 +106,6 @@ typedef struct __PLAY_THREAD_OBJ
 	int				manuRecording;
 	MP4C_Handler	mp4cHandle;
 	int				vidFrameNum;
-
 
 	MediaSourceCallBack pCallback;
 	void			*pUserPtr;

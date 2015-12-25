@@ -54,7 +54,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>\DShowCapture\DirectShow\Include;./;./Encoder;.\EasySkinUI;C:\Program Files (x86)\Visual Leak Detector\include;.\VideoSource\USBCamera\DirectShow\Include;.\DShowCapture\DirectShow;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./EasyMP4Writer;\DShowCapture\DirectShow\Include;./;./Encoder;.\EasySkinUI;C:\Program Files (x86)\Visual Leak Detector\include;.\VideoSource\USBCamera\DirectShow\Include;.\DShowCapture\DirectShow;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -62,7 +62,7 @@
       <OutputFile>../bin/$(ProjectName).exe</OutputFile>
       <AdditionalDependencies>gdiplus.lib</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <AdditionalLibraryDirectories>.\DShowCapture\DirectShow\Lib;./Encoder</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>./EasyMP4Writer;.\DShowCapture\DirectShow\Lib;./Encoder</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <Midl>
@@ -84,7 +84,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\DShowCapture\DirectShow;\DShowCapture\DirectShow\Include;./Encoder;.\EasySkinUI;./;.\VideoSource\USBCamera;C:\Program Files (x86)\Visual Leak Detector\include;.\VideoSource\USBCamera\DirectShow\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./EasyMP4Writer;.\DShowCapture\DirectShow;\DShowCapture\DirectShow\Include;./Encoder;.\EasySkinUI;./;.\VideoSource\USBCamera;C:\Program Files (x86)\Visual Leak Detector\include;.\VideoSource\USBCamera\DirectShow\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -93,7 +93,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>../bin/$(ProjectName).exe</OutputFile>
       <AdditionalDependencies>gdiplus.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>.\DShowCapture\DirectShow\Lib;./Encoder</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>./EasyMP4Writer;.\DShowCapture\DirectShow\Lib;./Encoder</AdditionalLibraryDirectories>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -110,10 +110,12 @@
     <None Include="ReadMe.txt" />
     <None Include="res\EasyClient.ico" />
     <None Include="res\EasyClient.rc2" />
+    <None Include="res\icoPen.ico" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AudioSource\AudioCapture.h" />
     <ClInclude Include="AudioSource\DirectSound.h" />
+    <ClInclude Include="CaptureScreen.h" />
     <ClInclude Include="DlgLocalPanel.h" />
     <ClInclude Include="DlgPanel.h" />
     <ClInclude Include="DlgRemotePanel.h" />
@@ -126,6 +128,7 @@
     <ClInclude Include="EasyClient.h" />
     <ClInclude Include="EasyClientDlg.h" />
     <ClInclude Include="EasyLinkCtrl.h" />
+    <ClInclude Include="EasyMP4Writer\EasyMP4Writer.h" />
     <ClInclude Include="EasyPlayerManager.h" />
     <ClInclude Include="EasyPusher\EasyPusherAPI.h" />
     <ClInclude Include="EasySkinManager.h" />
@@ -154,6 +157,7 @@
     <ClInclude Include="EasySkinUI\EasySkinUI.h" />
     <ClInclude Include="EasySkinUI\EasySkinUIMenu.h" />
     <ClInclude Include="EasySkinUI\EasySkinUI_ScrollBar.h" />
+    <ClInclude Include="FlashingWnd.h" />
     <ClInclude Include="GlobalUnits.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SourceManager.h" />
@@ -170,6 +174,7 @@
   <ItemGroup>
     <ClCompile Include="AudioSource\AudioCapture.cpp" />
     <ClCompile Include="AudioSource\DirectSound.cpp" />
+    <ClCompile Include="CaptureScreen.cpp" />
     <ClCompile Include="DlgLocalPanel.cpp" />
     <ClCompile Include="DlgPanel.cpp" />
     <ClCompile Include="DlgRemotePanel.cpp" />
@@ -181,6 +186,7 @@
     <ClCompile Include="EasyClient.cpp" />
     <ClCompile Include="EasyClientDlg.cpp" />
     <ClCompile Include="EasyLinkCtrl.cpp" />
+    <ClCompile Include="EasyMP4Writer\EasyMP4Writer.cpp" />
     <ClCompile Include="EasyPlayerManager.cpp" />
     <ClCompile Include="EasySkinManager.cpp" />
     <ClCompile Include="EasySkinUI\FlashControl.cpp" />
@@ -205,6 +211,7 @@
     <ClCompile Include="EasySkinUI\EasySkinUI.cpp" />
     <ClCompile Include="EasySkinUI\EasySkinUIMenu.cpp" />
     <ClCompile Include="EasySkinUI\EasySkinUI_ScrollBar.cpp" />
+    <ClCompile Include="FlashingWnd.cpp" />
     <ClCompile Include="GlobalUnits.cpp" />
     <ClCompile Include="SourceManager.cpp" />
     <ClCompile Include="stdafx.cpp">

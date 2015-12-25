@@ -24,6 +24,10 @@ CSourceManager::CSourceManager(void)
 	m_hFfeAudioHandle = NULL;
 	m_nFrameNum = 0;
 	m_EncoderBuffer = NULL;
+	m_pScreenCaptrue = NULL;
+	m_nScreenCaptureId = -1;
+	m_pMP4Writer = NULL;
+	m_bRecording = FALSE; 
 }
 
 CSourceManager::~CSourceManager(void)
@@ -59,6 +63,7 @@ void CSourceManager::RealseManager()
 	StopPlay();
 	StopPush();
 	StopCapture();
+	RealseScreenCapture();
 	UnInitSource();
 }
 
@@ -74,6 +79,25 @@ void CSourceManager::UnInitSource()
 {
 	RGB_DeinitDraw(&m_d3dHandle);
 	EasyPlayerManager::UnInit();
+}
+
+int CALLBACK CSourceManager::CaptureScreenCallBack(int nId, unsigned char *pBuffer, int nBufSize,  RealDataStreamType realDataType, /*RealDataStreamInfo*/void* realDataInfo, void* pMaster)
+{
+	if (!pBuffer || nBufSize <= 0)
+	{
+		return -1;
+	}
+	//转到当前实例进行处理
+	CSourceManager* pThis = (CSourceManager*)pMaster;
+	if (pThis)
+	{
+		pThis->CaptureScreenManager(nId, pBuffer, nBufSize,  realDataType, realDataInfo);
+	}
+	return 1;
+}
+void CSourceManager::CaptureScreenManager(int nId, unsigned char *pBuffer, int nBufSize,  RealDataStreamType realDataType, /*RealDataStreamInfo*/void* realDataInfo)
+{
+	DSRealDataManager(nId, pBuffer,nBufSize,  realDataType, realDataInfo );
 }
 
 int CALLBACK CSourceManager::__MediaSourceCallBack( int _channelId, int *_channelPtr, int _frameType, char *pBuf, RTSP_FRAME_INFO* _frameInfo)
@@ -308,6 +332,12 @@ int CSourceManager::SourceManager(int _channelId, int *_channelPtr, int _frameTy
 			frame.u32AVFrameFlag = EASY_SDK_VIDEO_FRAME_FLAG;
 			EasyPusher_PushFrame(m_sPushInfo.pusherHandle, &frame );
 		}
+		if (m_bRecording)
+		{
+			bool bKeyFrame  = (_frameInfo->type == 1) ? true:false;
+			WriteMP4VideoFrame((unsigned char*)pBuf,  _frameInfo->length, bKeyFrame, clock(), _frameInfo->width, _frameInfo->height);
+
+		}
 	}
 	else if (_frameType == EASY_SDK_AUDIO_FRAME_FLAG)
 	{
@@ -315,6 +345,10 @@ int CSourceManager::SourceManager(int _channelId, int *_channelPtr, int _frameTy
 		{
 			frame.u32AVFrameFlag = EASY_SDK_AUDIO_FRAME_FLAG;
 			EasyPusher_PushFrame(m_sPushInfo.pusherHandle, &frame );
+		}
+		if (m_bRecording)
+		{
+			WriteMP4AudioFrame((unsigned char*)pBuf,  _frameInfo->length, clock());
 		}
 	}
 	else if (_frameType == EASY_SDK_MEDIA_INFO_FLAG)
@@ -345,7 +379,7 @@ void CSourceManager::UpdateLocalVideo(unsigned char *pbuf, int size, int width, 
 	RGB_DrawData(m_d3dHandle, m_hCaptureWnd, (char*)pbuf, width, height, &rcClient, 0x00, RGB(0x00,0x00,0x00), 0x01);
 }
 
-int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd,int nVideoWidth, int nVideoHeight, int nFps, int nBitRate)
+int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd,int nVideoWidth, int nVideoHeight, int nFps, int nBitRate, char* szDataype)
 {
 	if (m_bDSCapture)
 	{
@@ -377,7 +411,14 @@ int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd,int nV
 		m_sDevConfigInfo.VideoInfo.nFrameRate = nFps;
 		m_sDevConfigInfo.VideoInfo.nWidth = nVideoWidth;
 		m_sDevConfigInfo.VideoInfo.nHeight = nVideoHeight;
-		strcpy_s(m_sDevConfigInfo.VideoInfo.strDataType, 64, "YUY2");
+		if (szDataype)
+		{
+			strcpy_s(m_sDevConfigInfo.VideoInfo.strDataType, 64, szDataype);
+		}
+		else
+		{
+			strcpy_s(m_sDevConfigInfo.VideoInfo.strDataType, 64, "YUY2");
+		}
 		m_sDevConfigInfo.VideoInfo.nRenderType = 1;
 		m_sDevConfigInfo.VideoInfo.nPinType = 1;
 		m_sDevConfigInfo.VideoInfo.nVideoWndId = 0;
@@ -397,8 +438,8 @@ int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd,int nV
 		m_mediainfo.u32AudioSamplerate = 16000;//44100;
 
 		//FFEncoder -- start
-		int	width = 640;
-		int height = 480;
+		int	width = nVideoWidth;
+		int height = nVideoHeight;
 		int fps = nFps;
 		int gop = 30;
 		int bitrate = nBitRate*1024;//512000; 
@@ -476,6 +517,8 @@ int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd,int nV
 		}
 		else
 		{
+			Release_VideoCapturer(m_pVideoManager)	;
+			m_pVideoManager = NULL;
 			LogErr(_T("当前视频设备不可用!"));
 		}
 
@@ -527,7 +570,7 @@ int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd,int nV
 // eSourceType==SOURCE_LOCAL_CAMERA时，nCamId有效
 // eSourceType==SOURCE_RTSP_STREAM/SOURCE_ONVIF_STREAM时，szURL有效
 int CSourceManager::StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudioId,
-	HWND hCapWnd, char* szURL, int nVideoWidth, int nVideoHeight, int nFps, int nBitRate)
+	HWND hCapWnd, char* szURL, int nVideoWidth, int nVideoHeight, int nFps, int nBitRate, char* szDataType, BOOL bWriteMp4)
 {
 	if (IsInCapture())
 	{
@@ -538,7 +581,7 @@ int CSourceManager::StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudio
 	int nRet = 1;
 	m_hCaptureWnd = hCapWnd;
 	//RTSP Source
-	if (eSourceType==SOURCE_LOCAL_CAMERA )
+	if (eSourceType==SOURCE_LOCAL_CAMERA || eSourceType==SOURCE_SCREEN_CAPTURE )
 	{
 		// 经测试，音视频采集时出现不同步 [11/19/2015 SwordTwelve]
 // 		//声音捕获
@@ -585,7 +628,7 @@ int CSourceManager::StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudio
 // 			}
 // 		}
 		//DShow本地采集
-		nRet = StartDSCapture(nCamId, nAudioId, m_hCaptureWnd, nVideoWidth, nVideoHeight, nFps, nBitRate );	
+		nRet = StartDSCapture(nCamId, nAudioId, m_hCaptureWnd, nVideoWidth, nVideoHeight, nFps, nBitRate,  szDataType);	
 	}
 	else
 	{
@@ -618,7 +661,13 @@ int CSourceManager::StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudio
 		}		
 	}
 	m_bDSCapture = TRUE;
-
+	if (bWriteMp4)
+	{
+		char sFileName[MAX_PATH];
+		sprintf(sFileName, "./ThisIsAMP4File_%d.mp4", rand() );
+		CreateMP4Writer(sFileName);
+	}
+	
 	return nRet;
 }
 //停止采集
@@ -658,6 +707,7 @@ void CSourceManager::StopCapture()
 		m_EncoderBuffer = NULL;
 	}	
 
+	CloseMP4Writer();
 
 	m_bDSCapture = FALSE;
 }
@@ -778,5 +828,126 @@ void CSourceManager::ResizeVideoWnd()
 	if (m_pVideoManager)
 	{
 		m_pVideoManager->ResizeVideoWindow();
+	}
+}
+
+//屏幕采集
+int CSourceManager::StartScreenCapture(HWND hShowWnd, int nCapMode)
+{
+	if (!m_pScreenCaptrue)
+	{
+		//实例化屏幕捕获管理类指针
+		m_pScreenCaptrue =  CCaptureScreen::Instance(m_nScreenCaptureId);
+		if (!m_pScreenCaptrue)
+		{
+			return -1;
+		}
+		m_pScreenCaptrue->SetCaptureScreenCallback((CaptureScreenCallback)&CSourceManager::CaptureScreenCallBack, this);
+	}
+	if (m_pScreenCaptrue->IsInCapturing())
+	{
+		return -1;
+	}
+	return m_pScreenCaptrue->StartScreenCapture(hShowWnd, nCapMode);
+}
+void CSourceManager::StopScreenCapture()
+{
+	if (m_pScreenCaptrue)
+	{
+		if (m_pScreenCaptrue->IsInCapturing())
+		{
+			m_pScreenCaptrue->StopScreenCapture();
+		}
+	}
+}
+
+void CSourceManager::RealseScreenCapture()
+{
+	if (m_pScreenCaptrue)
+	{
+		CCaptureScreen::UnInstance(m_nScreenCaptureId);
+		m_pScreenCaptrue = NULL;
+	}
+}
+
+
+int CSourceManager::GetScreenCapSize(int& nWidth, int& nHeight)
+{
+	if (m_pScreenCaptrue)
+	{
+		if (m_pScreenCaptrue->IsInCapturing())
+		{
+			m_pScreenCaptrue->GetCaptureScreenSize(nWidth, nHeight );
+			return 1;
+		}
+		else
+			return -1;
+	}
+	else
+		return -1;
+}
+
+//写MP4文件(录制相关)
+int CSourceManager::CreateMP4Writer(char* sFileName, int nFlag)
+{
+	if (m_bRecording)
+	{
+		return -1;
+	}
+	if (!m_pMP4Writer)
+	{
+		m_pMP4Writer = new EasyMP4Writer();
+	}
+	if (!m_pMP4Writer->CreateFile(sFileName, nFlag))
+	{
+		delete m_pMP4Writer;
+		m_pMP4Writer = NULL;
+		return -1;
+	}		
+
+	// 		前五个字节为 AAC object types  LOW          2
+	// 		接着4个字节为 码率index        16000        8
+	// 		采样标志标准：
+	//	static unsigned long tnsSupportedSamplingRates[13] = //音频采样率标准（标志），下标为写入标志
+	//	{ 96000,88200,64000,48000,44100,32000,24000,22050,16000,12000,11025,8000,0 };
+
+	// 		接着4个字节为 channels 个数                 2
+	// 		应打印出的正确2进制形式为  00010 | 1000 | 0010 | 000
+	// 														2        8         2
+	//  BYTE ubDecInfoBuff[] =  {0x12,0x10};//00010 0100 0010 000
+	BYTE ucDecInfoBuff[] =  {0x14,0x10};//16000采样率 2声道
+	int unBuffSize = sizeof(ucDecInfoBuff)*sizeof(BYTE);
+
+	m_pMP4Writer->WriteAACInfo(ucDecInfoBuff,unBuffSize);
+	m_bRecording = 1;
+	return 1;
+}
+int CSourceManager::WriteMP4VideoFrame(unsigned char* pdata, int datasize, bool keyframe, long nTimestamp, int nWidth, int nHeight)
+{
+	if (m_pMP4Writer)
+	{
+		m_pMP4Writer->WriteMp4File(pdata, datasize,keyframe, nTimestamp, nWidth, nHeight  );
+	}
+	return 1;
+}
+int CSourceManager::WriteMP4AudioFrame(unsigned char* pdata,int datasize, long timestamp)
+{
+	if (m_pMP4Writer)
+	{
+		if (m_pMP4Writer->CanWrite())
+		{
+			return m_pMP4Writer->WriteAACFrame(pdata,datasize, timestamp);
+		}
+	}
+	return 0;
+}
+void CSourceManager::CloseMP4Writer()
+{
+	m_bRecording = 0;
+	if (m_pMP4Writer)
+	{
+		m_pMP4Writer->SaveFile();
+		delete m_pMP4Writer;
+		m_pMP4Writer=NULL;
 	}
 }

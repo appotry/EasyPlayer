@@ -34,6 +34,8 @@ protected:
 	CComboBox* m_pCmbSourceType;//源类型选择
 	CComboBox* m_pCmbCamera;
 	CComboBox* m_pCmbMic;
+	CComboBox* m_pCmbScreenMode;
+	
 	CEdit	*m_pEdtRtspStream;		
 	CEasySkinButton m_btnStart;
 	CEasyClientDlg* m_pMainDlg;
@@ -67,4 +69,5 @@ private:
 
 public:
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+	afx_msg void OnCbnSelchangeComboCapscreenMode();
 };

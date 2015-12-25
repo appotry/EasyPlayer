@@ -31,6 +31,9 @@
     <Filter Include="DShowCapture">
       <UniqueIdentifier>{d538fa9e-5442-43fe-98d7-f92c9451b3d0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="EasyMP4Writer">
+      <UniqueIdentifier>{ffc36be6-86a7-4cfd-81e7-c972ebb46eff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -38,6 +41,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\EasyClient.rc2">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\icoPen.ico">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
@@ -204,6 +210,15 @@
     <ClInclude Include="DShowCapture\SampleGrabberCB.h">
       <Filter>DShowCapture</Filter>
     </ClInclude>
+    <ClInclude Include="CaptureScreen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlashingWnd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EasyMP4Writer\EasyMP4Writer.h">
+      <Filter>EasyMP4Writer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -343,6 +358,15 @@
     </ClCompile>
     <ClCompile Include="DShowCapture\DShowCaptureAudioAndVideo_Interface.cpp">
       <Filter>DShowCapture</Filter>
+    </ClCompile>
+    <ClCompile Include="CaptureScreen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlashingWnd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EasyMP4Writer\EasyMP4Writer.cpp">
+      <Filter>EasyMP4Writer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -31,6 +31,7 @@ CDlgPanel::CDlgPanel(CWnd* pParent /*=NULL*/)
 	m_pCmbSourceType = NULL;//源类型选择
 	m_pCmbCamera = NULL;
 	m_pCmbMic = NULL;
+	m_pCmbScreenMode = NULL;
 	m_pEdtRtspStream = NULL;		
 	m_pMainDlg = NULL;
 }
@@ -58,6 +59,7 @@ BEGIN_MESSAGE_MAP(CDlgPanel, CEasySkinDialog)
 	ON_CBN_SELCHANGE(IDC_COMBO_PANNEL_TYPE, &CDlgPanel::OnCbnSelchangeComboPannelType)
 	ON_CBN_SELCHANGE(IDC_COMBO_PANNEL_SOURCE, &CDlgPanel::OnCbnSelchangeComboPannelSource)
 	ON_WM_ERASEBKGND()
+	ON_CBN_SELCHANGE(IDC_COMBO_CAPSCREEN_MODE, &CDlgPanel::OnCbnSelchangeComboCapscreenMode)
 END_MESSAGE_MAP()
 
 
@@ -80,6 +82,9 @@ BOOL CDlgPanel::OnInitDialog()
 	__CREATE_WINDOW(m_pCmbSourceType, CComboBox , IDC_COMBO_PANNEL_SOURCE );
 	__CREATE_WINDOW(m_pCmbCamera, CComboBox , IDC_COMBO_PANNEL_CAMERA );
 	__CREATE_WINDOW(m_pCmbMic, CComboBox , IDC_COMBO_PANNEL_MIC );
+	__CREATE_WINDOW(m_pCmbScreenMode, CComboBox , IDC_COMBO_CAPSCREEN_MODE );
+	
+
 	
 	//更新皮肤
 	UpdataResource();
@@ -129,7 +134,17 @@ BOOL CDlgPanel::OnInitDialog()
 		m_pCmbSourceType->AddString(_T("本地音视频采集"));
 		m_pCmbSourceType->AddString(_T("网络RTSP流采集"));
 		//	pSouceCombo->AddString(_T("网络Onvif流采集"));
+		m_pCmbSourceType->AddString(_T("屏幕采集"));
 		m_pCmbSourceType->SetCurSel(0);
+	}
+	if (m_pCmbScreenMode)
+	{		
+		m_pCmbScreenMode->AddString(_T("固定长宽"));
+		m_pCmbScreenMode->AddString(_T("自定义"));
+		m_pCmbScreenMode->AddString(_T("全屏"));
+		//m_pCmbScreenMode->AddString(_T("随鼠标移动"));
+		m_pCmbScreenMode->SetCurSel(0);
+
 	}
 	int nSelType = m_pCmbType->GetCurSel();
 	if (nSelType == 0)//推送
@@ -139,25 +154,35 @@ BOOL CDlgPanel::OnInitDialog()
 // 		m_pEdtServerStream->ShowWindow(SW_SHOW);
 		m_pCmbSourceType->ShowWindow(SW_SHOW);
 		int nSelSourceType  = 	m_pCmbSourceType->GetCurSel();
-		if (nSelSourceType == 0)
+		if (nSelSourceType == 0)//本地音视频
 		{
 			m_pCmbCamera->ShowWindow(SW_SHOW);
 			m_pCmbMic->ShowWindow(SW_SHOW);
 			m_pEdtRtspStream->ShowWindow(SW_HIDE);
+			m_pCmbScreenMode->ShowWindow(SW_HIDE);
 			// 		m_edtVdieoWidth.ShowWindow(SW_SHOW);
 			// 		m_edtVideoHeight.ShowWindow(SW_SHOW);
 			// 		m_edtFPS.ShowWindow(SW_SHOW);
 			// 		m_edtVideoBitrate.ShowWindow(SW_SHOW);
 		} 
-		else
+		else if(nSelType ==1 )//RTSP流
 		{
 			m_pCmbCamera->ShowWindow(SW_HIDE);
 			m_pCmbMic->ShowWindow(SW_HIDE);
 			m_pEdtRtspStream->ShowWindow(SW_SHOW);
+			m_pCmbScreenMode->ShowWindow(SW_HIDE);
+
 			// 		m_edtVdieoWidth.ShowWindow(SW_HIDE);
 			// 		m_edtVideoHeight.ShowWindow(SW_HIDE);
 			// 		m_edtFPS.ShowWindow(SW_HIDE);
 			// 		m_edtVideoBitrate.ShowWindow(SW_HIDE);
+		}
+		else if (nSelType == 2)//屏幕采集
+		{
+			m_pCmbCamera->ShowWindow(SW_HIDE);
+			m_pCmbMic->ShowWindow(SW_SHOW);
+			m_pEdtRtspStream->ShowWindow(SW_HIDE);
+			m_pCmbScreenMode->ShowWindow(SW_SHOW);
 		}
 	}
 	else if (nSelType == 1)//直播
@@ -168,6 +193,7 @@ BOOL CDlgPanel::OnInitDialog()
 		m_pCmbSourceType->ShowWindow(SW_HIDE);
 
 		//复用Rtsp流地址作为直播地址
+		m_pCmbScreenMode->ShowWindow(SW_HIDE);
 		m_pCmbCamera->ShowWindow(SW_HIDE);
 		m_pCmbMic->ShowWindow(SW_HIDE);
 		m_pEdtRtspStream->ShowWindow(SW_SHOW);
@@ -256,7 +282,7 @@ void CDlgPanel::OnBnClickedButtonStart()
 				int nHeight = 480;
 				int nFps = 25;
 				int nBitrate = 2048;
-
+				char * szDataType = "YUY2";
 				if (eType == SOURCE_LOCAL_CAMERA)
 				{
 					nCamId = pVideoCombo->GetCurSel();
@@ -297,7 +323,21 @@ void CDlgPanel::OnBnClickedButtonStart()
 // 						return;
 // 					__WCharToMByte(wszBitrate, szBitrate, sizeof(szBitrate)/sizeof(szBitrate[0]));
 // 					nBitrate = atoi(szBitrate);
-				} 
+				}
+				else if ((eType == SOURCE_SCREEN_CAPTURE))
+				{
+					nCamId = -1;
+					nAudioId = pAudioCombo->GetCurSel();
+					strTemp = _T("屏幕采集");
+					szDataType = "RGB24";
+
+					int nRet =m_pManager->GetScreenCapSize(nWidth, nHeight);
+					if (nRet<1)
+					{
+						m_pManager->LogErr(_T("屏幕采集获取长宽失败，本地预览失败！"));
+						return;
+					}
+				}
 				else
 				{
 					//Start
@@ -317,7 +357,7 @@ void CDlgPanel::OnBnClickedButtonStart()
 					strTemp = _T("网络音视频流采集");
 				}
 
-				int nRet = m_pManager->StartCapture( eType,  nCamId, nAudioId, pCapWnd->GetSafeHwnd(), szURL, nWidth, nHeight, nFps,nBitrate );
+				int nRet = m_pManager->StartCapture( eType,  nCamId, nAudioId, pCapWnd->GetSafeHwnd(), szURL, nWidth, nHeight, nFps,nBitrate, szDataType );
 				if (nRet>0)
 				{
 					strTemp +=_T("成功！"); 
@@ -489,6 +529,14 @@ void CDlgPanel::UpdateComponents()
 	{
 		m_pCmbCamera->SetFocus();
 	}
+	//Capture Screen
+	rcCtrl.SetRect(215+10, nStartH+5, 215+10+nCmbWidth,  nStartH+5+25);
+	__MOVE_WINDOW(m_pCmbScreenMode, rcCtrl);
+	if (m_pCmbScreenMode)
+	{
+		m_pCmbScreenMode->SetFocus();
+	}
+	
 	//Mic
 	rcCtrl.SetRect(215+10+nCmbWidth+5, nStartH+5, rcClient.right-42,  nStartH+5+25);
 	__MOVE_WINDOW(m_pCmbMic, rcCtrl);
@@ -546,72 +594,114 @@ void CDlgPanel::DrawClientArea( CDC*pDC,int nWidth,int nHeight )
 
 void CDlgPanel::OnCbnSelchangeComboPannelType()
 {
+	if (m_pManager)
+	{
+		m_pManager->StopScreenCapture();
+	}
+
 	int nSelType = m_pCmbType->GetCurSel();
 	if (nSelType == 0)//推送
 	{
-// 		m_pEdtServerIP->ShowWindow(SW_SHOW);
-// 		m_pEdtServerPort->ShowWindow(SW_SHOW);
-// 		m_pEdtServerStream->ShowWindow(SW_SHOW);
+		// 		m_pEdtServerIP->ShowWindow(SW_SHOW);
+		// 		m_pEdtServerPort->ShowWindow(SW_SHOW);
+		// 		m_pEdtServerStream->ShowWindow(SW_SHOW);
 		m_pCmbSourceType->ShowWindow(SW_SHOW);
 		int nSelSourceType  = 	m_pCmbSourceType->GetCurSel();
-		if (nSelSourceType == 0)
+		if (nSelSourceType == 0)//本地音视频
 		{
 			m_pCmbCamera->ShowWindow(SW_SHOW);
 			m_pCmbMic->ShowWindow(SW_SHOW);
 			m_pEdtRtspStream->ShowWindow(SW_HIDE);
+			m_pCmbScreenMode->ShowWindow(SW_HIDE);
 			// 		m_edtVdieoWidth.ShowWindow(SW_SHOW);
 			// 		m_edtVideoHeight.ShowWindow(SW_SHOW);
 			// 		m_edtFPS.ShowWindow(SW_SHOW);
 			// 		m_edtVideoBitrate.ShowWindow(SW_SHOW);
 		} 
-		else
+		else if(nSelType ==1 )//RTSP流
 		{
 			m_pCmbCamera->ShowWindow(SW_HIDE);
 			m_pCmbMic->ShowWindow(SW_HIDE);
 			m_pEdtRtspStream->ShowWindow(SW_SHOW);
+			m_pCmbScreenMode->ShowWindow(SW_HIDE);
+
 			// 		m_edtVdieoWidth.ShowWindow(SW_HIDE);
 			// 		m_edtVideoHeight.ShowWindow(SW_HIDE);
 			// 		m_edtFPS.ShowWindow(SW_HIDE);
 			// 		m_edtVideoBitrate.ShowWindow(SW_HIDE);
 		}
+		else if (nSelType == 2)//屏幕采集
+		{
+			m_pCmbCamera->ShowWindow(SW_HIDE);
+			m_pCmbMic->ShowWindow(SW_SHOW);
+			m_pEdtRtspStream->ShowWindow(SW_HIDE);
+			m_pCmbScreenMode->ShowWindow(SW_SHOW);
+			int nScreenMode = m_pCmbScreenMode->GetCurSel();
+			if (m_pManager)
+			{
+				m_pManager->StartScreenCapture( GetDlgVideo()->GetSafeHwnd(), nScreenMode);
+			}
+		}
 	}
 	else if (nSelType == 1)//直播
 	{
-// 		m_pEdtServerIP->ShowWindow(SW_HIDE);
-// 		m_pEdtServerPort->ShowWindow(SW_HIDE);
-// 		m_pEdtServerStream->ShowWindow(SW_HIDE);
+		// 		m_pEdtServerIP->ShowWindow(SW_HIDE);
+		// 		m_pEdtServerPort->ShowWindow(SW_HIDE);
+		// 		m_pEdtServerStream->ShowWindow(SW_HIDE);
 		m_pCmbSourceType->ShowWindow(SW_HIDE);
 
 		//复用Rtsp流地址作为直播地址
+		m_pCmbScreenMode->ShowWindow(SW_HIDE);
 		m_pCmbCamera->ShowWindow(SW_HIDE);
 		m_pCmbMic->ShowWindow(SW_HIDE);
 		m_pEdtRtspStream->ShowWindow(SW_SHOW);
+
 	}
 }
 
 
 void CDlgPanel::OnCbnSelchangeComboPannelSource()
 {
+	if (m_pManager)
+	{
+		m_pManager->StopScreenCapture();
+	}
 	int nSelSourceType  = 	m_pCmbSourceType->GetCurSel();
 	if (nSelSourceType == 0)
 	{
 		m_pCmbCamera->ShowWindow(SW_SHOW);
 		m_pCmbMic->ShowWindow(SW_SHOW);
 		m_pEdtRtspStream->ShowWindow(SW_HIDE);
+		m_pCmbScreenMode->ShowWindow(SW_HIDE);
 		// 		m_edtVdieoWidth.ShowWindow(SW_SHOW);
 		// 		m_edtVideoHeight.ShowWindow(SW_SHOW);
 		// 		m_edtFPS.ShowWindow(SW_SHOW);
 		// 		m_edtVideoBitrate.ShowWindow(SW_SHOW);
 	} 
-	else
+	else if(nSelSourceType ==1 )//RTSP流
 	{
 		m_pCmbCamera->ShowWindow(SW_HIDE);
 		m_pCmbMic->ShowWindow(SW_HIDE);
 		m_pEdtRtspStream->ShowWindow(SW_SHOW);
+		m_pCmbScreenMode->ShowWindow(SW_HIDE);
+
 		// 		m_edtVdieoWidth.ShowWindow(SW_HIDE);
 		// 		m_edtVideoHeight.ShowWindow(SW_HIDE);
 		// 		m_edtFPS.ShowWindow(SW_HIDE);
 		// 		m_edtVideoBitrate.ShowWindow(SW_HIDE);
+	}
+	else if (nSelSourceType == 2)//屏幕采集
+	{
+		m_pCmbCamera->ShowWindow(SW_HIDE);
+		m_pCmbMic->ShowWindow(SW_SHOW);
+		m_pEdtRtspStream->ShowWindow(SW_HIDE);
+		m_pCmbScreenMode->ShowWindow(SW_SHOW);
+		int nScreenMode = m_pCmbScreenMode->GetCurSel();
+		if (m_pManager)
+		{
+			m_pManager->StartScreenCapture( GetDlgVideo()->GetSafeHwnd(), nScreenMode);
+		}
+
 	}
 }
 
@@ -641,4 +731,27 @@ void CDlgPanel::FormatStreamName(char* sStreamName)
 	char sName[128] =  {0,};
 	__WCharToMByte(strStream, sName, sizeof(sName)/sizeof(sName[0]));
 	strcpy_s(sStreamName, 64, sName);
+}
+
+
+void CDlgPanel::OnCbnSelchangeComboCapscreenMode()
+{
+	if (m_pManager)
+	{
+		m_pManager->StopScreenCapture();
+	}
+	int nScreenMode  = 	m_pCmbScreenMode->GetCurSel();
+	if (m_pManager)
+	{
+		m_pManager->StartScreenCapture( GetDlgVideo()->GetSafeHwnd(), nScreenMode);
+	}
+// 	if (nSelSourceType == 0)
+// 	{
+// 	}
+// 	else if (nSelSourceType == 1)
+// 	{
+// 	} 
+// 	else if(nSelSourceType == 2)
+// 	{
+// 	}
 }
