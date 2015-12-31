@@ -192,7 +192,7 @@ bool EasyMP4Writer::WriteH264SPSandPPS(unsigned char*sps,int spslen,unsigned cha
 	return true;
 }
 //写入AAC信息
-bool EasyMP4Writer::WriteAACInfo(unsigned char*info,int len)
+bool EasyMP4Writer::WriteAACInfo(unsigned char*info,int len, int nSampleRate, int nChannel, int nBitsPerSample)
 {
 	p_audiosample=gf_isom_sample_new();
 	p_audiosample->data=(char*)malloc(1024*10);
@@ -215,7 +215,7 @@ bool EasyMP4Writer::WriteAACInfo(unsigned char*info,int len)
 	{
 //		TRACE("mpeg4_description:%d\n",gferr);
 	}
-	gferr=gf_isom_set_audio_info(p_file,m_audiotrackid,i_audiodescidx,44100,2,16);
+	gferr=gf_isom_set_audio_info(p_file,m_audiotrackid,i_audiodescidx, nSampleRate,nChannel, nBitsPerSample);//44100 2 16
 	if (gferr!=0)
 	{
 //		TRACE("gf_isom_set_audio:%d\n",gferr);
@@ -391,10 +391,17 @@ bool EasyMP4Writer::CanWrite()
 // 				}
 // 				bSPSOrPPS = TRUE;
 // 			}
+// // 			else if (pout[0] == 0x06)//SEI
+// // 			{
+// // 
+// // 			}
 // 			else
 // 			{
-// 					memcpy(pRealData+nRealDataSize+4, pout, outlen);
-// 					nRealDataSize += outlen;
+// 				nRealDataSize = datasize- (pout-pdata) ;
+// 				memcpy(pRealData+4, pout, nRealDataSize);
+// // 				memcpy(pRealData+nRealDataSize+4, pout, outlen);
+// // 				nRealDataSize += outlen;
+// 					break;
 // 			}
 // 
 // // 			if (pout[0] == 0x65 && pout[1] == 0x88)
@@ -467,7 +474,7 @@ bool EasyMP4Writer::CanWrite()
 // 	return TRUE;
 // }
 
-
+// 只支持一帧单Nal的x264编码的H264帧数据 [12/30/2015 Dingshuai]
 int EasyMP4Writer::WriteMp4File(BYTE* pdata, int datasize, bool keyframe, long nTimestamp, int nWidth, int nHeight)
 {
 	if (nTimestamp==0||(pdata==NULL)||datasize<=0)

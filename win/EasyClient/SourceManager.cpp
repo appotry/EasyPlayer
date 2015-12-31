@@ -28,6 +28,9 @@ CSourceManager::CSourceManager(void)
 	m_nScreenCaptureId = -1;
 	m_pMP4Writer = NULL;
 	m_bRecording = FALSE; 
+	m_handler = NULL;
+	m_bUseGpac = FALSE;
+	m_bWriteMp4 = FALSE;
 }
 
 CSourceManager::~CSourceManager(void)
@@ -138,6 +141,14 @@ int  CSourceManager::RealDataCallbackFunc(int nDevId, unsigned char *pBuffer, in
 void CSourceManager::DSRealDataManager(int nDevId, unsigned char *pBuffer, int nBufSize, 
 										RealDataStreamType realDataType, /*RealDataStreamInfo*/void* realDataInfo)
 {
+	int nVideoWidth = 640;
+	int nVideoHeight = 480;
+	int nFps = 25;
+
+	nVideoWidth = m_sDevConfigInfo.VideoInfo.nWidth ;
+	nVideoHeight = m_sDevConfigInfo.VideoInfo.nHeight ;
+	nFps = m_sDevConfigInfo.VideoInfo.nFrameRate;
+
 	switch (realDataType)
 	{
 	case REALDATA_VIDEO:
@@ -146,15 +157,6 @@ void CSourceManager::DSRealDataManager(int nDevId, unsigned char *pBuffer, int n
 			if (m_bPushing)
 			{
 				//YUV格式转换
-
-				int nVideoWidth = 640;
-				int nVideoHeight = 480;
-				int nFps = 25;
-
-				nVideoWidth = m_sDevConfigInfo.VideoInfo.nWidth ;
-				nVideoHeight = m_sDevConfigInfo.VideoInfo.nHeight ;
-				nFps = m_sDevConfigInfo.VideoInfo.nFrameRate;
-
 				int nWidhtHeightBuf=(nVideoWidth*nVideoHeight*3)>>1;
 				CString strDataType = _T("");
 				strDataType = m_sDevConfigInfo.VideoInfo.strDataType;
@@ -173,9 +175,10 @@ void CSourceManager::DSRealDataManager(int nDevId, unsigned char *pBuffer, int n
 
 				//编码
 				int enc_size = 0;
-				int ret = FFE_EncodeVideo(m_hFfeVideoHandle, pDesBuffer, (unsigned char*)m_EncoderBuffer, &enc_size, ++m_nFrameNum, 0);
+				int ret = FFE_EncodeVideo(m_hFfeVideoHandle, pDesBuffer, (unsigned char*)m_EncoderBuffer, &enc_size, ++m_nFrameNum, 1);
 				if (ret == 0x00 && enc_size>0)
 				{
+
 					RTSP_FRAME_INFO	frameinfo;
 					memset(&frameinfo, 0x00, sizeof(RTSP_FRAME_INFO));
 					frameinfo.codec = EASY_SDK_VIDEO_CODEC_H264;
@@ -187,6 +190,9 @@ void CSourceManager::DSRealDataManager(int nDevId, unsigned char *pBuffer, int n
 					long nTimeStamp = clock();
 					frameinfo.timestamp_sec = nTimeStamp/1000;
 					frameinfo.timestamp_usec = (nTimeStamp%1000)*1000;
+
+					frameinfo.sample_rate = m_sDevConfigInfo.AudioInfo.nSampleRate;
+					frameinfo.channels = m_sDevConfigInfo.AudioInfo.nChannaels;
 
 					//推送回调管理
 					SourceManager(nDevId, (int*)&m_sSourceInfo, EASY_SDK_VIDEO_FRAME_FLAG, m_EncoderBuffer, &frameinfo);
@@ -268,8 +274,11 @@ void CSourceManager::DSRealDataManager(int nDevId, unsigned char *pBuffer, int n
 					memset(&frameinfo, 0x00, sizeof(RTSP_FRAME_INFO));
 					frameinfo.codec = EASY_SDK_AUDIO_CODEC_AAC;
 					frameinfo.length = enc_size;
-					frameinfo.sample_rate	=	16000;
-					frameinfo.channels = 2;
+					frameinfo.sample_rate = m_sDevConfigInfo.AudioInfo.nSampleRate;
+					frameinfo.channels = m_sDevConfigInfo.AudioInfo.nChannaels;
+					frameinfo.width  = nVideoWidth;
+					frameinfo.height = nVideoHeight;
+					frameinfo.fps    = nFps;
 
 					long nTimeStamp = clock();
 					frameinfo.timestamp_sec = nTimeStamp/1000;
@@ -332,11 +341,37 @@ int CSourceManager::SourceManager(int _channelId, int *_channelPtr, int _frameTy
 			frame.u32AVFrameFlag = EASY_SDK_VIDEO_FRAME_FLAG;
 			EasyPusher_PushFrame(m_sPushInfo.pusherHandle, &frame );
 		}
+
+		// 测试代码 [12/22/2015 Dingshuai]
+// 		static int i =0;
+// 		if (i<100)
+// 		{
+// 			CFile f;
+// 			CString strFName = _T("");
+// 			bool bKeyFrame  = (_frameInfo->type == 1) ? true:false;
+// 			strFName.Format(_T("./Logfile/h264-%d-%d.txt"), i, bKeyFrame);
+// 			f.Open(strFName, CFile::modeCreate | CFile::modeWrite);
+// 			f.Write(pBuf, _frameInfo->length);
+// 			f.Close();
+// 			i++;
+// 		}
+
+		bool bKeyFrame  = (_frameInfo->type == 1) ? true:false;
+		if (bKeyFrame)
+		{
+			if (m_bWriteMp4)
+			{
+				if (!m_bRecording)
+				{
+					char sFileName[MAX_PATH];
+					sprintf(sFileName, "./ThisIsAMP4File_%d.mp4", _channelId );
+					CreateMP4Writer(sFileName, _frameInfo->width, _frameInfo->height, _frameInfo->fps, _frameInfo->sample_rate,  _frameInfo->channels, 16);
+				}
+			}
+		}
 		if (m_bRecording)
 		{
-			bool bKeyFrame  = (_frameInfo->type == 1) ? true:false;
 			WriteMP4VideoFrame((unsigned char*)pBuf,  _frameInfo->length, bKeyFrame, clock(), _frameInfo->width, _frameInfo->height);
-
 		}
 	}
 	else if (_frameType == EASY_SDK_AUDIO_FRAME_FLAG)
@@ -379,7 +414,7 @@ void CSourceManager::UpdateLocalVideo(unsigned char *pbuf, int size, int width, 
 	RGB_DrawData(m_d3dHandle, m_hCaptureWnd, (char*)pbuf, width, height, &rcClient, 0x00, RGB(0x00,0x00,0x00), 0x01);
 }
 
-int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd,int nVideoWidth, int nVideoHeight, int nFps, int nBitRate, char* szDataype)
+int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd,int nVideoWidth, int nVideoHeight, int nFps, int nBitRate, char* szDataype, int nSampleRate, int nChannel)
 {
 	if (m_bDSCapture)
 	{
@@ -425,8 +460,8 @@ int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd,int nV
 
 		m_sDevConfigInfo.AudioInfo.nAudioBufferType = 4096;
 		m_sDevConfigInfo.AudioInfo.nBytesPerSample = 16;
-		m_sDevConfigInfo.AudioInfo.nSampleRate = 16000;//44100;
-		m_sDevConfigInfo.AudioInfo.nChannaels = 2;
+		m_sDevConfigInfo.AudioInfo.nSampleRate = nSampleRate;//44100;//
+		m_sDevConfigInfo.AudioInfo.nChannaels = nChannel;
 		m_sDevConfigInfo.AudioInfo.nPinType = 2;
 
 		//初始化Pusher结构信息
@@ -434,8 +469,8 @@ int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd,int nV
 		m_mediainfo.u32VideoCodec =  EASY_SDK_VIDEO_CODEC_H264;//0x1C;
 		m_mediainfo.u32VideoFps = nFps;
 		m_mediainfo.u32AudioCodec = EASY_SDK_AUDIO_CODEC_AAC;
-		m_mediainfo.u32AudioChannel = 2;
-		m_mediainfo.u32AudioSamplerate = 16000;//44100;
+		m_mediainfo.u32AudioChannel = nChannel;
+		m_mediainfo.u32AudioSamplerate = nSampleRate;//44100;//
 
 		//FFEncoder -- start
 		int	width = nVideoWidth;
@@ -466,9 +501,8 @@ int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd,int nV
 		FFE_Init(&m_hFfeVideoHandle);	//初始化
 		FFE_SetVideoEncodeParam(m_hFfeVideoHandle, ENCODER_H264, width, height, fps, gop, bitrate, intputformat);		//设置编码参数
 		//初始化AAC编码器
-		AAC_Init(&m_hFfeAudioHandle, 16000, 2);
+		AAC_Init(&m_hFfeAudioHandle, nSampleRate/*44100*/, nChannel);
 		//FFEncoder -- end
-
 
 		//视频可用
 		if (m_sDevConfigInfo.nVideoId >= 0)
@@ -661,21 +695,20 @@ int CSourceManager::StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudio
 		}		
 	}
 	m_bDSCapture = TRUE;
-	if (bWriteMp4)
-	{
-		char sFileName[MAX_PATH];
-		sprintf(sFileName, "./ThisIsAMP4File_%d.mp4", rand() );
-		CreateMP4Writer(sFileName);
-	}
+	m_bWriteMp4 = bWriteMp4;
 	
 	return nRet;
 }
 //停止采集
 void CSourceManager::StopCapture()
 {
+	m_bWriteMp4 = FALSE;
 	//Stop Capture
 // 	m_videoCamera.CloseCamera();
 // 	m_audioCapture.Stop();
+	
+	CloseMP4Writer();
+
 	//清除窗口关联设备
 	if (m_pVideoManager)
 	{
@@ -707,7 +740,6 @@ void CSourceManager::StopCapture()
 		m_EncoderBuffer = NULL;
 	}	
 
-	CloseMP4Writer();
 
 	m_bDSCapture = FALSE;
 }
@@ -887,67 +919,165 @@ int CSourceManager::GetScreenCapSize(int& nWidth, int& nHeight)
 		return -1;
 }
 
+// 	//初始化句柄
+// 	int	LIB_MP4CREATOR_API	MP4C_Init(MP4C_Handler *handler);
+// 	//创建录像文件
+// 	int	LIB_MP4CREATOR_API	MP4C_CreateMp4File(MP4C_Handler handler, char *filename, unsigned int _file_buf_size/*内存缓冲,当缓冲满了之后才会写入文件, 如果为0则直接写入文件*/);
+// 	//设置视频参数
+// 	int	LIB_MP4CREATOR_API	MP4C_SetMp4VideoInfo(MP4C_Handler handler, unsigned int codec,	unsigned short width, unsigned short height, unsigned int fps);
+// 	//设置音频参数
+// 	int	LIB_MP4CREATOR_API	MP4C_SetMp4AudioInfo(MP4C_Handler handler, unsigned int codec,	unsigned int sampleFrequency, unsigned int channel);
+// 	//设置H264中的SPS
+// 	int	LIB_MP4CREATOR_API	MP4C_SetH264Sps(MP4C_Handler handler, unsigned short sps_len, unsigned char *sps);
+// 	//设置H264中的PPS
+// 	int	LIB_MP4CREATOR_API	MP4C_SetH264Pps(MP4C_Handler handler, unsigned short pps_len, unsigned char *pps);
+// 
+// 	//从帧数据中提取SPS和PPS,提取结果后调用MP4C_SetH264Sps和MP4C_SetH264Pps
+// 	//帧数据中需包含 start code
+// 	int LIB_MP4CREATOR_API  MP4C_GetSPSPPS(char *pbuf, int bufsize, char *_sps, int *_spslen, char *_pps, int *_ppslen);
+// 
+// 	/*
+// 	写入媒体数据
+// 	//不论输入是视频或视频, 直接调用MP4C_AddFrame写入即可, 库内部会进行判断,在写完一个GOP后写入对应时间段的音频
+// 	//现音频仅支持AAC   8KHz 和  44.1KHz
+// 	pbuf可以有start code 00 00 00 01也可以没有,库里面已做判断
+// 	如果没有start code, 则需调用MP4C_SetH264Sps和MP4C_SetH264Pps设置相应的sps和pps
+// 
+// 	帧数据为以下几种情况时可不调用MP4C_SetH264Sps和MP4C_SetH264Pps:
+// 	1.  start code + sps + start code + pps + start code + idr
+// 	2.  start code + sps            start code + pps   即start code+sps为一帧, start code+pps为一帧
+// 	*/
+// 	int	LIB_MP4CREATOR_API	MP4C_AddFrame(MP4C_Handler handler, unsigned int mediatype, unsigned char *pbuf, unsigned int framesize, unsigned char keyframe, unsigned int timestamp_sec, unsigned int timestamp_rtp, unsigned int fps);
+// 
+// 	//关闭MP4文件, 返回文件大小
+// 	unsigned int LIB_MP4CREATOR_API	MP4C_CloseMp4File(MP4C_Handler handler);
+// 
+// 	//释放句柄
+// 	int	LIB_MP4CREATOR_API	MP4C_Deinit(MP4C_Handler *handler);
 //写MP4文件(录制相关)
-int CSourceManager::CreateMP4Writer(char* sFileName, int nFlag)
+int CSourceManager::CreateMP4Writer(char* sFileName, int nVWidth, int nVHeight, int nFPS, int nSampleRate, int nChannel, int nBitsPerSample, int nFlag, BOOL bUseGpac)
 {
 	if (m_bRecording)
 	{
 		return -1;
 	}
-	if (!m_pMP4Writer)
+	m_bUseGpac = bUseGpac;
+	if (!bUseGpac)
 	{
-		m_pMP4Writer = new EasyMP4Writer();
+		if (m_handler)
+		{
+			return -1;
+		}
+		MP4C_Init(&m_handler);
+		MP4C_SetMp4VideoInfo(m_handler, VIDEO_CODEC_H264, nVWidth, nVHeight, nFPS);
+		MP4C_SetMp4AudioInfo(m_handler, AUDIO_CODEC_AAC, nSampleRate, nChannel );//44100  2
+		MP4C_CreateMp4File(m_handler, sFileName, 0);
+	} 
+	else
+	{
+		if (!m_pMP4Writer)
+		{
+			m_pMP4Writer = new EasyMP4Writer();
+		}
+		if (!m_pMP4Writer->CreateFile(sFileName, nFlag))
+		{
+			delete m_pMP4Writer;
+			m_pMP4Writer = NULL;
+			return -1;
+		}		
+
+		// 		前五个字节为 AAC object types  LOW          2
+		// 		接着4个字节为 码率index        16000        8
+		// 		采样标志标准：
+		//	static unsigned long tnsSupportedSamplingRates[13] = //音频采样率标准（标志），下标为写入标志
+		//	{ 96000,88200,64000,48000,44100,32000,24000,22050,16000,12000,11025,8000,0 };
+
+		// 		接着4个字节为 channels 个数                 2
+		// 		应打印出的正确2进制形式为  00010 | 1000 | 0010 | 000
+		// 														2        8         2
+		//  BYTE ubDecInfoBuff[] =  {0x12,0x10};//00010 0100 0010 000
+  
+		//音频采样率标准（标志），下标为写入标志
+		unsigned long tnsSupportedSamplingRates[13] = { 96000,88200,64000,48000,44100,32000,24000,22050,16000,12000,11025,8000,0 };
+		int nI = 0;
+		for ( nI = 0; nI<13; nI++)
+		{
+			if (tnsSupportedSamplingRates[nI] == nSampleRate )
+			{
+				break;
+			}
+		}
+		BYTE ucDecInfoBuff[2] = {0x12,0x10};//
+		
+		unsigned short  nDecInfo = (1<<12) | (nI << 7) | (nChannel<<3);
+		int nSize = sizeof(unsigned short);
+		memcpy(ucDecInfoBuff, &nDecInfo, nSize);
+		SWAP(ucDecInfoBuff[0], ucDecInfoBuff[1]);
+		int unBuffSize = sizeof(ucDecInfoBuff)*sizeof(BYTE);
+
+		m_pMP4Writer->WriteAACInfo(ucDecInfoBuff,unBuffSize, nSampleRate, nChannel, nBitsPerSample);
 	}
-	if (!m_pMP4Writer->CreateFile(sFileName, nFlag))
-	{
-		delete m_pMP4Writer;
-		m_pMP4Writer = NULL;
-		return -1;
-	}		
-
-	// 		前五个字节为 AAC object types  LOW          2
-	// 		接着4个字节为 码率index        16000        8
-	// 		采样标志标准：
-	//	static unsigned long tnsSupportedSamplingRates[13] = //音频采样率标准（标志），下标为写入标志
-	//	{ 96000,88200,64000,48000,44100,32000,24000,22050,16000,12000,11025,8000,0 };
-
-	// 		接着4个字节为 channels 个数                 2
-	// 		应打印出的正确2进制形式为  00010 | 1000 | 0010 | 000
-	// 														2        8         2
-	//  BYTE ubDecInfoBuff[] =  {0x12,0x10};//00010 0100 0010 000
-	BYTE ucDecInfoBuff[] =  {0x14,0x10};//16000采样率 2声道
-	int unBuffSize = sizeof(ucDecInfoBuff)*sizeof(BYTE);
-
-	m_pMP4Writer->WriteAACInfo(ucDecInfoBuff,unBuffSize);
 	m_bRecording = 1;
+
 	return 1;
 }
+
 int CSourceManager::WriteMP4VideoFrame(unsigned char* pdata, int datasize, bool keyframe, long nTimestamp, int nWidth, int nHeight)
 {
-	if (m_pMP4Writer)
+	if (!m_bUseGpac)
 	{
-		m_pMP4Writer->WriteMp4File(pdata, datasize,keyframe, nTimestamp, nWidth, nHeight  );
+		MP4C_AddFrame( m_handler, MEDIA_TYPE_VIDEO,pdata , datasize, keyframe, nTimestamp/1000, nTimestamp, 25);
 	}
+	else
+	{
+		if (m_pMP4Writer)
+		{
+			m_pMP4Writer->WriteMp4File(pdata, datasize,keyframe, nTimestamp, nWidth, nHeight  );
+		}
+	}
+
 	return 1;
 }
 int CSourceManager::WriteMP4AudioFrame(unsigned char* pdata,int datasize, long timestamp)
 {
-	if (m_pMP4Writer)
+	if (!m_bUseGpac)
 	{
-		if (m_pMP4Writer->CanWrite())
+		MP4C_AddFrame( m_handler, MEDIA_TYPE_AUDIO,pdata , datasize, 1, timestamp/1000, timestamp, 25);
+	} 
+	else
+	{
+		if (m_pMP4Writer)
 		{
-			return m_pMP4Writer->WriteAACFrame(pdata,datasize, timestamp);
+			if (m_pMP4Writer->CanWrite())
+			{
+				return m_pMP4Writer->WriteAACFrame(pdata,datasize, timestamp);
+			}
 		}
 	}
+
 	return 0;
 }
 void CSourceManager::CloseMP4Writer()
 {
 	m_bRecording = 0;
-	if (m_pMP4Writer)
+	if (!m_bUseGpac)
 	{
-		m_pMP4Writer->SaveFile();
-		delete m_pMP4Writer;
-		m_pMP4Writer=NULL;
+		if (m_handler)
+		{
+			MP4C_CloseMp4File(m_handler);
+			Sleep(500);
+			MP4C_Deinit(&m_handler);
+			m_handler = NULL;
+		}
+	} 
+	else
+	{
+		if (m_pMP4Writer)
+		{
+			m_pMP4Writer->SaveFile();
+			delete m_pMP4Writer;
+			m_pMP4Writer=NULL;
+		}
 	}
+
 }

@@ -1154,7 +1154,7 @@ void CCaptureScreen::CaptureVideoProcess()
 // 		alpbi=NULL;
 
 		//Slowly thread By framerate
-		//Sleep(1000/nFps);
+		Sleep(30);//1000/nFps
 	}
 	//²¶»ñ½áÊø£¬Òş²ØÉÁË¸ÇøÓò¿ò
 	if (m_bFlashingRect)

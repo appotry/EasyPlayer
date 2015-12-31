@@ -219,6 +219,9 @@
     <ClInclude Include="EasyMP4Writer\EasyMP4Writer.h">
       <Filter>EasyMP4Writer</Filter>
     </ClInclude>
+    <ClInclude Include="mp4creator\libmp4creator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

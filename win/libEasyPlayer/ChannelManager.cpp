@@ -1428,8 +1428,6 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDisplayThread( LPVOID _pParam )
 	return 0;
 }
 
-
-
 int CALLBACK __NVSourceCallBack( int _chid, int *_chPtr, int _mediatype, char *pbuf, RTSP_FRAME_INFO *frameinfo)
 {
 	PLAY_THREAD_OBJ	*pPlayThread = (PLAY_THREAD_OBJ *)_chPtr;

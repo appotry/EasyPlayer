@@ -159,6 +159,7 @@
     <ClInclude Include="EasySkinUI\EasySkinUI_ScrollBar.h" />
     <ClInclude Include="FlashingWnd.h" />
     <ClInclude Include="GlobalUnits.h" />
+    <ClInclude Include="mp4creator\libmp4creator.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SourceManager.h" />
     <ClInclude Include="stdafx.h" />

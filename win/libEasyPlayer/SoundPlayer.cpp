@@ -225,8 +225,8 @@ int	CSoundPlayer::Write(char *pbuf, int bufsize)//, unsigned int _timestamp)
 				soundObj.sleeptimes = uiSleepTimeMin;
 			}
 		}
-
-		soundObj.sleeptimes = 64;
+		// 这里写死后将导致44100Hz的声音播放不正常 [12/30/2015 Dingshuai]
+		//soundObj.sleeptimes = 64;
 
 	}
 	

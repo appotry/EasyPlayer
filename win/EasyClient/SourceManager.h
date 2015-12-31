@@ -23,7 +23,15 @@
 #include "./FFEncoder/FFEncoderAPI.h"
 #pragma comment(lib, "./FFEncoder/FFEncoder.lib")
 
+//MP4Box Package MP4
 #include "EasyMP4Writer.h"
+
+extern "C"
+{
+//MP4Creater Package MP4
+#include "./mp4creator/libmp4creator.h"
+#pragma comment(lib, "./mp4creator/libMp4Creator.lib")
+}
 
 typedef struct tagPushServerURLInfo
 {
@@ -76,11 +84,11 @@ public:
 	static int CALLBACK CaptureScreenCallBack(int nId, unsigned char *pBuffer, int nBufSize,  RealDataStreamType realDataType, /*RealDataStreamInfo*/void* realDataInfo, void* pMaster);
 	void CaptureScreenManager(int nId, unsigned char *pBuffer, int nBufSize,  RealDataStreamType realDataType, /*RealDataStreamInfo*/void* realDataInfo);
 
-	int StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd, int nVideoWidth, int nVideoHeight, int nFps, int nBitRate, char* szDataype = "YUY2");
+	int StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd, int nVideoWidth, int nVideoHeight, int nFps, int nBitRate, char* szDataype = "YUY2", int nSampleRate = 44100, int nChannel = 2);
 
 	//开始捕获(采集)
 	int StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudioId,  HWND hCapWnd, 
-		char* szURL = NULL, int nVideoWidth=640, int nVideoHeight=480, int nFps=25, int nBitRate=2048, char* szDataType = "YUY2", BOOL bWriteMp4 = FALSE);
+		char* szURL = NULL, int nVideoWidth=640, int nVideoHeight=480, int nFps=25, int nBitRate=2048, char* szDataType = "YUY2", BOOL bWriteMp4 = TRUE);
 	//停止采集
 	void StopCapture();
 
@@ -105,7 +113,7 @@ public:
 	int GetScreenCapSize(int& nWidth, int& nHeight);
 
 	//写MP4文件(录制相关)
-	int CreateMP4Writer(char* sFileName, int nFlag=ZOUTFILE_FLAG_FULL);
+	int CreateMP4Writer(char* sFileName, int nVWidth, int nVHeight, int nFPS, int nSampleRate, int nChannel, int nBitsPerSample, int nFlag=ZOUTFILE_FLAG_FULL, BOOL bUseGpac = FALSE	);
 	int WriteMP4VideoFrame(unsigned char* pdata, int datasize, bool keyframe, long nTimestamp, int nWidth, int nHeight);
 	int WriteMP4AudioFrame(unsigned char* pdata,int datasize, long timestamp);
 	void CloseMP4Writer();
@@ -147,12 +155,13 @@ private:
 	CCameraDS		m_videoCamera;
 	CCaptureScreen* m_pScreenCaptrue;
 	int m_nScreenCaptureId;
-
+	//MP4Box Writer
 	EasyMP4Writer* m_pMP4Writer;
+	//MP4 Creater Handler
+	MP4C_Handler m_handler;
+	BOOL m_bUseGpac;
+	BOOL m_bWriteMp4;
 
-	//////////////////////////////////////////////////////////////////////////
-	// 多重参数
-	////////////////////////////////////////////////////////////////////////// 
 	//视频设备控制实例
 	LPVideoCapturer m_pVideoManager;
 	//音频设备控制实例

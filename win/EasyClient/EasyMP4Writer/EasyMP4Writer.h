@@ -62,7 +62,7 @@ public:
 	//sps,pps第一个字节为0x67或68,
 	bool WriteH264SPSandPPS(unsigned char*sps,int spslen,unsigned char*pps,int ppslen,int width,int height);
 	//写入AAC信息
-	bool WriteAACInfo(unsigned char*info,int len);
+	bool WriteAACInfo(unsigned char*info,int len, int nSampleRate, int nChannel, int nBitsPerSample);
 	//写入一帧，前四字节为该帧NAL长度
 	bool WriteH264Frame(unsigned char*data,int len,bool keyframe,long timestamp);
 	//写入aac数据，只有raw数据
