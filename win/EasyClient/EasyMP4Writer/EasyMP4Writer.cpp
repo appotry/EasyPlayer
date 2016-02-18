@@ -9,7 +9,7 @@
 #include "StdAfx.h"
 #include "EasyMP4Writer.h"
 
-unsigned char* FindNal(unsigned char*buff,int inlen,int&outlen,bool&end)
+unsigned char* EasyMP4Writer::FindNal(unsigned char*buff,int inlen,int&outlen,bool& end)
 {
 	unsigned char*tempstart=NULL;
 	unsigned char*search=buff+2;
@@ -24,7 +24,9 @@ unsigned char* FindNal(unsigned char*buff,int inlen,int&outlen,bool&end)
 			if (tempstart==NULL)
 			{
 				tempstart=search+1;
-			}else{
+			}
+			else
+			{
 				outlen=search-tempstart-3+1;
 				break;
 			}
@@ -54,7 +56,7 @@ unsigned char* FindNal(unsigned char*buff,int inlen,int&outlen,bool&end)
  @param[out]  nal_end    the end offset of the nal
  @return                 the length of the nal, or 0 if did not find start of nal, or -1 if did not find end of nal
  */
-int find_nal_unit(unsigned char* buf, int size, int* nal_start, int* nal_end)
+int EasyMP4Writer::find_nal_unit(unsigned char* buf, int size, int* nal_start, int* nal_end)
 {
     int i;
     // find start
@@ -120,7 +122,6 @@ EasyMP4Writer::EasyMP4Writer()
 EasyMP4Writer::~EasyMP4Writer()
 {
 	SaveFile();
-
 }
 bool EasyMP4Writer::CreateFile(char*filename,int flag)
 {

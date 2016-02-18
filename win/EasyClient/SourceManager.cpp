@@ -29,8 +29,15 @@ CSourceManager::CSourceManager(void)
 	m_pMP4Writer = NULL;
 	m_bRecording = FALSE; 
 	m_handler = NULL;
-	m_bUseGpac = FALSE;
+	m_bUseGpac = TRUE;
 	m_bWriteMp4 = FALSE;
+	m_bPushRtmp = FALSE;
+
+	m_pEncConfigInfo = NULL;
+	m_pFrameBuf = NULL;
+	m_pEasyrtmp = NULL;
+	m_bUseFFEncoder = FALSE;
+	m_hCaptureWnd = NULL;
 }
 
 CSourceManager::~CSourceManager(void)
@@ -84,12 +91,14 @@ void CSourceManager::UnInitSource()
 	EasyPlayerManager::UnInit();
 }
 
+
 int CALLBACK CSourceManager::CaptureScreenCallBack(int nId, unsigned char *pBuffer, int nBufSize,  RealDataStreamType realDataType, /*RealDataStreamInfo*/void* realDataInfo, void* pMaster)
 {
 	if (!pBuffer || nBufSize <= 0)
 	{
 		return -1;
 	}
+
 	//转到当前实例进行处理
 	CSourceManager* pThis = (CSourceManager*)pMaster;
 	if (pThis)
@@ -100,6 +109,14 @@ int CALLBACK CSourceManager::CaptureScreenCallBack(int nId, unsigned char *pBuff
 }
 void CSourceManager::CaptureScreenManager(int nId, unsigned char *pBuffer, int nBufSize,  RealDataStreamType realDataType, /*RealDataStreamInfo*/void* realDataInfo)
 {
+	ScreenCapDataInfo* pDataInfo = (ScreenCapDataInfo*)realDataInfo;
+	if (pDataInfo&&m_hCaptureWnd)
+	{
+		RECT rcClient;
+		SetRect(&rcClient, 0, 0, pDataInfo->nWidth, pDataInfo->nHeight);
+		RGB_DrawData(m_d3dHandle, m_hCaptureWnd, (char*)pBuffer, pDataInfo->nWidth, pDataInfo->nHeight, &rcClient, 0x01, RGB(0x00,0x00,0x00), 0x01);
+	}
+
 	DSRealDataManager(nId, pBuffer,nBufSize,  realDataType, realDataInfo );
 }
 
@@ -153,7 +170,6 @@ void CSourceManager::DSRealDataManager(int nDevId, unsigned char *pBuffer, int n
 	{
 	case REALDATA_VIDEO:
 		{
-			//if (m_hFfeVideoHandle)
 			if (m_bPushing)
 			{
 				//YUV格式转换
@@ -171,86 +187,79 @@ void CSourceManager::DSRealDataManager(int nDevId, unsigned char *pBuffer, int n
 				else //默认==RGB24
 				{
 					pDesBuffer = pBuffer;
+					if (!m_bUseFFEncoder)//x264 Encoder just suppport i420 CSP 
+					{
+						pDataBuffer=new unsigned char[nWidhtHeightBuf];
+						// rgb24->i420
+						ConvertRGB2YUV(nVideoWidth,nVideoHeight,pBuffer, (unsigned char*)pDataBuffer);
+						pDesBuffer = pDataBuffer;
+					}
 				}
 
-				//编码
-				int enc_size = 0;
-				int ret = FFE_EncodeVideo(m_hFfeVideoHandle, pDesBuffer, (unsigned char*)m_EncoderBuffer, &enc_size, ++m_nFrameNum, 1);
-				if (ret == 0x00 && enc_size>0)
+				RTSP_FRAME_INFO	frameinfo;
+				memset(&frameinfo, 0x00, sizeof(RTSP_FRAME_INFO));
+				int datasize=0;
+				bool keyframe=false;
+				if (m_bUseFFEncoder)
+				{			
+					if (m_hFfeVideoHandle)
+					{
+						//FFEncoder编码
+						int ret = FFE_EncodeVideo(m_hFfeVideoHandle, pDesBuffer, (unsigned char*)m_EncoderBuffer, &datasize, ++m_nFrameNum, 1);
+						if (ret == 0x00 && datasize>0)
+						{
+							keyframe = ((unsigned char)m_EncoderBuffer[4]==0x67?true:false);
+							frameinfo.length = datasize;
+						}
+					}
+				}
+				else//x264编码
 				{
-
-					RTSP_FRAME_INFO	frameinfo;
-					memset(&frameinfo, 0x00, sizeof(RTSP_FRAME_INFO));
+					byte*pdata = m_H264EncoderManager.Encoder(0, pDataBuffer,
+						nWidhtHeightBuf, datasize, keyframe);
+					if (datasize>0)
+					{
+						memset(m_EncoderBuffer, 0, 2073600);//1920*1080
+						bool bKeyF = keyframe;
+						byte btHeader[4];
+						btHeader[0] = 0x00;
+						btHeader[1] = 0x00;
+						btHeader[2] = 0x00;
+						btHeader[3] = 0x01;
+						if (bKeyF)
+						{
+							frameinfo.length = datasize + 8 + m_spslen+m_ppslen;
+							memcpy(m_EncoderBuffer, btHeader, 4);
+							memcpy(m_EncoderBuffer+4, m_sps, m_spslen);
+							memcpy(m_EncoderBuffer+4+m_spslen, btHeader, 4);
+							memcpy(m_EncoderBuffer+4+m_spslen+4, m_pps, m_ppslen);
+							memcpy(m_EncoderBuffer+4+m_spslen+4+m_ppslen, btHeader, 4);
+							memcpy(m_EncoderBuffer+4+m_spslen+4+m_ppslen+4, pdata+4, datasize-4);
+						} 
+						else
+						{
+							frameinfo.length = datasize;
+							memcpy(m_EncoderBuffer, btHeader, 4);
+							memcpy(m_EncoderBuffer+4, pdata+4, datasize-4);
+						}
+					}
+				}
+				if (datasize>0&&m_EncoderBuffer)
+				{
 					frameinfo.codec = EASY_SDK_VIDEO_CODEC_H264;
-					frameinfo.length = enc_size;
 					frameinfo.width  = nVideoWidth;
 					frameinfo.height = nVideoHeight;
 					frameinfo.fps    = nFps;
-					frameinfo.type	 = ( (unsigned char)m_EncoderBuffer[4]==0x67?EASY_SDK_VIDEO_FRAME_I:EASY_SDK_VIDEO_FRAME_P);
+					frameinfo.type	 = ( keyframe ? EASY_SDK_VIDEO_FRAME_I : EASY_SDK_VIDEO_FRAME_P);
 					long nTimeStamp = clock();
 					frameinfo.timestamp_sec = nTimeStamp/1000;
 					frameinfo.timestamp_usec = (nTimeStamp%1000)*1000;
 
 					frameinfo.sample_rate = m_sDevConfigInfo.AudioInfo.nSampleRate;
 					frameinfo.channels = m_sDevConfigInfo.AudioInfo.nChannaels;
-
 					//推送回调管理
 					SourceManager(nDevId, (int*)&m_sSourceInfo, EASY_SDK_VIDEO_FRAME_FLAG, m_EncoderBuffer, &frameinfo);
 				}
-
-// 				//编码实现
-// 				byte*pdata=NULL;
-// 				int datasize=0;
-// 				bool keyframe=false;
-// 				pdata=m_H264EncoderManager.Encoder(0, pDataBuffer,
-// 					nWidhtHeightBuf,datasize,keyframe);
-// 
-// 				if (pDataBuffer)
-// 				{
-// 					delete pDataBuffer;
-// 					pDataBuffer = NULL;
-// 				}
-// 				if (datasize>0)
-// 				{
-// 					memset(m_pFrameBuf, 0, 1920*1080);
-// 
-// 					RTSP_FRAME_INFO	frameinfo;
-// 					memset(&frameinfo, 0x00, sizeof(RTSP_FRAME_INFO));
-// 					frameinfo.codec = EASY_SDK_VIDEO_CODEC_H264;
-// 					frameinfo.width	 = nVideoWidth;
-// 					frameinfo.height = nVideoHeight;
-// 					frameinfo.fps    = 25;
-// 
-// 					bool bKeyF = keyframe;
-// 					byte btHeader[4];
-// 					btHeader[0] = 0x00;
-// 					btHeader[1] = 0x00;
-// 					btHeader[2] = 0x00;
-// 					btHeader[3] = 0x01;
-// 					if (bKeyF)
-// 					{
-// 						frameinfo.length = datasize + 8 + m_spslen+m_ppslen;
-// 						memcpy(m_pFrameBuf, btHeader, 4);
-// 						memcpy(m_pFrameBuf+4, m_sps, m_spslen);
-// 						memcpy(m_pFrameBuf+4+m_spslen, btHeader, 4);
-// 						memcpy(m_pFrameBuf+4+m_spslen+4, m_pps, m_ppslen);
-// 						memcpy(m_pFrameBuf+4+m_spslen+4+m_ppslen, btHeader, 4);
-// 						memcpy(m_pFrameBuf+4+m_spslen+4+m_ppslen+4, pdata+4, datasize-4);
-// 					} 
-// 					else
-// 					{
-// 						frameinfo.length = datasize;
-// 						memcpy(m_pFrameBuf, btHeader, 4);
-// 						memcpy(m_pFrameBuf+4, pdata+4, datasize-4);
-// 					}
-// 					frameinfo.type	 = ( (bKeyF)?EASY_SDK_VIDEO_FRAME_I:EASY_SDK_VIDEO_FRAME_P);
-// 					long nTimeStamp = clock();
-// 					frameinfo.timestamp_sec = nTimeStamp/1000;
-// 					frameinfo.timestamp_usec = (nTimeStamp%1000)*1000;
-// 
-// 					//推送回调管理
-// 					SourceManager(nDevId, (int*)&m_sSourceInfo, EASY_SDK_VIDEO_FRAME_FLAG, (char*)m_pFrameBuf, &frameinfo);
-// 				}
 
 				if (pDataBuffer)
 				{
@@ -262,18 +271,36 @@ void CSourceManager::DSRealDataManager(int nDevId, unsigned char *pBuffer, int n
 		break;
 	case REALDATA_AUDIO:
 		{
-			if (m_hFfeAudioHandle)
+			if (m_bPushing)
 			{
-				//音频编码
+				RTSP_FRAME_INFO	frameinfo;
+				memset(&frameinfo, 0x00, sizeof(RTSP_FRAME_INFO));
+				int datasize=0;
 				unsigned char *pAACbuf= NULL;
-				int enc_size = 0;
-				int ret = AAC_Encode(m_hFfeAudioHandle, (int*)pBuffer, nBufSize, &pAACbuf, &enc_size);
-				if (ret == 0x00 && enc_size>0)
+				if (m_bUseFFEncoder)//FFEncoder 
 				{
-					RTSP_FRAME_INFO	frameinfo;
-					memset(&frameinfo, 0x00, sizeof(RTSP_FRAME_INFO));
+					if (m_hFfeAudioHandle)
+					{
+						//音频编码
+						int ret = AAC_Encode(m_hFfeAudioHandle, (int*)pBuffer, nBufSize, &pAACbuf, &datasize);
+						if (ret != 0x00 )
+						{
+							datasize = -1;
+						}	
+					}
+				}
+				else//Faac Encoder
+				{
+					pAACbuf=m_AACEncoderManager.Encoder(pBuffer,nBufSize,datasize);	
+					if(pAACbuf == NULL)
+					{
+						datasize = -1;
+					}	
+				}
+				if ( datasize>0&&pAACbuf)
+				{
 					frameinfo.codec = EASY_SDK_AUDIO_CODEC_AAC;
-					frameinfo.length = enc_size;
+					frameinfo.length = datasize;
 					frameinfo.sample_rate = m_sDevConfigInfo.AudioInfo.nSampleRate;
 					frameinfo.channels = m_sDevConfigInfo.AudioInfo.nChannaels;
 					frameinfo.width  = nVideoWidth;
@@ -286,29 +313,6 @@ void CSourceManager::DSRealDataManager(int nDevId, unsigned char *pBuffer, int n
 					SourceManager(nDevId, (int*)&m_sSourceInfo, EASY_SDK_AUDIO_FRAME_FLAG, (char*)pAACbuf, &frameinfo);
 				}	
 			}
-
-// 			if (m_bPushing)
-// 			{
-// 				byte*pdata=NULL;
-// 				int datasize=0;
-// 				pdata=m_AACEncoderManager.Encoder(pBuffer,nBufSize,datasize);	
-// 				if(datasize>0)
-// 				{
-// 					RTSP_FRAME_INFO	frameinfo;
-// 					memset(&frameinfo, 0x00, sizeof(RTSP_FRAME_INFO));
-// 					frameinfo.codec = EASY_SDK_AUDIO_CODEC_AAC;
-// 					frameinfo.length = datasize;
-// 					frameinfo.sample_rate	=	16000;
-// 					frameinfo.channels = 2;
-// 
-// 					long nTimeStamp = clock();
-// 					frameinfo.timestamp_sec = nTimeStamp/1000;
-// 					frameinfo.timestamp_usec = (nTimeStamp%1000)*1000;
-// 
-// 					SourceManager(nDevId, (int*)&m_sSourceInfo, EASY_SDK_AUDIO_FRAME_FLAG, (char*)pdata, &frameinfo);
-// 				}		
-// 			}
-
 		}
 		break;
 	}
@@ -340,23 +344,17 @@ int CSourceManager::SourceManager(int _channelId, int *_channelPtr, int _frameTy
 		{
 			frame.u32AVFrameFlag = EASY_SDK_VIDEO_FRAME_FLAG;
 			EasyPusher_PushFrame(m_sPushInfo.pusherHandle, &frame );
+
+			//推送RTMP
+			if (m_pEasyrtmp)
+			{
+				bool bKeyFrame = (_frameInfo->type == EASY_SDK_VIDEO_FRAME_I) ?  true : false;
+				long nTimeStamp = clock();
+				m_pEasyrtmp->WriteVideoH264((unsigned char*)pBuf, _frameInfo->length, nTimeStamp, bKeyFrame);
+			}
 		}
 
-		// 测试代码 [12/22/2015 Dingshuai]
-// 		static int i =0;
-// 		if (i<100)
-// 		{
-// 			CFile f;
-// 			CString strFName = _T("");
-// 			bool bKeyFrame  = (_frameInfo->type == 1) ? true:false;
-// 			strFName.Format(_T("./Logfile/h264-%d-%d.txt"), i, bKeyFrame);
-// 			f.Open(strFName, CFile::modeCreate | CFile::modeWrite);
-// 			f.Write(pBuf, _frameInfo->length);
-// 			f.Close();
-// 			i++;
-// 		}
-
-		bool bKeyFrame  = (_frameInfo->type == 1) ? true:false;
+		bool bKeyFrame  = (_frameInfo->type == 1) ? true : false;
 		if (bKeyFrame)
 		{
 			if (m_bWriteMp4)
@@ -365,7 +363,7 @@ int CSourceManager::SourceManager(int _channelId, int *_channelPtr, int _frameTy
 				{
 					char sFileName[MAX_PATH];
 					sprintf(sFileName, "./ThisIsAMP4File_%d.mp4", _channelId );
-					CreateMP4Writer(sFileName, _frameInfo->width, _frameInfo->height, _frameInfo->fps, _frameInfo->sample_rate,  _frameInfo->channels, 16);
+					CreateMP4Writer(sFileName, _frameInfo->width, _frameInfo->height, _frameInfo->fps, _frameInfo->sample_rate,  _frameInfo->channels, 16, ZOUTFILE_FLAG_FULL, m_bUseGpac);
 				}
 			}
 		}
@@ -380,10 +378,17 @@ int CSourceManager::SourceManager(int _channelId, int *_channelPtr, int _frameTy
 		{
 			frame.u32AVFrameFlag = EASY_SDK_AUDIO_FRAME_FLAG;
 			EasyPusher_PushFrame(m_sPushInfo.pusherHandle, &frame );
+			//推送RTMP
+			if (m_pEasyrtmp)
+			{
+				long nTimeStamp = clock();
+				m_pEasyrtmp->WriteAudioAdst((unsigned char*)pBuf, _frameInfo->length,nTimeStamp);
+			}
 		}
 		if (m_bRecording)
 		{
-			WriteMP4AudioFrame((unsigned char*)pBuf,  _frameInfo->length, clock());
+			//如果AAC编码音频带有adst头则需要去掉头7个字节的头
+			WriteMP4AudioFrame((unsigned char*)pBuf+7,  _frameInfo->length-7, clock());
 		}
 	}
 	else if (_frameType == EASY_SDK_MEDIA_INFO_FLAG)
@@ -471,38 +476,75 @@ int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd,int nV
 		m_mediainfo.u32AudioCodec = EASY_SDK_AUDIO_CODEC_AAC;
 		m_mediainfo.u32AudioChannel = nChannel;
 		m_mediainfo.u32AudioSamplerate = nSampleRate;//44100;//
-
-		//FFEncoder -- start
-		int	width = nVideoWidth;
-		int height = nVideoHeight;
-		int fps = nFps;
-		int gop = 30;
-		int bitrate = nBitRate*1024;//512000; 
-		int	intputformat = 0;		//3:rgb24  0:yv12
-		CString strDataType = _T("");
-		strDataType = m_sDevConfigInfo.VideoInfo.strDataType;
-		if (strDataType == _T("RGB24"))
+		
+		//初始化RGB24->I420色彩空间转换表，便于转换时查询，提高效率
+		InitLookupTable();
+		//申请编码的内存空间，用作编码后数据的调整
+		if (!m_EncoderBuffer)
 		{
-			intputformat = 3;	
+			m_EncoderBuffer = new char[1920*1080];	
+		}	
+
+		if (m_bUseFFEncoder)
+		{
+			//FFEncoder -- Init start
+			int	width = nVideoWidth;
+			int height = nVideoHeight;
+			int fps = nFps;
+			int gop = 30;
+			int bitrate = nBitRate*1024;//512000; 
+			int	intputformat = 0;		//3:rgb24  0:yv12
+			CString strDataType = _T("");
+			strDataType = m_sDevConfigInfo.VideoInfo.strDataType;
+			if (strDataType == _T("RGB24"))
+			{
+				intputformat = 3;	
+			} 
+			else
+			{
+				intputformat = 0;	
+			}
+
+			m_nFrameNum = 0;
+			//初始化H264编码器
+			FFE_Init(&m_hFfeVideoHandle);	//初始化
+			FFE_SetVideoEncodeParam(m_hFfeVideoHandle, ENCODER_H264, width, height, fps, gop, bitrate, intputformat);		//设置编码参数
+			//初始化AAC编码器
+			AAC_Init(&m_hFfeAudioHandle, nSampleRate/*44100*/, nChannel);
+			//FFEncoder -- Init end
 		} 
 		else
 		{
-			intputformat = 0;	
+			//x264+faac Encoder --- Init Start
+			if(!m_pEncConfigInfo)
+				m_pEncConfigInfo = new Encoder_Config_Info;
 
+			m_AACEncoderManager.Init(nSampleRate, nChannel);
+			m_pEncConfigInfo->nScrVideoWidth = nVideoWidth;
+			m_pEncConfigInfo->nScrVideoHeight = nVideoHeight;
+			m_pEncConfigInfo->nFps = nFps;
+			m_pEncConfigInfo->nMainKeyFrame = 100;
+			m_pEncConfigInfo->nMainBitRate = nBitRate;
+			m_pEncConfigInfo->nMainEncLevel = 1;
+			m_pEncConfigInfo->nMainEncQuality = 20;
+			m_pEncConfigInfo->nMainUseQuality = 0;
+
+			m_H264EncoderManager.Init(0,m_pEncConfigInfo->nScrVideoWidth,
+				m_pEncConfigInfo->nScrVideoHeight,m_pEncConfigInfo->nFps,m_pEncConfigInfo->nMainKeyFrame,
+				m_pEncConfigInfo->nMainBitRate,m_pEncConfigInfo->nMainEncLevel,
+				m_pEncConfigInfo->nMainEncQuality,m_pEncConfigInfo->nMainUseQuality);
+
+			byte  sps[100];
+			byte  pps[100];
+			long spslen=0;
+			long ppslen=0;
+			m_H264EncoderManager.GetSPSAndPPS(0,sps,spslen,pps,ppslen);
+			memcpy(m_sps, sps,100) ;
+			memcpy(m_pps, pps,100) ;
+			m_spslen = spslen;
+			m_ppslen = ppslen;
+			//x264+faac Encoder --- Init End
 		}
-		
-
-		m_nFrameNum = 0;
-		if (!m_EncoderBuffer)
-		{
-			m_EncoderBuffer = new char[1920*1080];	//申请编码的内存空间
-		}	
-		//初始化H264编码器
-		FFE_Init(&m_hFfeVideoHandle);	//初始化
-		FFE_SetVideoEncodeParam(m_hFfeVideoHandle, ENCODER_H264, width, height, fps, gop, bitrate, intputformat);		//设置编码参数
-		//初始化AAC编码器
-		AAC_Init(&m_hFfeAudioHandle, nSampleRate/*44100*/, nChannel);
-		//FFEncoder -- end
 
 		//视频可用
 		if (m_sDevConfigInfo.nVideoId >= 0)
@@ -604,7 +646,7 @@ int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd,int nV
 // eSourceType==SOURCE_LOCAL_CAMERA时，nCamId有效
 // eSourceType==SOURCE_RTSP_STREAM/SOURCE_ONVIF_STREAM时，szURL有效
 int CSourceManager::StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudioId,
-	HWND hCapWnd, char* szURL, int nVideoWidth, int nVideoHeight, int nFps, int nBitRate, char* szDataType, BOOL bWriteMp4)
+	HWND hCapWnd, char* szURL, int nVideoWidth, int nVideoHeight, int nFps, int nBitRate, char* szDataType,  int nSampleRate, int nChannel )
 {
 	if (IsInCapture())
 	{
@@ -617,52 +659,8 @@ int CSourceManager::StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudio
 	//RTSP Source
 	if (eSourceType==SOURCE_LOCAL_CAMERA || eSourceType==SOURCE_SCREEN_CAPTURE )
 	{
-		// 经测试，音视频采集时出现不同步 [11/19/2015 SwordTwelve]
-// 		//声音捕获
-// 		BOOL bSuc = m_audioCapture.InitDirectSound();
-// 		if (!bSuc)
-// 		{
-// 			LogErr(_T("本地音频采集初始化失败，请更换音频设备！"));
-// 			return -1;
-// 		}
-// 		m_audioCapture.SetCallback(&CSourceManager::__MediaSourceCallBack, (void *)&m_sSourceInfo);
-// 		WAVEFORMATEX	wfx;
-// 		ZeroMemory(&wfx, sizeof(wfx));
-// 		wfx.wFormatTag = WAVE_FORMAT_PCM;
-// 		wfx.nSamplesPerSec = 16000;	//16000   8000
-// 		wfx.wBitsPerSample = 16;	//16	  8
-// 		wfx.nChannels      = 2;		//1		  2
-// 		wfx.nBlockAlign  = wfx.nChannels * (wfx.wBitsPerSample / 8);
-// 		wfx.nAvgBytesPerSec = wfx.nBlockAlign * wfx.nSamplesPerSec;
-// 
-// 		m_audioCapture.CreateCaptureBuffer(&wfx);
-// 		m_audioCapture.Start();
-// 
-// 		//USB Camera捕获
-// 		CAMERA_LIST_T *pUSBCameraList = m_videoCamera.GetCameraList();
-// 		CAMERA_INFO_T	*pCameraInfo = pUSBCameraList->pCamera;
-// 		if (NULL != pCameraInfo)
-// 		{
-// 			int selCameraIdx = nCamId;//pComboxMediaSource->GetCurSel();
-// 			int cameraIdx = 0;
-// 			while (pCameraInfo)
-// 			{
-// 				if (cameraIdx == selCameraIdx)
-// 				{
-// 					bool bSuc = m_videoCamera.OpenCamera(cameraIdx, 640, 480, (MediaSourceCallBack)CSourceManager::__MediaSourceCallBack, (void *)&m_sSourceInfo);
-// 					if (!bSuc)
-// 					{
-// 						LogErr(_T("本地摄像头采集失败,请更换视频设备！"));
-// 						return -1;
-// 					}
-// 					break;
-// 				}
-// 				cameraIdx ++;
-// 				pCameraInfo = pCameraInfo->pNext;
-// 			}
-// 		}
 		//DShow本地采集
-		nRet = StartDSCapture(nCamId, nAudioId, m_hCaptureWnd, nVideoWidth, nVideoHeight, nFps, nBitRate,  szDataType);	
+		nRet = StartDSCapture(nCamId, nAudioId, m_hCaptureWnd, nVideoWidth, nVideoHeight, nFps, nBitRate,  szDataType, nSampleRate, nChannel);	
 	}
 	else
 	{
@@ -672,18 +670,6 @@ int CSourceManager::StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudio
 		char	pushHead[128]  = {0,};
 		strcpy(pushHead,szURL+7);//strlen(szURL)
 		sscanf(pushHead, "%[-_a-zA-Z0-9.]:%d%[-_a-zA-Z0-9:/.]", m_sSourceInfo.pushServerAddr, &m_sSourceInfo.pushServerPort, m_sSourceInfo.sdpName);
-		// 这里不作为错误判断 [11/10/2015 Administrator]
-// 		if (m_sSourceInfo.pushServerPort < 1)
-// 		{
-// 			LogErr(_T("网络视频流采集，格式输入不合法！"));
-// 
-// 			return -1;
-// 		}
-// 		if ( (int)strlen(m_sSourceInfo.sdpName) < 1)
-// 		{
-// 			LogErr(_T("网络视频流采集，格式输入不合法！"));
-// 			return -1;
-// 		}
 
 		m_sSourceInfo.pMaster = this;
 		m_sSourceInfo.rtspSourceId = m_netStreamCapture.Start(szURL, hCapWnd, DISPLAY_FORMAT_RGB24_GDI, 0x00, "", "", &CSourceManager::__MediaSourceCallBack, (void *)&m_sSourceInfo);
@@ -695,14 +681,13 @@ int CSourceManager::StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudio
 		}		
 	}
 	m_bDSCapture = TRUE;
-	m_bWriteMp4 = bWriteMp4;
 	
 	return nRet;
 }
+
 //停止采集
 void CSourceManager::StopCapture()
 {
-	m_bWriteMp4 = FALSE;
 	//Stop Capture
 // 	m_videoCamera.CloseCamera();
 // 	m_audioCapture.Stop();
@@ -733,13 +718,20 @@ void CSourceManager::StopCapture()
 		m_hFfeAudioHandle = NULL;
 	}
 
+	if (m_pEncConfigInfo)
+	{
+		delete m_pEncConfigInfo;
+		m_pEncConfigInfo = NULL;
+	}
+	m_H264EncoderManager.Clean();
+	m_AACEncoderManager.Clean();
+
 	m_nFrameNum = 0;
 	if (m_EncoderBuffer)
 	{
 		delete[] m_EncoderBuffer ;	//申请编码的内存空间
 		m_EncoderBuffer = NULL;
 	}	
-
 
 	m_bDSCapture = FALSE;
 }
@@ -757,7 +749,7 @@ int __EasyPusher_Callback(int _id, EASY_PUSH_STATE_T _state, EASY_AV_Frame *_fra
 }
 
 //开始推流
-int CSourceManager::StartPush(char* ServerIp, int nPushPort, char* sPushName, int nPushBufSize)
+int CSourceManager::StartPush(char* ServerIp, int nPushPort, char* sPushName, int nPushBufSize, bool bPushRtmp)
 {
 	m_sPushInfo.pusherHandle = EasyPusher_Create();
 	strcpy(m_sPushInfo.pushServerAddr,  ServerIp);
@@ -767,22 +759,37 @@ int CSourceManager::StartPush(char* ServerIp, int nPushPort, char* sPushName, in
 	if (NULL != m_sPushInfo.pusherHandle )
 	{
 		EasyPusher_SetEventCallback(m_sPushInfo.pusherHandle, __EasyPusher_Callback, 0, NULL);
-		Easy_U32 nRet = EasyPusher_StartStream(m_sPushInfo.pusherHandle , 
+		nRet = EasyPusher_StartStream(m_sPushInfo.pusherHandle , 
 			ServerIp, nPushPort, sPushName, "admin", "admin", (EASY_MEDIA_INFO_T*)&m_mediainfo, nPushBufSize, 0);//512-2048
-		if(nRet>=0)
+	}	
+	m_bPushRtmp = bPushRtmp;
+	if (bPushRtmp)
+	{
+		if (!m_pEasyrtmp)
 		{
-			m_bPushing = TRUE;
+			m_pEasyrtmp=new EasyRtmp();
 		}
-		else
-		{
-			StopPush();
-		}
+		char szURL[MAX_PATH];
+		memset(szURL, 0, sizeof(MAX_PATH));
+		sprintf(szURL, "rtmp://%s:1935/live/%s", ServerIp,  sPushName);
+		nRet = m_pEasyrtmp->Link(szURL,1280);
+	}
+
+	if(nRet>=0)
+	{
+		m_bPushing = TRUE;
+	}
+	else
+	{
+		StopPush();
 	}
 	return nRet;
 }
+
 //停止推流
 void CSourceManager::StopPush()
 {
+	m_bPushing = FALSE;
 	//Close Pusher
 	if (NULL != m_sPushInfo.pusherHandle)
 	{
@@ -790,7 +797,12 @@ void CSourceManager::StopPush()
 		EasyPusher_Release(m_sPushInfo.pusherHandle);
 		m_sPushInfo.pusherHandle = NULL;
 	}
-	m_bPushing = FALSE;
+	if (m_pEasyrtmp)
+	{
+		m_pEasyrtmp->Clean();
+		delete m_pEasyrtmp;
+		m_pEasyrtmp=NULL;
+	}
 }
 
 //开始播放
@@ -901,7 +913,6 @@ void CSourceManager::RealseScreenCapture()
 		m_pScreenCaptrue = NULL;
 	}
 }
-
 
 int CSourceManager::GetScreenCapSize(int& nWidth, int& nHeight)
 {
@@ -1038,6 +1049,7 @@ int CSourceManager::WriteMP4VideoFrame(unsigned char* pdata, int datasize, bool 
 
 	return 1;
 }
+
 int CSourceManager::WriteMP4AudioFrame(unsigned char* pdata,int datasize, long timestamp)
 {
 	if (!m_bUseGpac)

@@ -34,6 +34,9 @@
     <Filter Include="EasyMP4Writer">
       <UniqueIdentifier>{ffc36be6-86a7-4cfd-81e7-c972ebb46eff}</UniqueIdentifier>
     </Filter>
+    <Filter Include="EasyEncoder">
+      <UniqueIdentifier>{0b4cde4e-773b-49f2-be30-f288af70be65}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -222,6 +225,33 @@
     <ClInclude Include="mp4creator\libmp4creator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="EasyEncoder\EasyRtmp.h">
+      <Filter>EasyEncoder</Filter>
+    </ClInclude>
+    <ClInclude Include="EasyEncoder\faac.h">
+      <Filter>EasyEncoder</Filter>
+    </ClInclude>
+    <ClInclude Include="EasyEncoder\faaccfg.h">
+      <Filter>EasyEncoder</Filter>
+    </ClInclude>
+    <ClInclude Include="EasyEncoder\FAACEncoder.h">
+      <Filter>EasyEncoder</Filter>
+    </ClInclude>
+    <ClInclude Include="EasyEncoder\H264Encoder.h">
+      <Filter>EasyEncoder</Filter>
+    </ClInclude>
+    <ClInclude Include="EasyEncoder\H264EncoderManager.h">
+      <Filter>EasyEncoder</Filter>
+    </ClInclude>
+    <ClInclude Include="EasyEncoder\x264.h">
+      <Filter>EasyEncoder</Filter>
+    </ClInclude>
+    <ClInclude Include="EasyEncoder\x264_config.h">
+      <Filter>EasyEncoder</Filter>
+    </ClInclude>
+    <ClInclude Include="SettingDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -370,6 +400,21 @@
     </ClCompile>
     <ClCompile Include="EasyMP4Writer\EasyMP4Writer.cpp">
       <Filter>EasyMP4Writer</Filter>
+    </ClCompile>
+    <ClCompile Include="EasyEncoder\EasyRtmp.cpp">
+      <Filter>EasyEncoder</Filter>
+    </ClCompile>
+    <ClCompile Include="EasyEncoder\FAACEncoder.cpp">
+      <Filter>EasyEncoder</Filter>
+    </ClCompile>
+    <ClCompile Include="EasyEncoder\H264Encoder.cpp">
+      <Filter>EasyEncoder</Filter>
+    </ClCompile>
+    <ClCompile Include="EasyEncoder\H264EncoderManager.cpp">
+      <Filter>EasyEncoder</Filter>
+    </ClCompile>
+    <ClCompile Include="SettingDlg.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

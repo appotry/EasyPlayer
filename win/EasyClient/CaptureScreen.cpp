@@ -595,9 +595,9 @@ void CCaptureScreen::DrawFlashingRect(BOOL bDraw , int mode)
 		else
 		{	
 			//不断绘制闪烁，这样做是否合理？（简直亮瞎了24K钛合金狗眼~）
-			if (bDraw)
-				m_pFrame->PaintBorder(RGB(255,255,180));
-			else
+// 			if (bDraw)
+// 				m_pFrame->PaintBorder(RGB(255,255,180));
+// 			else
 				m_pFrame->PaintBorder(RGB(0,255,80));
 		}
 	}
@@ -913,6 +913,7 @@ int CCaptureScreen::CreateCaptureScreenThread()
 	if (!m_hScreenCaptureThread)
 	{
 		AfxMessageBox(_T("Create Thread Error!"));
+		return -1;
 	}
 
 	return 1;
@@ -936,6 +937,29 @@ void CCaptureScreen::GetCaptureScreenSize(int& nWidth, int& nHeight )
 	nWidth = m_rcUse.right-m_rcUse.left+1;
 	nHeight = m_rcUse.bottom - m_rcUse.top + 1;
 
+	//  [1/27/2016 SwordTwelve]
+	//长宽做一下修正，修正为16的倍数
+	int nDivW = nWidth%16;
+	int nDivH = nHeight%16;
+	if (nDivW<8)
+		nWidth -= nDivW;
+	else
+		nWidth += (16 - nDivW);
+
+	if (nDivH<8)
+		nHeight -= nDivH;
+	else
+		nHeight += (16 - nDivH);
+
+	if (nWidth>m_nMaxxScreen)
+	{
+		nWidth = m_nMaxxScreen;
+	}
+	if (nHeight>m_nMaxyScreen)
+	{
+		nHeight = m_nMaxyScreen;
+	}
+
 }
 
 void CCaptureScreen::CaptureVideoProcess()
@@ -945,6 +969,26 @@ void CCaptureScreen::CaptureVideoProcess()
 	int width=m_rcUse.right-m_rcUse.left+1;
 	int height=m_rcUse.bottom - m_rcUse.top + 1;
 
+	//  [1/27/2016 SwordTwelve]
+	//长宽做一下修正，修正为16的倍数
+	int nDivW = width%16;
+	int nDivH = height%16;
+	if (nDivW<8)
+		width -= nDivW;
+	else
+		width += (16 - nDivW);
+	if (nDivH<8)
+		height -= nDivH;
+	else
+		height += (16 - nDivH);
+	if (width>m_nMaxxScreen)
+	{
+		width = m_nMaxxScreen;
+	}
+	if (height>m_nMaxyScreen)
+	{
+		height = m_nMaxyScreen;
+	}
 	//设置捕获帧率
 	int nFps = 25;
 
@@ -1077,7 +1121,7 @@ void CCaptureScreen::CaptureVideoProcess()
 
 		// Capture Data callBack
 		//测试显示
-
+#if 0
 		HWND hWnd=m_hMainWnd;
 		HDC hDC=::GetDC(hWnd);
 
@@ -1099,59 +1143,16 @@ void CCaptureScreen::CaptureVideoProcess()
 			bmi.bmiHeader.biSizeImage   = 0;
 
 			unsigned char * pData = (unsigned char *)alpbi ;//+ alpbi->biSize + alpbi->biClrUsed * sizeof(RGBQUAD);
-			::SetDIBitsToDevice( hDC, 0, 0, rect.Width(), rect.Height(), 0, 0, 0, height, (LPBYTE)pData , &bmi, DIB_RGB_COLORS );
-
+			::SetDIBitsToDevice( hDC, 0, 0, /*rect.Width()*/640, /*rect.Height()*/480, 0, 0, 0, height, (LPBYTE)pData , &bmi, DIB_RGB_COLORS );
+#endif
 			if (m_pCallback&&m_pMaster)
 			{
-// 				//alpbi指针 只在回调范围有效
-// 				//如果是32位则转成24位
-// 				if (m_nColorBits==32)
-// 				{
-// 					DWORD dwSize32 = width*height*4;//alpbi->biSizeImage;
-// 					DWORD dwSize24 = (dwSize32*3)/4;   //RGB32与RGB24的像素点空间差一个字节
-// 					 BYTE* pImg24 = new BYTE[dwSize24]; //存放RGB24存储空间
-// 					BYTE* pImg24Temp = pImg24;//设定临时指针，后续进行数据管理
-// 					for (DWORD index=0; index<dwSize32/4; index++)
-// 					{
-// 						unsigned char r = *(pData++);
-// 						unsigned char g = *(pData++);
-// 						unsigned char b = *(pData++);
-// 						pData++;    //跳过颜色空间alpha分量，实现转换
-// 						*(pImg24++) = r;
-// 						*(pImg24++) = g;
-// 						*(pImg24++) = b;   //赋值
-// 					}
-// 					m_pCallback(m_nId, (unsigned char*)(pImg24), dwSize24, 1, NULL, m_pMaster);
-// 				}
-// 				else
-				{
-// 					int stride = ( (width*24+31)& 0xffffffe0) / 8;
-// 					DWORD dwSize24 = (width*height*3);   //RGB32与RGB24的像素点空间差一个字节
-// 					 BYTE* pImg24 = new BYTE[dwSize24]; //存放RGB24存储空间
-// 
-// 					//p = (PRGBTRIPLE)((char*)scan0 + ((nScreenHeight - row - 1) * stride));
-// 					// 
-// 					for (int nI=0; nI<height; nI++)
-// 					{
-// 						for (int nJ=0; nJ<width; nJ++)
-// 						{
-// 							unsigned char r = *(pData++);
-// 							unsigned char g = *(pData++);
-// 							unsigned char b = *(pData++);
-// 							BYTE* pImgTemp = pImg24+(height-1-nI)*(width) + nJ;
-// 							*( pImgTemp++) = r ;				
-// 							*( pImgTemp++) = g ;				
-// 							*( pImgTemp++) = b ;						
-// 						}
-// 					}
-
-					m_pCallback(m_nId, (unsigned char*)(pData), /*alpbi->biSizeImage*/width*height*3, 1, NULL, m_pMaster);
-//					delete[]  pImg24;
-
-				}
+					ScreenCapDataInfo sCapScreenInfo;
+					sCapScreenInfo.nWidth = width;
+					sCapScreenInfo.nHeight = height;
+					sCapScreenInfo.nDataType = 24;
+					m_pCallback(m_nId, (unsigned char*)(alpbi), /*alpbi->biSizeImage*/width*height*3, 1, &sCapScreenInfo, m_pMaster);
 			} 
-// 		FreeFrame(alpbi);
-// 		alpbi=NULL;
 
 		//Slowly thread By framerate
 		Sleep(30);//1000/nFps

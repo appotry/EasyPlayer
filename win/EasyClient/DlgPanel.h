@@ -9,6 +9,7 @@
 #include "DlgVideo.h"
 #include "SourceManager.h"
 #include "afxwin.h"
+#include "SettingDlg.h"
 
 // CDlgPanel 对话框
 class CEasyClientDlg;
@@ -40,6 +41,8 @@ protected:
 	CEasySkinButton m_btnStart;
 	CEasyClientDlg* m_pMainDlg;
 	//EASY_CHANNEL_INFO_T	easyChannelInfo;
+	//本地音视频参数设置
+	AVCapParamInfo m_sAVCapParamInfo;
 
 protected:
 	//UI 界面绘制
@@ -56,18 +59,21 @@ public:
 	virtual BOOL DestroyWindow();
 	virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
 	virtual BOOL OnInitDialog();
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+	afx_msg void OnCbnSelchangeComboCapscreenMode();
+	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
 	CWnd* GetDlgVideo();
 	void SetMainDlg(CEasyClientDlg* pMainDlg, int nId);
 	void UpdataResource();
 	//流名称格式化
 	void FormatStreamName(char* sStreamName);
+	void ProcessVideoWndMenuMsg(int nId);
 
 private:
-	CSourceManager* m_pManager;
 	int m_nWndId;//自己的窗口Id
 	CFont	m_ftSaticDefault;
 
 public:
-	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
-	afx_msg void OnCbnSelchangeComboCapscreenMode();
+	CSourceManager* m_pManager;
 };
+

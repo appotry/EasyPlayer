@@ -1078,7 +1078,6 @@ void CEasyClientDlg::GetPushServerInfo(ServerURLInfo* pPushServerInfo)
 	__WCharToMByte(wszPushBufferSize, szPushBufferSize, sizeof(szPushBufferSize)/sizeof(szPushBufferSize[0]));
 	int nPushBufSize = atoi(szPushBufferSize);
 
-	int nRet = m_pManager->StartPush(szIp , nPort,  szName, nPushBufSize);
 	if (pPushServerInfo)
 	{
 		pPushServerInfo->pushServerPort = nPort;

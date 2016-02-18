@@ -34,6 +34,13 @@ CDlgPanel::CDlgPanel(CWnd* pParent /*=NULL*/)
 	m_pCmbScreenMode = NULL;
 	m_pEdtRtspStream = NULL;		
 	m_pMainDlg = NULL;
+	m_sAVCapParamInfo.nVWidth = 640;
+	m_sAVCapParamInfo.nVHeight = 480;
+	m_sAVCapParamInfo.nFps = 25;
+	m_sAVCapParamInfo.nBitrate = 2048;
+	strcpy_s(m_sAVCapParamInfo.strColorFormat, "YUY2");
+	m_sAVCapParamInfo.nASampleRate = 44100;
+	m_sAVCapParamInfo.nAChannels = 2;
 }
 
 CDlgPanel::~CDlgPanel()
@@ -60,6 +67,7 @@ BEGIN_MESSAGE_MAP(CDlgPanel, CEasySkinDialog)
 	ON_CBN_SELCHANGE(IDC_COMBO_PANNEL_SOURCE, &CDlgPanel::OnCbnSelchangeComboPannelSource)
 	ON_WM_ERASEBKGND()
 	ON_CBN_SELCHANGE(IDC_COMBO_CAPSCREEN_MODE, &CDlgPanel::OnCbnSelchangeComboCapscreenMode)
+	ON_WM_RBUTTONUP()
 END_MESSAGE_MAP()
 
 
@@ -70,6 +78,8 @@ BOOL CDlgPanel::OnInitDialog()
 	CEasySkinDialog::OnInitDialog();
 
 	pDlgVideo = new CDlgVideo();
+	pDlgVideo->SetMainDlg(this);
+
 	pDlgVideo->Create(IDD_DIALOG_VIDEO, this);
 	pDlgVideo->ShowWindow(SW_SHOW);
 
@@ -83,8 +93,6 @@ BOOL CDlgPanel::OnInitDialog()
 	__CREATE_WINDOW(m_pCmbCamera, CComboBox , IDC_COMBO_PANNEL_CAMERA );
 	__CREATE_WINDOW(m_pCmbMic, CComboBox , IDC_COMBO_PANNEL_MIC );
 	__CREATE_WINDOW(m_pCmbScreenMode, CComboBox , IDC_COMBO_CAPSCREEN_MODE );
-	
-
 	
 	//更新皮肤
 	UpdataResource();
@@ -135,6 +143,7 @@ BOOL CDlgPanel::OnInitDialog()
 		m_pCmbSourceType->AddString(_T("网络RTSP流采集"));
 		//	pSouceCombo->AddString(_T("网络Onvif流采集"));
 		m_pCmbSourceType->AddString(_T("屏幕采集"));
+		m_pCmbSourceType->AddString(_T("RTSPHK流采集"));
 		m_pCmbSourceType->SetCurSel(0);
 	}
 	if (m_pCmbScreenMode)
@@ -278,58 +287,31 @@ void CDlgPanel::OnBnClickedButtonStart()
 				int nAudioId = 0;
 				char szURL[128] = {0,};
 				CString strTemp = _T("");
-				int nWidth = 640;
-				int nHeight = 480;
-				int nFps = 25;
-				int nBitrate = 2048;
-				char * szDataType = "YUY2";
+
+				//视频参数设置
+				int nWidth = m_sAVCapParamInfo.nVWidth;
+				int nHeight = m_sAVCapParamInfo.nVHeight;
+				int nFps = m_sAVCapParamInfo.nFps;
+				int nBitrate = m_sAVCapParamInfo.nBitrate;
+				char  szDataType[64];
+				strcpy_s(szDataType, m_sAVCapParamInfo.strColorFormat )	;
+				//音频参数设置
+				int nASampleRate = m_sAVCapParamInfo.nASampleRate;
+				int nAChannels =m_sAVCapParamInfo.nAChannels;
+
 				if (eType == SOURCE_LOCAL_CAMERA)
 				{
 					nCamId = pVideoCombo->GetCurSel();
 					nAudioId = pAudioCombo->GetCurSel();
 					strTemp = _T("本地音视频采集");
 
-					//视频参数设置
-					// 			char szIp[128] = {0,};
-// 					char szWidth[128] = {0,};
-// 					wchar_t wszWidth[128] = {0,};
-// 					char szHeight[128] = {0,};
-// 					wchar_t wszHeight[128] = {0,};
-// 					char szFPS[128] = {0,};
-// 					wchar_t wszFPS[128] = {0,};
-// 					char szBitrate[128] = {0,};
-// 					wchar_t wszBitrate[128] = {0,};
-// 
-// 					m_edtVdieoWidth.GetWindowTextW(wszWidth, sizeof(wszWidth));
-// 					if (wcslen(wszWidth) < 1)		
-// 						return;
-// 					__WCharToMByte(wszWidth, szWidth, sizeof(szWidth)/sizeof(szWidth[0]));
-// 					nWidth = atoi(szWidth);
-// 
-// 					m_edtVideoHeight.GetWindowTextW(wszHeight, sizeof(wszHeight));
-// 					if (wcslen(wszHeight) < 1)		
-// 						return;
-// 					__WCharToMByte(wszHeight, szHeight, sizeof(szHeight)/sizeof(szHeight[0]));
-// 					nHeight = atoi(szHeight);
-// 
-// 					m_edtFPS.GetWindowTextW(wszFPS, sizeof(wszFPS));
-// 					if (wcslen(wszFPS) < 1)		
-// 						return;
-// 					__WCharToMByte(wszFPS, szFPS, sizeof(szFPS)/sizeof(szFPS[0]));
-// 					nFps = atoi(szFPS);
-// 
-// 					m_edtVideoBitrate.GetWindowTextW(wszBitrate, sizeof(wszBitrate));
-// 					if (wcslen(wszBitrate) < 1)		
-// 						return;
-// 					__WCharToMByte(wszBitrate, szBitrate, sizeof(szBitrate)/sizeof(szBitrate[0]));
-// 					nBitrate = atoi(szBitrate);
 				}
 				else if ((eType == SOURCE_SCREEN_CAPTURE))
 				{
 					nCamId = -1;
 					nAudioId = pAudioCombo->GetCurSel();
 					strTemp = _T("屏幕采集");
-					szDataType = "RGB24";
+					strcpy_s(szDataType , "RGB24");
 
 					int nRet =m_pManager->GetScreenCapSize(nWidth, nHeight);
 					if (nRet<1)
@@ -357,7 +339,7 @@ void CDlgPanel::OnBnClickedButtonStart()
 					strTemp = _T("网络音视频流采集");
 				}
 
-				int nRet = m_pManager->StartCapture( eType,  nCamId, nAudioId, pCapWnd->GetSafeHwnd(), szURL, nWidth, nHeight, nFps,nBitrate, szDataType );
+				int nRet = m_pManager->StartCapture( eType,  nCamId, nAudioId, pCapWnd->GetSafeHwnd(), szURL, nWidth, nHeight, nFps,nBitrate, szDataType, nASampleRate , nAChannels );
 				if (nRet>0)
 				{
 					strTemp +=_T("成功！"); 
@@ -378,9 +360,11 @@ void CDlgPanel::OnBnClickedButtonStart()
 				{
 					m_pMainDlg->	GetPushServerInfo(&URLInfo);
 				}
+
+				bool bPushRtmp = false;
 				//流名称格式化
 				FormatStreamName(URLInfo.sdpName);
-				nRet = m_pManager->StartPush(URLInfo.pushServerAddr, URLInfo.pushServerPort,URLInfo.sdpName, URLInfo.nPushBufferLenth);
+				nRet = m_pManager->StartPush(URLInfo.pushServerAddr, URLInfo.pushServerPort,URLInfo.sdpName, URLInfo.nPushBufferLenth, bPushRtmp);
 				CString strMsg = _T("");
 				CString strIp;
 				CString strName;
@@ -391,11 +375,24 @@ void CDlgPanel::OnBnClickedButtonStart()
 					strMsg.Format(_T("推送EasyDarwin服务器URL：rtsp://%s:%d/%s 成功！"), strIp , URLInfo.pushServerPort, strName);
 					m_pManager->LogErr(strMsg);
 					m_btnStart.SetWindowText(TEXT("Stop"));
+					if (bPushRtmp)
+					{
+						strMsg.Format(_T("连接RTMP服务器成功，推送RTMP服务器URL：rtmp://%s:1935/live/%s 成功！"), strIp , strName);
+						m_pManager->LogErr(strMsg);
+					}
 				} 
 				else
 				{
 					strMsg.Format(_T("推送EasyDarwin服务器URL：rtsp://%s:%d/%s 失败！"), strIp, URLInfo.pushServerPort,strName);
 					m_pManager->LogErr(strMsg);
+					if (bPushRtmp)
+					{
+						if (nRet == -1)
+							strMsg.Format(_T("连接RTMP服务器失败!"), strIp , strName);
+						else
+							strMsg.Format(_T("推送RTMP服务器URL：rtmp://%s:1935/live/%s 失败！"), strIp , strName);
+						m_pManager->LogErr(strMsg);
+					}
 				}
 			}
 			else
@@ -754,4 +751,85 @@ void CDlgPanel::OnCbnSelchangeComboCapscreenMode()
 // 	else if(nSelSourceType == 2)
 // 	{
 // 	}
+}
+
+
+void CDlgPanel::OnRButtonUp(UINT nFlags, CPoint point)
+{
+	CEasySkinDialog::OnRButtonUp(nFlags, point);
+}
+
+// void SetUseGpac(BOOL bUse)
+// {
+// 	m_bUseGpac = bUse;
+// }
+// void SetWriteMP4(BOOL bUse)
+// {
+// 	m_bWriteMp4 = bUse;
+// }
+// void SetUseFFEncoder(BOOL bUse)
+// {
+// 	m_bUseFFEncoder = bUse;
+// }
+// void SetPushRtmp(BOOL bUse)
+// {
+// 	m_bPushRtmp = bUse;
+// }
+void CDlgPanel::ProcessVideoWndMenuMsg(int nId)
+{
+	if (!m_pManager)
+	{
+		return;
+	}
+	switch (nId)
+	{
+	case 4000://参数设置
+		{
+			CSettingDlg settingDlg;
+			settingDlg.PreSetting(m_sAVCapParamInfo);
+			settingDlg.DoModal();
+			settingDlg.SaveSetting(m_sAVCapParamInfo);
+
+		}
+		break;
+	case 4001://录制MP4
+		{
+			m_pManager->SetWriteMP4( !m_pManager->IsWriteMP4() );
+		}
+		break;
+	case 4002://??? null
+		{
+		}
+		break;	
+	case 4003://推送RTMP
+		{
+			m_pManager->SetPushRtmp(!m_pManager->IsPushRtmp());
+		}
+		break;
+	case 4004://??? null
+		{
+		}
+		break;
+	case 3000://MP4BOX
+		{
+			m_pManager->SetUseGpac(TRUE);
+		}
+		break;
+	case 3001://MP4Creater
+		{
+			m_pManager->SetUseGpac(FALSE);
+		}
+		break;
+	case 3002://x264+AAC
+		{
+			m_pManager->SetUseFFEncoder(FALSE);
+		}
+		break;
+	case 3003://FFEncoder
+		{
+			m_pManager->SetUseFFEncoder(TRUE);
+		}
+		break;
+
+	}
 }

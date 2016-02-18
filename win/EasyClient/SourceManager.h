@@ -22,9 +22,14 @@
 
 #include "./FFEncoder/FFEncoderAPI.h"
 #pragma comment(lib, "./FFEncoder/FFEncoder.lib")
-
 //MP4Box Package MP4
 #include "EasyMP4Writer.h"
+
+//x264编码+FAAC编码+librtmp推送 支持
+#include "./EasyEncoder/FAACEncoder.h"
+#include "./EasyEncoder/H264Encoder.h"
+#include "./EasyEncoder/H264EncoderManager.h"
+#include "./EasyEncoder/EasyRtmp.h"
 
 extern "C"
 {
@@ -45,10 +50,22 @@ typedef enum tagSOURCE_TYPE
 {
 	SOURCE_LOCAL_CAMERA = 0,//本地音视频
 	SOURCE_RTSP_STREAM=1,//RTSP流
-	SOURCE_SCREEN_CAPTURE =2//屏幕捕获
+	SOURCE_SCREEN_CAPTURE =2,//屏幕捕获
+	SOURCE_RTSPHK_STREAM = 3
 	// 	//SOURCE_ONVIF_STREAM=3,//Onvif流
 
 }SOURCE_TYPE;
+
+typedef struct tagAVCapParamInfo
+{
+	int nVWidth;
+	int nVHeight;
+	int nFps; 
+	int nBitrate;
+	char strColorFormat[64];//视频色彩格式
+	int nASampleRate;//音频采样率
+	int nAChannels;//音频通道数
+}AVCapParamInfo;
 
 class CEasyClientDlg ;
 
@@ -77,7 +94,7 @@ public:
 																	   RealDataStreamType realDataType, /*RealDataStreamInfo*/void* realDataInfo, void* pMaster);
 	void DSRealDataManager(int nDevId, unsigned char *pBuffer, int nBufSize, 
 		RealDataStreamType realDataType, /*RealDataStreamInfo*/void* realDataInfo);
-
+	//RTSP流数据回调
 	static int CALLBACK __MediaSourceCallBack( int _channelId, int *_channelPtr, int _frameType, char *pBuf, RTSP_FRAME_INFO* _frameInfo);
 	int SourceManager(int _channelId, int *_channelPtr, int _frameType, char *pBuf, RTSP_FRAME_INFO* _frameInfo);
 
@@ -88,12 +105,13 @@ public:
 
 	//开始捕获(采集)
 	int StartCapture(SOURCE_TYPE eSourceType, int nCamId, int nAudioId,  HWND hCapWnd, 
-		char* szURL = NULL, int nVideoWidth=640, int nVideoHeight=480, int nFps=25, int nBitRate=2048, char* szDataType = "YUY2", BOOL bWriteMp4 = TRUE);
+		char* szURL = NULL, int nVideoWidth=640, int nVideoHeight=480, int nFps=25, int nBitRate=2048, char* szDataType = "YUY2",  
+		int nSampleRate=44100, int nChannel=2 );
 	//停止采集
 	void StopCapture();
 
 	//开始推流
-	int StartPush(char* ServerIp, int nPushPort, char* sPushName, int nPushBufSize = 1024);
+	int StartPush(char* ServerIp, int nPushPort, char* sPushName, int nPushBufSize = 1024, bool bPushRtmp = false);
 	//停止推流
 	void StopPush();
 	
@@ -144,6 +162,40 @@ public:
 	{
 		return m_bRecording;
 	}
+	//////////////////////////////////////////////////////////////////////////
+	BOOL IsUseGpac()
+	{
+		return m_bUseGpac;
+	}
+	BOOL IsWriteMP4()
+	{
+		return m_bWriteMp4;
+	}
+	BOOL IsUseFFEncoder()
+	{
+		return m_bUseFFEncoder;
+	}
+	BOOL IsPushRtmp()
+	{
+		return m_bPushRtmp;
+	}
+	//////////////////////////////////////////////////////////////////////////
+	void SetUseGpac(BOOL bUse)
+	{
+		 m_bUseGpac = bUse;
+	}
+	void SetWriteMP4(BOOL bUse)
+	{
+		 m_bWriteMp4 = bUse;
+	}
+	void SetUseFFEncoder(BOOL bUse)
+	{
+		 m_bUseFFEncoder = bUse;
+	}
+	void SetPushRtmp(BOOL bUse)
+	{
+		 m_bPushRtmp = bUse;
+	}
 
 protected:
 		void	UpdateLocalVideo(unsigned char *pbuf, int size, int width, int height);
@@ -154,6 +206,7 @@ private:
 	CDirectSound	m_audioCapture;
 	CCameraDS		m_videoCamera;
 	CCaptureScreen* m_pScreenCaptrue;
+
 	int m_nScreenCaptureId;
 	//MP4Box Writer
 	EasyMP4Writer* m_pMP4Writer;
@@ -161,6 +214,8 @@ private:
 	MP4C_Handler m_handler;
 	BOOL m_bUseGpac;
 	BOOL m_bWriteMp4;
+	BOOL m_bUseFFEncoder;
+	BOOL m_bPushRtmp;
 
 	//视频设备控制实例
 	LPVideoCapturer m_pVideoManager;
@@ -185,10 +240,26 @@ private:
 	HWND m_hPlayWnd;
 	BOOL m_bPushing;
 	BOOL m_bRecording;
-	//FF---编码器相关
+	//编码器相关
+	//FFEncoder --- Start
 	FFE_HANDLE m_hFfeVideoHandle;
 	FFE_HANDLE m_hFfeAudioHandle;
 	int m_nFrameNum;
 	char * m_EncoderBuffer;// = new char[1920*1080];	//申请编码的内存空间
+	// FFEncoder --- End
+	// x264+faac Encoder --- Start
+	//AAC编码器
+	FAACEncoder m_AACEncoderManager;
+	//H264编码器
+	CH264EncoderManager m_H264EncoderManager;
+	//编码信息配置
+	Encoder_Config_Info*	m_pEncConfigInfo;
+	byte m_sps[100];
+	byte  m_pps[100];
+	long m_spslen;
+	long m_ppslen;
+	byte* m_pFrameBuf; 
+	// x264+faac Encoder---End
+	EasyRtmp* m_pEasyrtmp;
 };
 

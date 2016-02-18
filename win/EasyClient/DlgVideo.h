@@ -9,6 +9,7 @@
 #include "Resource.h"
 
 // CDlgVideo 对话框
+class CDlgPanel;
 
 class CDlgVideo : public CDialogEx
 {
@@ -23,15 +24,20 @@ public:
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
+	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
 
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnPaint();
+	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
 
 public:
 	virtual BOOL OnInitDialog();
 
 private:
 	CImageEx	* m_pEasyLogo;
+	CDlgPanel* m_pMainDlg;
+public:
+	void SetMainDlg(CDlgPanel* pMainDlg);
 
 };

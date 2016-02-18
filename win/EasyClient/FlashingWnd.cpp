@@ -83,8 +83,8 @@ void CFlashingWnd::SetUpRegion(int x, int y, int width, int height, int type)
 	cRect.right = cRect.left + width -1;
 	cRect.bottom = cRect.top + height -1;	
 
-	if (type == 0) {
-
+	if (type == 0)
+	{
 		wndRgn.CreateRectRgn(0,0, cRect.Width()+THICKNESS+THICKNESS, cRect.Height()+THICKNESS+THICKNESS);
 		rgnTemp.CreateRectRgn(THICKNESS, THICKNESS, cRect.Width()+THICKNESS+1, cRect.Height()+THICKNESS+1);
 		rgnTemp2.CreateRectRgn(0, SIDELEN2, cRect.Width()+THICKNESS+THICKNESS, cRect.Height()-SIDELEN+1);
@@ -123,7 +123,6 @@ void CFlashingWnd::SetUpRect(int x, int y, int width, int height)
 	cRect.top= y;
 	cRect.right = cRect.left + width -1;
 	cRect.bottom = cRect.top + height -1;
-	
 }
 
 //********************************************************************************

@@ -23,8 +23,6 @@
 #define ZOUTFILE_FLAG_FULL (ZOUTFILE_FLAG_AUDIO|ZOUTFILE_FLAG_VIDEO)
 #endif
 
-unsigned char* FindNal(unsigned char*buff,int inlen,int&outlen,bool&end);
-int find_nal_unit(unsigned char* buf, int size, int* nal_start, int* nal_end);
 
 class EasyMP4Writer 
 {
@@ -72,6 +70,10 @@ public:
 	
 	bool CanWrite();
 	int WriteMp4File(BYTE* pdata, int datasize, bool keyframe, long nTimestamp, int nWidth, int nHeight);
+
+private:
+	unsigned char* FindNal(unsigned char*buff,int inlen,int&outlen,bool&end);
+	int find_nal_unit(unsigned char* buf, int size, int* nal_start, int* nal_end);
 
 };
 
