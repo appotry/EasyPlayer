@@ -143,7 +143,7 @@ BOOL CDlgPanel::OnInitDialog()
 		m_pCmbSourceType->AddString(_T("网络RTSP流采集"));
 		//	pSouceCombo->AddString(_T("网络Onvif流采集"));
 		m_pCmbSourceType->AddString(_T("屏幕采集"));
-		m_pCmbSourceType->AddString(_T("RTSPHK流采集"));
+		//m_pCmbSourceType->AddString(_T("RTSPHK流采集"));
 		m_pCmbSourceType->SetCurSel(0);
 	}
 	if (m_pCmbScreenMode)
