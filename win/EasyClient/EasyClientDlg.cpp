@@ -97,12 +97,8 @@ BOOL CEasyClientDlg::OnInitDialog()
 	{
 		pRtspURL->SetWindowTextW(TEXT("rtsp://127.0.0.1:554/stream.sdp"));
 	}
-// 	CEdit* pIP = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_IP);
-// 	if (pIP)
-// 	{
-// 		pIP->SetWindowTextW(TEXT("easyclient.easydarwin.org"));
-// 	}
-	m_edtIp.SetWindowTextW(TEXT("easyclient.easydarwin.org"));
+
+	m_edtIp.SetWindowTextW(TEXT("127.0.0.1"));
 
 	CEdit* pPort = (CEdit*)GetDlgItem(IDC_EDIT_SERVER_PORT);
 	if (pPort)
