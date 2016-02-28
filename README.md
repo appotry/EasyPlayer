@@ -1,4 +1,4 @@
-﻿# EasyClient #
+# EasyClient #
 
 EasyClient是EasyDarwin开源流媒体团队提供的一套直观、功能丰富的客户端项目，目前支持Windows、Android版本，后续将支持ios版本，PC版本的EasyClient支持多种源接入，包括Windows摄像头、麦克风、RTSP摄像机、屏幕桌面等，采集后经过x264编码、EasyPusher推送到EasyDarwin流媒体服务器进行转发，同时EasyClient还支持通过EasyRTSPClient拉取EasyDarwin直播流，进行显示、播放，非常稳定、易用，用户可以基于EasyClient项目，开发类似于课堂直播、视频对讲等项目！
 
@@ -89,6 +89,8 @@ WEB：[www.EasyDarwin.org](http://www.easydarwin.org)
 Author：[SwordTwevle@EasyDarwin.org](mailto:SwordTwevle@EasyDarwin.org "EasyDarwin SwordTwelve")
 
 Blog：[http://blog.csdn.net/SwordTwelve/](http://blog.csdn.net/SwordTwelve/ "EasyClient Blog")
+
+QQ交流群：[544917793](http://jq.qq.com/?_wv=1027&k=2IDkJId "EasyClient QQ群")
 
 Copyright &copy; EasyDarwin.org 2012-2015
 
