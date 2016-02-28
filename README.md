@@ -92,6 +92,6 @@ Blog：[http://blog.csdn.net/SwordTwelve/](http://blog.csdn.net/SwordTwelve/ "Ea
 
 QQ交流群：[544917793](http://jq.qq.com/?_wv=1027&k=2IDkJId "EasyClient QQ群")
 
-Copyright &copy; EasyDarwin.org 2012-2015
+Copyright &copy; EasyDarwin.org 2012-2016
 
 ![EasyDarwin](http://www.easydarwin.org/skin/easydarwin/images/wx_qrcode.jpg)
