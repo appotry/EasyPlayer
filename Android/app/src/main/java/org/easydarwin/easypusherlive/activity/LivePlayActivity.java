@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.easydarwin.easypusherlive.R;
+import org.easydarwin.easypusherlive.config.DarwinConfig;
 import org.easydarwin.easypusherlive.vlc.VLCInstance;
 import org.easydarwin.easypusherlive.vlc.VLCOptions;
 import org.videolan.libvlc.IVLCVout;
@@ -37,7 +38,7 @@ public class LivePlayActivity extends AppCompatActivity implements IVLCVout.Call
         vlcVout.addCallback(this);
         vlcVout.attachViews();
         mSurfaceView.setKeepScreenOn(true);
-        rtspUrl=getIntent().getStringExtra("rtsp");
+        rtspUrl=getIntent().getStringExtra(DarwinConfig.RTSP_ADDRESS);
         final Media media = new Media(VLCInstance.get(), Uri.parse(rtspUrl));
         VLCOptions.setMediaOptions(media, this, 1);
         media.setEventListener(mMediaListener);
