@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">EasyPusherLive</string>
+    <string name="title_activity_live_play">LivePlayActivity</string>
+</resources>
