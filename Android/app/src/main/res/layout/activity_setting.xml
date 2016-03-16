@@ -12,14 +12,15 @@
 
     <EditText
         android:id="@+id/edt_server_ip"
-        android:hint="服务器地址"
+        android:hint="EasyDarwin地址"
         android:inputType="textUri"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
     <EditText
         android:id="@+id/edt_server_port"
-        android:hint="端口号"
+        android:hint="http_service_port"
+        android:text="8080"
         android:inputType="number"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
