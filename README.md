@@ -1,6 +1,6 @@
 # EasyClient #
 
-EasyClient是EasyDarwin开源流媒体团队成员SwordTwelve、Gavin开发提供的一套直观、功能丰富的客户端项目，目前支持Windows版本，后续将陆续支持Android、IOS版本，PC版本的EasyClient支持多种源接入，包括Windows摄像头、麦克风、RTSP摄像机、屏幕桌面等，采集后经过x264编码、EasyPusher推送到EasyDarwin流媒体服务器进行转发，同时EasyClient还支持通过EasyRTSPClient拉取EasyDarwin直播流，进行显示、播放，非常稳定、易用，用户可以基于EasyClient项目，开发类似于课堂直播、视频对讲等项目！
+EasyClient是EasyDarwin开源流媒体团队成员SwordTwelve、Gavin、Holo开发提供的一套直观、功能丰富的客户端项目，目前支持Windows、Android版本，后续将支持IOS版本，PC版本的EasyClient支持多种源接入，包括Windows摄像头、麦克风、RTSP摄像机、屏幕桌面等，采集后经过x264编码、EasyPusher推送到EasyDarwin流媒体服务器进行转发，同时EasyClient还支持通过EasyRTSPClient拉取EasyDarwin直播流，进行显示、播放，非常稳定、易用，用户可以基于EasyClient项目，开发类似于课堂直播、视频对讲等项目！
 
 ##功能描述##
 
@@ -18,30 +18,30 @@ EasyClient支持获取IPCamera摄像机的RTSP直播流，通过[EasyRTSPClient]
 
 ##更新记录##
 
-### v1.2.3.0 (2016-2-18)
+### EasyClient(Windows) v1.2.3.0 (2016-2-18)
 
 * 增加x264+faac编码器，录制MP4采用MP4Box,解决录制MP4报错的问题；
 * 修复屏幕录制显示不全的问题，以及自定义长宽出现画面失真、错位、翻转甚至报错等不正常显示的问题；
 * 增加点击视频窗口右键弹出菜单进行各种参数设置；
 * 增加RTMP流推送，填写FMS等RTMP服务器IP及流名称即可，端口默认1935；
 
-### v1.2.2.7 (2015-12-31) ###
+### EasyClient(Windows) v1.2.2.7 (2015-12-31) ###
 
 * 集成MP4Box和MP4Creator写MP4，两种方法可切换，各有优劣；当前版本MP4Creator录制声音有限制，但可写入一帧多NAL的H264；MP4Box支持所有声音写入，单只支持一帧一个NAL的H264写入；
 * 修复EasyPusher只能推送16K采样率音频的问题，以及修复libEasyPlayer只能正常播放16K音频的问题；理论上来说，现在可支持几乎所有采样率的音频的推送和播放；
 
-### v1.2.2.6 (2015-12-25) ###
+### EasyClient(Windows) v1.2.2.6 (2015-12-25) ###
 
 * 增加三种模式的屏幕采集，推送功能，稳定性和性能有待测试；
 * 增加录制MP4接口和控制变量，兼容性有待测试；
 
-### v1.2.1.5 (2015-12-10) ###
+### EasyClient(Windows) v1.2.1.5 (2015-12-10) ###
 
 * 参考EasyPlayer，增加多窗口界面布局，实现多路同时采集编码推送，或者直播；
 * 修改Pannel窗口类，用作单视频窗口功能实现；
 * 修改SourceManager唯一实例化代码，支持多次调用；
 
-### v1.1.1.5 (2015-12-3) ###
+### EasyClient(Windows) v1.1.1.5 (2015-12-3) ###
 
 * 开放Dshow采集库，目的是为了方便大家调试以及修复里面现在已知的部分BUG，增加外部显示模式;
 * 删减x264和faac重复的较为复杂的编码器库，让代码调理更清晰，更有可读性，为下个版本多窗口做准备;
@@ -49,7 +49,7 @@ EasyClient支持获取IPCamera摄像机的RTSP直播流，通过[EasyRTSPClient]
 * 如果大家对EasyClient测试出任何问题或者有什么好的建议，欢迎反馈开源团队，我们将在第一时间修复和采纳！
 
 
-### v1.1.1.4 (2015-11-27) ###
+### EasyClient(Windows) v1.1.1.4 (2015-11-27) ###
 
 * 增加本地视频采集宽、高、FPS、码率，推送缓冲区界面设置;
 * 增加EasyLogo，修复界面窗口部分区域刷新不正常的问题;
@@ -57,25 +57,25 @@ EasyClient支持获取IPCamera摄像机的RTSP直播流，通过[EasyRTSPClient]
 * 修复推送EasyDarwin服务器,音频导致HLS直播不能正常播放的问题;
 
 
-### v1.1.1.3 (2015-11-20) ###
+### EasyClient(Windows) v1.1.1.3 (2015-11-20) ###
 
 * 修复界面窗口最小化还原时，文本框出现不刷新的问题;
 * 增加DShow音视频采集库，修复本地音视频推送服务器出现播放不同步的问题;
 * 增加EasyDarwin官网地址和EasyClient的Github访问地址;
 * 界面布局进行部分调整.
 
-### v1.0.1.2 (2015-11-17) ###
+### EasyClient(Windows) v1.0.1.2 (2015-11-17) ###
 
 * 添加EasySkinUI轻量级皮肤库，优化界面;
 * 皮肤库调用详见：界面管理类CEasySkinManager;
 
-### v1.0.0.2 (2015-11-10) ###
+### EasyClient(Windows) v1.0.0.2 (2015-11-10) ###
 
 * 修复采集Rtsp流格式判断错误导致采集失败的问题，现在流格式可任意；
 * 增加版本信息和界面显示，窗口暂时固定；
 * 测试：接收公共网络rtsp流进行推送EasyDarwin服务器，推送成功，但是可能出现直播无视频显示的问题；
 
-### v1.0.0.1 (2015-11-9) ###
+### EasyClient(Windows) v1.0.0.1 (2015-11-9) ###
 
 * EasyClient初始版本By SwordTwevle
 
