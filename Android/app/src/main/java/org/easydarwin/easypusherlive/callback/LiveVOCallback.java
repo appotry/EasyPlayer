@@ -1,3 +1,9 @@
+/*
+	Copyright (c) 2013-2016 EasyDarwin.ORG.  All rights reserved.
+	Github: https://github.com/EasyDarwin
+	WEChat: EasyDarwin
+	Website: http://www.easydarwin.org
+*/
 package org.easydarwin.easypusherlive.callback;
 
 import com.google.gson.Gson;

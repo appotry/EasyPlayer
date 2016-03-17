@@ -1,8 +1,10 @@
 /*
- * Copyright 2013-2015 duolabao.com All right reserved. This software is the confidential and proprietary information of
- * duolabao.com ("Confidential Information"). You shall not disclose such Confidential Information and shall use it only
- * in accordance with the terms of the license agreement you entered into with duolabao.com.
+ * 	Copyright (c) 2013-2016 EasyDarwin.ORG.  All rights reserved.
+ * 	Github: https://github.com/EasyDarwin
+ * 	WEChat: EasyDarwin
+ *	Website: http://www.easydarwin.org
  */
+
 package org.easydarwin.easypusherlive.indicator;
 
 import android.app.Activity;
