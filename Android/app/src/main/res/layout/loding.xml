@@ -10,7 +10,7 @@
         android:layout_centerInParent="true"
         android:orientation="vertical" >
 
-        <org.easydarwin.easypusherlive.indicator.AVLoadingIndicatorView
+        <org.easydarwin.easyclient.indicator.AVLoadingIndicatorView
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:layout_gravity="center_horizontal" />

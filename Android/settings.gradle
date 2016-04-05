@@ -1,1 +1,1 @@
-include ':app', ':okhttplibrary', ':libvlc'
+include ':app', ':okhttplibrary'

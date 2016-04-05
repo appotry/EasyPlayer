@@ -5,11 +5,11 @@ android {
     buildToolsVersion "23.0.2"
 
     defaultConfig {
-        applicationId "org.easydarwin.easypusherlive"
-        minSdkVersion 14
-        targetSdkVersion 23
+        applicationId "org.easydarwin.easyclient"
+        minSdkVersion 16
+        targetSdkVersion 21
         versionCode 1
-        versionName "1.0.16.0316"
+        versionName "1.0.16.0405"
     }
     buildTypes {
         release {
@@ -19,11 +19,18 @@ android {
     }
 }
 
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+    mavenCentral()
+}
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
+    compile(name: 'rtspclient-release', ext: 'aar')
     compile project(':okhttplibrary')
-    compile project(':libvlc')
     compile 'com.android.support:recyclerview-v7:23.1.1'
     compile 'com.google.code.gson:gson:2.3.1'
     compile 'com.android.support:design:23.1.1'

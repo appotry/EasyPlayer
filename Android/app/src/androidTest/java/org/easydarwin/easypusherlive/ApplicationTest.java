@@ -1,4 +1,4 @@
-package org.easydarwin.easypusherlive;
+package org.easydarwin.easyclient;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
