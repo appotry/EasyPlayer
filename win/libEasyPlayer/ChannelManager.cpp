@@ -1206,19 +1206,19 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDisplayThread( LPVOID _pParam )
 
 				D3D_SetDisplayFlag(pThread->d3dHandle, D3D_SHOW_ZONE|D3D_SHOW_SEL_BOX);
 
-				D3D9_LINE	d3d9Line;
-				memset(&d3d9Line, 0x00, sizeof(D3D9_LINE));
-				d3d9Line.usLineId = 1;
-				strcpy(d3d9Line.strLineName, "Line1");
-				d3d9Line.dwColor = RGB(0xff,0x80,0x00);
-				d3d9Line.uiTotalNodes = 2;
-				d3d9Line.pNodes[0].x = 20;
-				d3d9Line.pNodes[0].y = 60;
-
-				d3d9Line.pNodes[1].x = 60;
-				d3d9Line.pNodes[1].y = 60;
-
-				D3D_AddLine(pThread->d3dHandle, &d3d9Line);
+// 				D3D9_LINE	d3d9Line;
+// 				memset(&d3d9Line, 0x00, sizeof(D3D9_LINE));
+// 				d3d9Line.usLineId = 1;
+// 				strcpy(d3d9Line.strLineName, "Line1");
+// 				d3d9Line.dwColor = RGB(0xff,0x80,0x00);
+// 				d3d9Line.uiTotalNodes = 2;
+// 				d3d9Line.pNodes[0].x = 20;
+// 				d3d9Line.pNodes[0].y = 60;
+// 
+// 				d3d9Line.pNodes[1].x = 60;
+// 				d3d9Line.pNodes[1].y = 60;
+// 
+// 				D3D_AddLine(pThread->d3dHandle, &d3d9Line);
 
 			}
 			if (NULL == pThread->d3dHandle)

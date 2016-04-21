@@ -665,7 +665,6 @@ HANDLE  CCaptureScreen::Bitmap2Dib( HBITMAP hbitmap, UINT bits )
 	pbi.bmiHeader.biPlanes = 1;
 	pbi.bmiHeader.biBitCount = bits;
 	pbi.bmiHeader.biCompression = BI_RGB;
-
 	
 	hdc = CreateCompatibleDC(NULL) ;
 	GetDIBits(hdc, hbitmap, 0, bitmap.bmHeight, hdib, (LPBITMAPINFO)&pbi,  DIB_RGB_COLORS);
@@ -1155,7 +1154,7 @@ void CCaptureScreen::CaptureVideoProcess()
 			} 
 
 		//Slowly thread By framerate
-		Sleep(30);//1000/nFps
+		//Sleep(30);//1000/nFps
 	}
 	//²¶»ñ½áÊø£¬Òþ²ØÉÁË¸ÇøÓò¿ò
 	if (m_bFlashingRect)

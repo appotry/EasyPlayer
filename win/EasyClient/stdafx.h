@@ -37,7 +37,6 @@
 
 #include <afxcontrolbars.h>     // MFC support for ribbons and control bars
 
-
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
 

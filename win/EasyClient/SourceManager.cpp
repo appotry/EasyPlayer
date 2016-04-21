@@ -25,6 +25,7 @@ CSourceManager::CSourceManager(void)
 	m_nFrameNum = 0;
 	m_EncoderBuffer = NULL;
 	m_pScreenCaptrue = NULL;
+	m_pD3dScreenCaptrue = NULL;
 	m_nScreenCaptureId = -1;
 	m_pMP4Writer = NULL;
 	m_bRecording = FALSE; 
@@ -87,6 +88,7 @@ void CSourceManager::InitSource()
 //反初始化
 void CSourceManager::UnInitSource()
 {
+	//m_AACEncoderManager.Clean();
 	RGB_DeinitDraw(&m_d3dHandle);
 	EasyPlayerManager::UnInit();
 }
@@ -224,7 +226,7 @@ void CSourceManager::DSRealDataManager(int nDevId, unsigned char *pBuffer, int n
 						byte btHeader[4];
 						btHeader[0] = 0x00;
 						btHeader[1] = 0x00;
-						btHeader[2] = 0x00;
+							btHeader[2] = 0x00;
 						btHeader[3] = 0x01;
 						if (bKeyF)
 						{
@@ -258,6 +260,7 @@ void CSourceManager::DSRealDataManager(int nDevId, unsigned char *pBuffer, int n
 					frameinfo.sample_rate = m_sDevConfigInfo.AudioInfo.nSampleRate;
 					frameinfo.channels = m_sDevConfigInfo.AudioInfo.nChannaels;
 					//推送回调管理
+					//TRACE("frameinfo.length == %d \r\n", frameinfo.length);
 					SourceManager(nDevId, (int*)&m_sSourceInfo, EASY_SDK_VIDEO_FRAME_FLAG, m_EncoderBuffer, &frameinfo);
 				}
 
@@ -523,7 +526,7 @@ int CSourceManager::StartDSCapture(int nCamId, int nAudioId,HWND hShowWnd,int nV
 			m_pEncConfigInfo->nScrVideoWidth = nVideoWidth;
 			m_pEncConfigInfo->nScrVideoHeight = nVideoHeight;
 			m_pEncConfigInfo->nFps = nFps;
-			m_pEncConfigInfo->nMainKeyFrame = 100;
+			m_pEncConfigInfo->nMainKeyFrame = 30;
 			m_pEncConfigInfo->nMainBitRate = nBitRate;
 			m_pEncConfigInfo->nMainEncLevel = 1;
 			m_pEncConfigInfo->nMainEncQuality = 20;
@@ -733,6 +736,7 @@ void CSourceManager::StopCapture()
 		m_EncoderBuffer = NULL;
 	}	
 
+
 	m_bDSCapture = FALSE;
 }
 
@@ -893,6 +897,22 @@ int CSourceManager::StartScreenCapture(HWND hShowWnd, int nCapMode)
 		return -1;
 	}
 	return m_pScreenCaptrue->StartScreenCapture(hShowWnd, nCapMode);
+
+#if 0
+	// for a D3DCaptureScreen test [4/15/2016 Administrator]
+	if (!m_pD3dScreenCaptrue)
+	{
+		m_pD3dScreenCaptrue = new CD3DCaptureScreem();
+		m_pD3dScreenCaptrue->SetCaptureScreenCallback((CaptureScreenCallback)&CSourceManager::CaptureScreenCallBack, this);
+	}
+	if (m_pD3dScreenCaptrue->IsInCapturing())
+	{
+		return -1;
+	}
+	m_pD3dScreenCaptrue->InitD3DCapture(hShowWnd);
+#endif
+
+	return 1;
 }
 void CSourceManager::StopScreenCapture()
 {
@@ -903,6 +923,13 @@ void CSourceManager::StopScreenCapture()
 			m_pScreenCaptrue->StopScreenCapture();
 		}
 	}
+	if (m_pD3dScreenCaptrue)
+	{
+		if (m_pD3dScreenCaptrue->IsInCapturing())
+		{
+			m_pD3dScreenCaptrue->StopD3DScreenCapture();
+		}
+	}
 }
 
 void CSourceManager::RealseScreenCapture()
@@ -911,6 +938,12 @@ void CSourceManager::RealseScreenCapture()
 	{
 		CCaptureScreen::UnInstance(m_nScreenCaptureId);
 		m_pScreenCaptrue = NULL;
+	}
+	if (m_pD3dScreenCaptrue)
+	{
+		m_pD3dScreenCaptrue->StopD3DScreenCapture();
+		delete m_pD3dScreenCaptrue;
+		m_pD3dScreenCaptrue = NULL;
 	}
 }
 
@@ -926,8 +959,12 @@ int CSourceManager::GetScreenCapSize(int& nWidth, int& nHeight)
 		else
 			return -1;
 	}
-	else
-		return -1;
+	else if (m_pD3dScreenCaptrue)
+	{
+		m_pD3dScreenCaptrue->GetCaptureScreenSize(nWidth, nHeight);
+		return 1;
+	}
+	return -1;
 }
 
 // 	//初始化句柄

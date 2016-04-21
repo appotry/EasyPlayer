@@ -23,7 +23,11 @@
 #endif
 
 #pragma comment(lib,"STRMBASE.lib")
-#include "streams.h"
+//#include "streams.h"
+#include ".\DShowCapture\DirectShow\streams.h"
+
 #include <atlbase.h>
-#include <qedit.h>
+//#include <qedit.h>
+#include ".\DShowCapture\DirectShow\Include\qedit.h"
+
 #include "SampleGrabberCB.h"

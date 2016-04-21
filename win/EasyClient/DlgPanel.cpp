@@ -656,7 +656,6 @@ void CDlgPanel::OnCbnSelchangeComboPannelType()
 	}
 }
 
-
 void CDlgPanel::OnCbnSelchangeComboPannelSource()
 {
 	if (m_pManager)

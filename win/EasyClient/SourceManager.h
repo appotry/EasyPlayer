@@ -10,7 +10,8 @@
 
 #define EasyClent_VersionInfo _T("Version:1.2.3.0 Powered By SwordTwelve/Gavin/Arno")
 
-//本地音频捕获
+
+// //本地音频捕获
 #include "AudioSource\DirectSound.h"
 //本地视频捕获
 #include "VideoSource\USBCamera\CameraDS.h"
@@ -19,6 +20,7 @@
 //DShow音视频采集库头文件添加（添加该库主要是为了解决音视频源头上不同步的问题）
 #include "./DShowCapture/DShowCaptureAudioAndVideo_Interface.h"
 #include "CaptureScreen.h"
+#include "D3DCaptureScreem.h"
 
 #include "./FFEncoder/FFEncoderAPI.h"
 #pragma comment(lib, "./FFEncoder/FFEncoder.lib")
@@ -206,6 +208,7 @@ private:
 	CDirectSound	m_audioCapture;
 	CCameraDS		m_videoCamera;
 	CCaptureScreen* m_pScreenCaptrue;
+	CD3DCaptureScreem* m_pD3dScreenCaptrue;
 
 	int m_nScreenCaptureId;
 	//MP4Box Writer

@@ -7,7 +7,7 @@
 #pragma once
 
 //#include <streams.h>
-#include <Qedit.h>
+#include ".\DShowCapture\DirectShow\Include\Qedit.h"
 #include <initguid.h>
 #include <uuids.h>
 

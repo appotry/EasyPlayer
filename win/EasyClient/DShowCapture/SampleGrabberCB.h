@@ -8,11 +8,15 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include <qedit.h> 
+//#include <qedit.h> 
+#include ".\DShowCapture\DirectShow\Include\qedit.h"
+
 #include <atlbase.h>
 #include <windows.h>
 #include <dshow.h>
-#include <Streams.h>
+//#include <Streams.h>
+#include ".\DShowCapture\DirectShow\Streams.h"
+
 #include "DShowCaptureAudioAndVideo_Interface.h"
 
 

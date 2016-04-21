@@ -275,8 +275,10 @@ void __RPC_USER MIDL_user_free( void * );
 
 #include <servprov.h>
 #include <ddraw.h>
-#include <d3d.h>
-#include <d3drm.h>
+//#include <d3d.h>
+#include ".\DShowCapture\DirectShow\Include\d3d.h"
+//#include <d3drm.h>
+#include ".\DShowCapture\DirectShow\Include\d3drm.h"
 #include <urlmon.h>
 #if 0
 // Bogus definition used to make MIDL compiler happy

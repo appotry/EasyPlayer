@@ -252,6 +252,9 @@
     <ClInclude Include="SettingDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="D3DCaptureScreem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -414,6 +417,9 @@
       <Filter>EasyEncoder</Filter>
     </ClCompile>
     <ClCompile Include="SettingDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DCaptureScreem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

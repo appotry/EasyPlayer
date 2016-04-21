@@ -7,6 +7,7 @@
 #pragma once
 
 #include "FlashingWnd.h"
+#include <d3d9.h>
 
 //通知主界面开始捕获消息
 #define WM_USER_RECORDSTART WM_USER+0x101
