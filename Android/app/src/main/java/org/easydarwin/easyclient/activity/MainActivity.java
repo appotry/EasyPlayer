@@ -64,12 +64,8 @@ public class MainActivity extends BaseActivity implements
     }
 
     private void getSeeeion() {
-        serverIp = mSettingSharedPreference.getString(DarwinConfig.SERVER_IP, "");
-        serverPort = mSettingSharedPreference.getString(DarwinConfig.SERVER_PORT, "8080");
-        if (TextUtils.isEmpty(serverIp)) {
-            Toast.makeText(this, "请配置您的服务器信息", Toast.LENGTH_LONG).show();
-            return;
-        }
+        serverIp = mSettingSharedPreference.getString(DarwinConfig.SERVER_IP, DarwinConfig.DEFAULT_SERVER_IP);
+        serverPort = mSettingSharedPreference.getString(DarwinConfig.SERVER_PORT, DarwinConfig.DEFAULT_SERVER_PORT);
         getSessions(serverIp, serverPort);
     }
 

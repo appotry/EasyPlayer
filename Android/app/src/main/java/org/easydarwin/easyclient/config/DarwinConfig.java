@@ -23,5 +23,8 @@ public class DarwinConfig {
 //    public static final String SERVER_SETTING_UPDATED="server_setting_updated";
     //rtsp地址
     public static final String RTSP_ADDRESS="rtsp_addr";
+    //默认IP地址
+    public static final String DEFAULT_SERVER_IP="121.40.50.44";
+    public static final String DEFAULT_SERVER_PORT="8080";
 
 }
