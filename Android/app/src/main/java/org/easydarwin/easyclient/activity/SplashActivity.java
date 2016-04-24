@@ -44,7 +44,7 @@ public class SplashActivity extends Activity {
             return;
         }
         TextView txtVersion = (TextView) findViewById(R.id.txt_version);
-        txtVersion.setText(String.format("V%s", versionname));
+        txtVersion.setText(String.format("EasyClient %s", versionname));
 
     }
 
