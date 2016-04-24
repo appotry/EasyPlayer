@@ -62,8 +62,8 @@ public class LiveVOAdapter extends BaseAdapter {
             viewHolder = (LiveViewHolder) convertView.getTag();
         }
         LiveSession session = mSessions.get(position);
-        viewHolder.txtName.setText(session.getName());
-        viewHolder.txtRtsp.setText(session.getUrl());
+        viewHolder.txtName.setText(String.format("直播：%s", session.getName()));
+        viewHolder.txtRtsp.setText(String.format("地址：%s", session.getUrl()));
         String audienceNum = String.format("在线：%s人", session.getAudienceNum());
         viewHolder.txtAudienceNum.setText(audienceNum);
         return convertView;

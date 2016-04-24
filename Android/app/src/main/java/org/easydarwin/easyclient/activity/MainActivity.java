@@ -108,7 +108,7 @@ public class MainActivity extends BaseActivity implements
 
             @Override
             public void onError(Call call, Exception e) {
-                Toast.makeText(MainActivity.this, "onError:" + e.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "onError:" + e.toString(), Toast.LENGTH_LONG).show();
             }
 
             @Override
@@ -116,9 +116,10 @@ public class MainActivity extends BaseActivity implements
                 List<LiveSession> sessions = liveVO.getEasyDarwin().getBody().getSessions();
                 if (sessions.size() == 0) {
                     showToadMessage("暂无直播信息");
-                    return;
+                    liveVOAdapter = new LiveVOAdapter(new ArrayList<LiveSession>());
+                } else {
+                    liveVOAdapter = new LiveVOAdapter(sessions);
                 }
-                liveVOAdapter = new LiveVOAdapter(sessions);
                 listView.setAdapter(liveVOAdapter);
             }
         });
