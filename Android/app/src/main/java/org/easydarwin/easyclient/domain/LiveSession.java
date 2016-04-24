@@ -6,6 +6,8 @@
 */
 package org.easydarwin.easyclient.domain;
 
+import android.text.TextUtils;
+
 /**
  * Created by Helong on 16/3/15-22:21.
  */
@@ -15,6 +17,7 @@ public class LiveSession {
     private String index;
     private String name;
     private String url;
+    private String AudienceNum;
 
     public String getIndex() {
         return index;
@@ -38,5 +41,16 @@ public class LiveSession {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getAudienceNum() {
+        if (TextUtils.isEmpty(AudienceNum)) {
+            return "0";
+        }
+        return AudienceNum;
+    }
+
+    public void setAudienceNum(String audienceNum) {
+        AudienceNum = audienceNum;
     }
 }

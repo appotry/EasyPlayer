@@ -23,11 +23,12 @@ import java.util.List;
 public class LiveVOAdapter extends BaseAdapter {
 
     private List<LiveSession> mSessions;
+
     public LiveVOAdapter(List<LiveSession> mSessions) {
         this.mSessions = mSessions;
     }
 
-    public void add(List<LiveSession> mSessions){
+    public void add(List<LiveSession> mSessions) {
         this.mSessions.addAll(mSessions);
         notifyDataSetChanged();
     }
@@ -50,24 +51,28 @@ public class LiveVOAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         LiveViewHolder viewHolder;
-        if(convertView==null){
-            convertView=View.inflate(parent.getContext(), R.layout.list_live_item,null);
-            viewHolder=new LiveViewHolder();
-            viewHolder.txtName= (TextView) convertView.findViewById(R.id.txt_name);
-            viewHolder.txtRtsp= (TextView) convertView.findViewById(R.id.txt_rtsp);
+        if (convertView == null) {
+            convertView = View.inflate(parent.getContext(), R.layout.list_live_item, null);
+            viewHolder = new LiveViewHolder();
+            viewHolder.txtName = (TextView) convertView.findViewById(R.id.txt_name);
+            viewHolder.txtRtsp = (TextView) convertView.findViewById(R.id.txt_rtsp);
+            viewHolder.txtAudienceNum = (TextView) convertView.findViewById(R.id.txt_audience_num);
             convertView.setTag(viewHolder);
-        }else {
-            viewHolder= (LiveViewHolder) convertView.getTag();
+        } else {
+            viewHolder = (LiveViewHolder) convertView.getTag();
         }
-        LiveSession session=mSessions.get(position);
+        LiveSession session = mSessions.get(position);
         viewHolder.txtName.setText(session.getName());
         viewHolder.txtRtsp.setText(session.getUrl());
+        String audienceNum = String.format("在线：%s人", session.getAudienceNum());
+        viewHolder.txtAudienceNum.setText(audienceNum);
         return convertView;
     }
 
-    static class LiveViewHolder{
+    static class LiveViewHolder {
         TextView txtName;
         TextView txtRtsp;
+        TextView txtAudienceNum;
     }
 
 }
