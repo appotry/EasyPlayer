@@ -48,8 +48,8 @@ public class MainActivity extends BaseActivity implements
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
+            actionBar.setTitle("EasyClient");
             actionBar.setDisplayShowHomeEnabled(false);
-            actionBar.setDisplayShowTitleEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(false);
             actionBar.show();
         }
