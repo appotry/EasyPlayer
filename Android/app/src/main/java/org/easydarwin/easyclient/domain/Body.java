@@ -14,22 +14,22 @@ import java.util.List;
  */
 public class Body {
 
-    private String SessionCount;
-    private List<LiveSession> Sessions;
+    private String DeviceCount;
+    private List<Device> Devices;
 
-    public String getSessionCount() {
-        return SessionCount;
+    public String getDeviceCount() {
+        return DeviceCount;
     }
 
-    public void setSessionCount(String sessionCount) {
-        SessionCount = sessionCount;
+    public void setDeviceCount(String deviceCount) {
+        DeviceCount = deviceCount;
     }
 
-    public List<LiveSession> getSessions() {
-        return Sessions==null?new ArrayList<LiveSession>():Sessions;
+    public List<Device> getDevices() {
+        return Devices;
     }
 
-    public void setSessions(List<LiveSession> sessions) {
-        Sessions = sessions;
+    public void setDevices(List<Device> devices) {
+        Devices = devices;
     }
 }

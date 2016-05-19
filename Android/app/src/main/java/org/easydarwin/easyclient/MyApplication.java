@@ -52,12 +52,21 @@ public class MyApplication extends Application
 
     }
 
+    public String getIp(){
+        SharedPreferences sharedPreferences=getSharedPreferences(DarwinConfig.SETTING_PREF_NAME,MODE_PRIVATE);
+       return sharedPreferences.getString(DarwinConfig.SERVER_IP, DarwinConfig.DEFAULT_SERVER_IP);
+    }
+
+    public String getPort(){
+        SharedPreferences sharedPreferences=getSharedPreferences(DarwinConfig.SETTING_PREF_NAME,MODE_PRIVATE);
+        return sharedPreferences.getString(DarwinConfig.SERVER_PORT, DarwinConfig.DEFAULT_SERVER_PORT);
+    }
 
 
     /**
      * @return the main context of the Application
      */
-    public static Context getAppContext()
+    public static MyApplication getInstance()
     {
         return instance;
     }

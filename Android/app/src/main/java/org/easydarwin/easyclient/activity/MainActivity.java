@@ -19,11 +19,14 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import org.easydarwin.easyclient.MyApplication;
 import org.easydarwin.easyclient.R;
-import org.easydarwin.easyclient.adapter.LiveVOAdapter;
+import org.easydarwin.easyclient.adapter.OnlineCameraAdapter;
+import org.easydarwin.easyclient.callback.DeviceInfoCallback;
 import org.easydarwin.easyclient.callback.LiveVOCallback;
 import org.easydarwin.easyclient.config.DarwinConfig;
-import org.easydarwin.easyclient.domain.LiveSession;
+import org.easydarwin.easyclient.domain.Device;
+import org.easydarwin.easyclient.domain.DeviceInfoWrapper;
 import org.easydarwin.easyclient.domain.LiveVO;
 import org.easydarwin.okhttplibrary.OkHttpUtils;
 
@@ -37,7 +40,7 @@ public class MainActivity extends BaseActivity implements
         AdapterView.OnItemClickListener, SwipeRefreshLayout.OnRefreshListener {
 
     ListView listView;
-    LiveVOAdapter liveVOAdapter;
+    OnlineCameraAdapter liveVOAdapter;
     SwipeRefreshLayout swipeRefreshLayout;
     String serverIp, serverPort;
 
@@ -49,24 +52,26 @@ public class MainActivity extends BaseActivity implements
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setTitle("EasyClient");
-            actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(false);
+            actionBar.setLogo(R.mipmap.ic_launcher);
+            actionBar.setDisplayUseLogoEnabled(true);
+            actionBar.setDisplayShowHomeEnabled(true);
             actionBar.show();
         }
         listView = (ListView) findViewById(R.id.list_live);
-        liveVOAdapter = new LiveVOAdapter(new ArrayList<LiveSession>());
+        liveVOAdapter = new OnlineCameraAdapter(new ArrayList<Device>());
         listView.setAdapter(liveVOAdapter);
         listView.setOnItemClickListener(this);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swip_refersh);
         swipeRefreshLayout.setOnRefreshListener(this);
 
-        getSeeeion();
+        getDevices();
     }
 
-    private void getSeeeion() {
+    private void getDevices() {
         serverIp = mSettingSharedPreference.getString(DarwinConfig.SERVER_IP, DarwinConfig.DEFAULT_SERVER_IP);
         serverPort = mSettingSharedPreference.getString(DarwinConfig.SERVER_PORT, DarwinConfig.DEFAULT_SERVER_PORT);
-        getSessions(serverIp, serverPort);
+        getDevices(serverIp, serverPort);
     }
 
     @Override
@@ -86,13 +91,13 @@ public class MainActivity extends BaseActivity implements
      * @param ip   服务器地址
      * @param port 服务器端口号
      */
-    private void getSessions(String ip, String port) {
+    private void getDevices(String ip, String port) {
 
         if (TextUtils.isEmpty(ip) || TextUtils.isEmpty(port)) {
             return;
         }
 
-        String url = String.format("http://%s:%s/api/getrtsppushsessions", ip, port);
+        String url = String.format("http://%s:%s/api/getdevicelist", ip, port);
         OkHttpUtils.post().url(url).build().execute(new LiveVOCallback() {
 
             @Override
@@ -113,14 +118,44 @@ public class MainActivity extends BaseActivity implements
 
             @Override
             public void onResponse(LiveVO liveVO) {
-                List<LiveSession> sessions = liveVO.getEasyDarwin().getBody().getSessions();
-                if (sessions.size() == 0) {
+                List<Device> devices = liveVO.getEasyDarwin().getBody().getDevices();
+                if (devices.size() == 0) {
                     showToadMessage("暂无直播信息");
-                    liveVOAdapter = new LiveVOAdapter(new ArrayList<LiveSession>());
+                    liveVOAdapter = new OnlineCameraAdapter(new ArrayList<Device>());
                 } else {
-                    liveVOAdapter = new LiveVOAdapter(sessions);
+                    liveVOAdapter = new OnlineCameraAdapter(devices);
                 }
                 listView.setAdapter(liveVOAdapter);
+            }
+        });
+    }
+
+
+    private void getDeviceRtspUrl(String serial){
+        String url=String.format("http://%s:%s/api/getdevicestream?device=%s&protocol=RTSP",
+                MyApplication.getInstance().getIp(),
+                MyApplication.getInstance().getPort(),serial);
+        OkHttpUtils.post().url(url).build().execute(new DeviceInfoCallback(){
+            @Override
+            public void onBefore(Request request) {
+                swipeRefreshLayout.setRefreshing(false);
+                showWaitProgress("");
+            }
+
+            @Override
+            public void onAfter() {
+                hideWaitProgress();
+            }
+            @Override
+            public void onError(Call call, Exception e) {
+                Toast.makeText(MainActivity.this, "onError:" + e.toString(), Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onResponse(DeviceInfoWrapper deviceInfoWrapper) {
+                Intent intent = new Intent(MainActivity.this, EasyPlayerActivity.class);
+                intent.putExtra(DarwinConfig.CAM_Serial, deviceInfoWrapper.getEasyDarwin().getBody().getURL());
+                startActivity(intent);
             }
         });
     }
@@ -134,10 +169,8 @@ public class MainActivity extends BaseActivity implements
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        LiveSession session = (LiveSession) parent.getAdapter().getItem(position);
-        Intent intent = new Intent(this, EasyPlayerActivity.class);
-        intent.putExtra(DarwinConfig.RTSP_ADDRESS, session.getUrl());
-        startActivity(intent);
+        Device device = (Device) parent.getAdapter().getItem(position);
+        getDeviceRtspUrl(device.getSerial());
     }
 
     @Override
@@ -159,6 +192,6 @@ public class MainActivity extends BaseActivity implements
 
     @Override
     public void onRefresh() {
-        getSeeeion();
+        getDevices();
     }
 }

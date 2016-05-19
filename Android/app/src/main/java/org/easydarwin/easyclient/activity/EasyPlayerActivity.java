@@ -63,7 +63,7 @@ public class EasyPlayerActivity extends AppCompatActivity implements SurfaceHold
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
-        mRTSPUrl = getIntent().getStringExtra(DarwinConfig.RTSP_ADDRESS);
+        mRTSPUrl = getIntent().getStringExtra(DarwinConfig.CAM_Serial);
         if (TextUtils.isEmpty(mRTSPUrl)) {
             finish();
             return;

@@ -12,7 +12,7 @@
 
     <EditText
         android:id="@+id/edt_server_ip"
-        android:hint="EasyDarwin地址"
+        android:hint="EasyCMS地址"
         android:inputType="textUri"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
@@ -20,7 +20,7 @@
     <EditText
         android:id="@+id/edt_server_port"
         android:hint="http_service_port"
-        android:text="8080"
+        android:text="10000"
         android:inputType="number"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
