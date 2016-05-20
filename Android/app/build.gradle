@@ -8,8 +8,8 @@ android {
         applicationId "org.easydarwin.easyclient"
         minSdkVersion 16
         targetSdkVersion 21
-        versionCode 4
-        versionName "1.0.16.0519"
+        versionCode 5
+        versionName "1.0.16.0520"
     }
     buildTypes {
         release {

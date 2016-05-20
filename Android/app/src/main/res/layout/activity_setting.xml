@@ -19,7 +19,7 @@
 
     <EditText
         android:id="@+id/edt_server_port"
-        android:hint="http_service_port"
+        android:hint="EasyCMS Port"
         android:text="10000"
         android:inputType="number"
         android:layout_width="match_parent"

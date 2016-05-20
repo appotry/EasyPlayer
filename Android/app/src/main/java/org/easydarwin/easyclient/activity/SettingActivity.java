@@ -40,7 +40,7 @@ public class SettingActivity extends BaseActivity implements View.OnClickListene
         mSettingSharedPreference=
                 getSharedPreferences(DarwinConfig.SETTING_PREF_NAME, MODE_PRIVATE);
         String serverIP=mSettingSharedPreference.getString(DarwinConfig.SERVER_IP, "");
-        String serverPort=mSettingSharedPreference.getString(DarwinConfig.SERVER_PORT,"8080");
+        String serverPort=mSettingSharedPreference.getString(DarwinConfig.SERVER_PORT,"10000");
         btnSave= (Button) findViewById(R.id.btn_save);
         btnSave.setOnClickListener(this);
         edtServerIp= (EditText) findViewById(R.id.edt_server_ip);

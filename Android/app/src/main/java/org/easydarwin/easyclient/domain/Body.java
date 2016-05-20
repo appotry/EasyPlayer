@@ -26,7 +26,7 @@ public class Body {
     }
 
     public List<Device> getDevices() {
-        return Devices;
+        return Devices == null ? new ArrayList<Device>() : Devices;
     }
 
     public void setDevices(List<Device> devices) {
