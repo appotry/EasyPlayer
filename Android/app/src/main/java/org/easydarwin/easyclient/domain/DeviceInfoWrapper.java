@@ -17,6 +17,15 @@ public class DeviceInfoWrapper {
 
    public class DeviceInfo {
         DeviceInfoBody Body;
+       DeviceHeader Header;
+
+       public DeviceHeader getHeader() {
+           return Header;
+       }
+
+       public void setHeader(DeviceHeader header) {
+           Header = header;
+       }
 
         public DeviceInfoBody getBody() {
             return Body;

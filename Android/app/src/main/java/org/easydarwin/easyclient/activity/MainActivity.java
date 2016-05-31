@@ -26,6 +26,7 @@ import org.easydarwin.easyclient.callback.DeviceInfoCallback;
 import org.easydarwin.easyclient.callback.LiveVOCallback;
 import org.easydarwin.easyclient.config.DarwinConfig;
 import org.easydarwin.easyclient.domain.Device;
+import org.easydarwin.easyclient.domain.DeviceHeader;
 import org.easydarwin.easyclient.domain.DeviceInfoWrapper;
 import org.easydarwin.easyclient.domain.LiveVO;
 import org.easydarwin.okhttplibrary.OkHttpUtils;
@@ -153,6 +154,12 @@ public class MainActivity extends BaseActivity implements
 
             @Override
             public void onResponse(DeviceInfoWrapper deviceInfoWrapper) {
+                if(deviceInfoWrapper.getEasyDarwin().getBody()==null){
+                    DeviceHeader header=deviceInfoWrapper.getEasyDarwin().getHeader();
+                    Toast.makeText(MainActivity.this, header.getErrorString()+"(" +header.getErrorNum()+")",
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
                 Intent intent = new Intent(MainActivity.this, EasyPlayerActivity.class);
                 intent.putExtra(DarwinConfig.CAM_Serial, deviceInfoWrapper.getEasyDarwin().getBody().getURL());
                 startActivity(intent);
