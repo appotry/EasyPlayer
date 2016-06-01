@@ -29,7 +29,9 @@
             android:name=".activity.SettingActivity"
             android:screenOrientation="portrait" />
 
-        <activity android:name=".activity.EasyPlayerActivity" />
+        <activity
+            android:name=".activity.EasyPlayerActivity"
+            android:configChanges="keyboardHidden|screenSize|orientation"/>
     </application>
 
 </manifest>
