@@ -1,5 +1,5 @@
 /*
-	Copyright (c) 2013-2016 EasyDarwin.ORG.  All rights reserved.
+	Copyright (c) 2012-2016 EasyDarwin.ORG.  All rights reserved.
 	Github: https://github.com/EasyDarwin
 	WEChat: EasyDarwin
 	Website: http://www.easydarwin.org
@@ -32,8 +32,21 @@ public class BaseActivity extends AppCompatActivity {
         }
     }
 
-    protected void showToadMessage(String message){
-        Toast.makeText(this,message,Toast.LENGTH_LONG).show();
+    private Toast mToast;
+    public void showToadMessage(String text) {
+        if(mToast == null) {
+            mToast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
+        } else {
+            mToast.setText(text);
+            mToast.setDuration(Toast.LENGTH_SHORT);
+        }
+        mToast.show();
+    }
+
+    public void cancelToast() {
+        if (mToast != null) {
+            mToast.cancel();
+        }
     }
 
     private WaitProgressDialog waitProgressDialog;

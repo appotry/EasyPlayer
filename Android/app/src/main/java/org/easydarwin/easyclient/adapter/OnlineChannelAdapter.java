@@ -18,36 +18,37 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 
 import org.easydarwin.easyclient.R;
+import org.easydarwin.easyclient.domain.Channels;
 import org.easydarwin.easyclient.domain.Device;
 
 import java.util.List;
 
 /**
- * Created by Helong on 16/3/15-22:27.
+ * Created by Kim on 2016/6/18.
  */
-public class OnlineCameraAdapter extends BaseAdapter {
-    private static final String TAG = "OnlineCameraAdapter";
-    private List<Device> mDevices;
+public class OnlineChannelAdapter extends BaseAdapter {
+    private static final String TAG = "OnlineChannelAdapter";
+    private List<Channels> mChannels;
     private int mSnapshotWidth;
     private int mSnapshotHeight;
 
-    public OnlineCameraAdapter(List<Device> mDevices) {
-        this.mDevices = mDevices;
+    public OnlineChannelAdapter(List<Channels> channels) {
+        this.mChannels = channels;
     }
 
     public void add(List<Device> mDevices) {
-        this.mDevices.addAll(mDevices);
+        this.mChannels.addAll(mChannels);
         notifyDataSetChanged();
     }
 
     @Override
     public int getCount() {
-        return mDevices.size();
+        return mChannels.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return mDevices.get(position);
+        return mChannels.get(position);
     }
 
     @Override
@@ -63,7 +64,6 @@ public class OnlineCameraAdapter extends BaseAdapter {
             viewHolder = new LiveViewHolder();
             viewHolder.relativeLayout= (RelativeLayout) convertView.findViewById(R.id.rlayout_device);
             viewHolder.txtTitle = (TextView) convertView.findViewById(R.id.txt_title);
-//            viewHolder.txtAppType = (TextView) convertView.findViewById(R.id.txt_apptype);
             viewHolder.txtTermialType = (TextView) convertView.findViewById(R.id.txt_terminal_type);
             viewHolder.imvSnapshot = (ImageView) convertView.findViewById(R.id.imv_photo);
 
@@ -77,12 +77,11 @@ public class OnlineCameraAdapter extends BaseAdapter {
         }
 
 
-        Device device = mDevices.get(position);
-        viewHolder.txtTitle.setText(String.format("%s（%s）", device.getName(), device.getSerial()));
-//        viewHolder.txtAppType.setText(device.getAppType());
-        viewHolder.txtTermialType.setText(device.getTerminalType());
+        Channels channel = mChannels.get(position);
+        viewHolder.txtTitle.setText(String.format("%s（%s）", channel.getName(), channel.getStatus()));
+        viewHolder.txtTermialType.setVisibility(View.GONE);
         Glide.with(parent.getContext())
-                .load(device.getSnapURL())
+                .load(channel.getSnapURL())
                 .placeholder(R.drawable.snap)
                 .into(viewHolder.imvSnapshot);
         return convertView;

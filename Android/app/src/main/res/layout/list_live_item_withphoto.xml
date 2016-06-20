@@ -4,15 +4,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/txt_title"
-        android:background="#fff"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:text="Ax000000"
-        android:textSize="13dp" />
-
     <RelativeLayout
         android:id="@+id/rlayout_device"
         android:layout_width="match_parent"
@@ -22,6 +13,7 @@
             android:id="@+id/imv_photo"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:scaleType="fitXY"
             android:src="@drawable/setting_icon" />
 
         <TextView
@@ -35,7 +27,8 @@
             android:padding="6dp"
             android:text="EasyCamera"
             android:textColor="#ffffff"
-            android:textSize="14dp" />
+            android:textSize="14dp"
+            android:visibility="gone"/>
 
         <TextView
             android:id="@+id/txt_terminal_type"
@@ -43,13 +36,22 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
-            android:background="@color/colorPrimaryDark"
+            android:background="@color/transparent_background"
             android:gravity="center"
-            android:layout_margin="10dp"
-            android:padding="6dp"
+            android:layout_margin="5dp"
+            android:padding="2dp"
             android:text="EasyCamera"
             android:textColor="#ffffff"
-            android:textSize="14dp" />
+            android:textSize="11dp" />
     </RelativeLayout>
+
+    <TextView
+        android:id="@+id/txt_title"
+        android:background="#fff"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:text="Ax000000"
+        android:textSize="11dp" />
 
 </LinearLayout>

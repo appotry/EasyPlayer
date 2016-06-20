@@ -1,10 +1,12 @@
 /*
-	Copyright (c) 2013-2016 EasyDarwin.ORG.  All rights reserved.
+	Copyright (c) 2012-2016 EasyDarwin.ORG.  All rights reserved.
 	Github: https://github.com/EasyDarwin
 	WEChat: EasyDarwin
 	Website: http://www.easydarwin.org
 */
 package org.easydarwin.easyclient.callback;
+
+import android.util.Log;
 
 import com.google.gson.Gson;
 
@@ -24,6 +26,7 @@ public abstract class DeviceInfoCallback extends Callback<DeviceInfoWrapper> {
     public DeviceInfoWrapper parseNetworkResponse(Response response) throws IOException
     {
         String string = response.body().string();
+        Log.d("DeviceInfoWrapper", "response="+string);
         DeviceInfoWrapper deviceInfoWrapper = new Gson().fromJson(string, DeviceInfoWrapper.class);
         return deviceInfoWrapper;
     }

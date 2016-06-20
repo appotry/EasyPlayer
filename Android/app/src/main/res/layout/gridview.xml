@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+
+    <org.easydarwin.easyclient.view.NoScrollGridView
+        android:id="@+id/gridview_toolbar"
+        android:numColumns="2"
+        android:verticalSpacing="@dimen/gridview_verticalspacing"
+        android:horizontalSpacing="@dimen/gridview_horizontalspacing"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+</LinearLayout>
