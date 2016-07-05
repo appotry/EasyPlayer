@@ -262,7 +262,7 @@ public class ExpandListAdapter extends BaseExpandableListAdapter implements
         });
     }
 
-    private void getDeviceRtspUrl(String serial, String channel){
+    private void getDeviceRtspUrl(final String serial, String channel){
         String url=String.format("http://%s:%s/api/getdevicestream?device=%s&channel=%s&protocol=RTSP",
                 MyApplication.getInstance().getIp(),
                 MyApplication.getInstance().getPort(),serial,channel);
@@ -291,7 +291,8 @@ public class ExpandListAdapter extends BaseExpandableListAdapter implements
                     return;
                 }
                 Intent intent = new Intent(MainActivity.instance, EasyPlayerActivity.class);
-                intent.putExtra(DarwinConfig.CAM_Serial, deviceInfoWrapper.getEasyDarwin().getBody().getURL());
+                intent.putExtra(DarwinConfig.CAM_URL, deviceInfoWrapper.getEasyDarwin().getBody().getURL());
+                intent.putExtra(DarwinConfig.DEV_SERIAL, serial);
                 MainActivity.instance.startActivity(intent);
             }
         });

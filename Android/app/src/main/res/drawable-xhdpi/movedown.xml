@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android" android:exitFadeDuration="@android:integer/config_shortAnimTime">
+
+    <item android:drawable="@drawable/downpress" android:state_pressed="true"></item>
+    <item android:drawable="@drawable/downpress" android:state_focused="true"></item>
+    <item android:drawable="@drawable/downpress" android:state_hovered="true"></item>
+    <item android:drawable="@drawable/down" android:state_pressed="false"></item>
+
+</selector>

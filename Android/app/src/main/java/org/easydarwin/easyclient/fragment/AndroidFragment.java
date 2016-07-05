@@ -11,7 +11,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.TextUtils;
 import android.util.Log;
@@ -174,7 +173,7 @@ public class AndroidFragment extends BaseFragment implements SwipeRefreshLayout.
                     return;
                 }
                 Intent intent = new Intent(getContext(), EasyPlayerActivity.class);
-                intent.putExtra(DarwinConfig.CAM_Serial, deviceInfoWrapper.getEasyDarwin().getBody().getURL());
+                intent.putExtra(DarwinConfig.CAM_URL, deviceInfoWrapper.getEasyDarwin().getBody().getURL());
                 startActivity(intent);
             }
         });

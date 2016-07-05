@@ -8,10 +8,8 @@ package org.easydarwin.easyclient.fragment;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.TextUtils;
 import android.util.Log;
@@ -152,7 +150,7 @@ public class CameraFragment extends BaseFragment implements SwipeRefreshLayout.O
         });
     }
 
-    private void getDeviceRtspUrl(String serial){
+    private void getDeviceRtspUrl(final String serial){
         String url=String.format("http://%s:%s/api/getdevicestream?device=%s&protocol=RTSP",
                 MyApplication.getInstance().getIp(),
                 MyApplication.getInstance().getPort(),serial);
@@ -181,7 +179,8 @@ public class CameraFragment extends BaseFragment implements SwipeRefreshLayout.O
                     return;
                 }
                 Intent intent = new Intent(getContext(), EasyPlayerActivity.class);
-                intent.putExtra(DarwinConfig.CAM_Serial, deviceInfoWrapper.getEasyDarwin().getBody().getURL());
+                intent.putExtra(DarwinConfig.CAM_URL, deviceInfoWrapper.getEasyDarwin().getBody().getURL());
+                intent.putExtra(DarwinConfig.DEV_SERIAL, serial);
                 startActivity(intent);
             }
         });

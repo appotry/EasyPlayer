@@ -24,9 +24,10 @@ public class DarwinConfig {
     //rtsp地址
     public static final String RTSP_ADDRESS="rtsp_addr";
 
-    public static final String CAM_Serial="cam_serial";
+    public static final String CAM_URL ="cam_url";
     //默认IP地址
     public static final String DEFAULT_SERVER_IP="121.40.50.44";
     public static final String DEFAULT_SERVER_PORT="10000";
 
+    public static final String DEV_SERIAL = "serial";
 }
