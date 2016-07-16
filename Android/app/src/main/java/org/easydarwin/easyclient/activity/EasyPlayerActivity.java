@@ -6,7 +6,6 @@
 */
 package org.easydarwin.easyclient.activity;
 
-import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -14,7 +13,6 @@ import android.os.Handler;
 import android.os.ResultReceiver;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.ViewConfigurationCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -29,12 +27,16 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.easydarwin.easyclient.MyApplication;
 import org.easydarwin.easyclient.R;
+import org.easydarwin.easyclient.audio.AudioRecorder;
+import org.easydarwin.easyclient.audio.RecordButton;
 import org.easydarwin.easyclient.callback.DeviceInfoCallback;
 import org.easydarwin.easyclient.config.DarwinConfig;
 import org.easydarwin.easyclient.domain.DeviceHeader;
@@ -43,11 +45,15 @@ import org.easydarwin.okhttplibrary.OkHttpUtils;
 import org.easydarwin.video.EasyRTSPClient;
 import org.easydarwin.video.RTSPClient;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import okhttp3.Call;
 
-public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Callback, View.OnTouchListener {
+public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Callback, View.OnTouchListener, AudioRecorder.RecordListener {
     private String mRTSPUrl;
     private String mDevSerial;
+    private int mChannelId = 0;
     private EasyRTSPClient mStreamRender;
     private ResultReceiver mResultReceiver;
     private GestureDetectorCompat mDetector;
@@ -59,9 +65,17 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
     private Button mBtnMoveDown;
     private Button mBtnMoveLeft;
     private Button mBtnMoveRight;
+    private RecordButton mRecordBtn;
     private EasyPlayerActivity mContext;
     private double mLastLen = 0;
     private int mZoomingMode = 0;//0 - not zooming  1 - Zoomin  2 - Zoomout
+    private long mSeq = 1;
+    private static boolean mSendingTalkData;
+    private List<String> mTalkCmdDataList = new ArrayList<String>();
+    private boolean mIsTalking = false;
+    private LinearLayout mRecordDlg;
+    private ImageView mRecordImg;
+    private TextView mRecordText;
 
     class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
 
@@ -145,6 +159,16 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
         mBtnMoveRight = (Button)this.findViewById(R.id.btMoveRight);
         mBtnMoveRight.setOnTouchListener(this);
 
+        mRecordImg = (ImageView)this.findViewById(R.id.record_dialog_img);
+        mRecordText = (TextView)this.findViewById(R.id.record_dialog_txt);
+        mRecordDlg = (LinearLayout)this.findViewById(R.id.dlgRecord);
+
+        mRecordBtn = (RecordButton)this.findViewById(R.id.btRecordBtn);
+        mRecordBtn.init(this, mRecordDlg, mRecordImg, mRecordText);
+        AudioRecorder audioRecord = new AudioRecorder();
+        audioRecord.setRecordListener(this);
+        mRecordBtn.setAudioRecord(audioRecord);
+
         if (isLandscape()){//横屏
             RelativeLayout.LayoutParams moveParam = (RelativeLayout.LayoutParams) mRlMove.getLayoutParams();
             moveParam.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, 0);
@@ -165,12 +189,10 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
     }
 
     private void fixPlayerRatio(View renderView, int maxWidth, int maxHeight) {
-
         int widthSize = maxWidth;
         int heightSize = maxHeight;
         int width = mWidth, height = mHeight;
         float aspectRatio = width * 1.0f / height;
-
 
         if (widthSize > heightSize * aspectRatio) {
             height = heightSize;
@@ -233,14 +255,6 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
             }
             getWindow().getDecorView().setSystemUiVisibility(newVis);
         }
-    }
-
-    public void onResume() {
-        super.onResume();
-    }
-
-    public void onPause() {
-        super.onPause();
     }
 
     @Override
@@ -366,7 +380,6 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
                 mDevSerial,
                 type.GetDes(),
                 cmd.GetDes());
-        Log.d(TAG, "kim url="+url);
 
         OkHttpUtils.post().url(url).build().execute(new DeviceInfoCallback() {
             @Override
@@ -383,6 +396,94 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
                 }
             }
         });
+    }
+
+    private void buildTalkBackCommand(String cmd, long pts, String data){
+        String json = String.format("{\n" +
+                "  \"EasyDarwin\": {\n" +
+                "    \"Body\": {\n" +
+                "      \"Channel\": \"%d\",\n" +
+                "      \"Protocol\": \"ONVIF\",\n" +
+                "      \"Reserve\": \"1\",\n" +
+                "      \"Command\": \"%s\",\n" +
+                "      \"AudioType\": \"G711A\",\n" +
+                "      \"Pts\": \"%d\",\n" +
+                "      \"AudioData\": \"%s\",\n" +
+                "      \"Serial\": \"%s\"\n" +
+                "    },\n" +
+                "    \"Header\": {\n" +
+                "      \"CSeq\": \"%d\",\n" +
+                "      \"MessageType\": \"MSG_CS_TALKBACK_CONTROL_REQ\",\n" +
+                "      \"Version\": \"1.0\"\n" +
+                "    }\n" +
+                "  }\n" +
+                "}", mChannelId, cmd, pts, data,mDevSerial, mSeq++);
+
+        synchronized (mTalkCmdDataList) {
+            mTalkCmdDataList.add(json);
+        }
+
+        return;
+    }
+
+    private void startSendTalkCmdData(){
+        Thread th = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String url=String.format("http://%s:%s",
+                        MyApplication.getInstance().getIp(),
+                        MyApplication.getInstance().getPort());
+                EasyPlayerActivity.mSendingTalkData = false;
+
+                int i = 0;
+                while (mIsTalking || i < mTalkCmdDataList.size()){
+                    if(false == EasyPlayerActivity.mSendingTalkData && i < mTalkCmdDataList.size()) {
+                        String data;
+                        synchronized (mTalkCmdDataList) {
+                            data = mTalkCmdDataList.get(i++);
+                        }
+//                        Log.d(TAG, "kim send data : "+data);
+                        EasyPlayerActivity.mSendingTalkData = true;
+                        OkHttpUtils.postString().url(url).content(data).build().execute(new DeviceInfoCallback() {
+                            @Override
+                            public void onError(Call call, Exception e) {
+                                Log.d(TAG, "kim Start onError");
+                                EasyPlayerActivity.mSendingTalkData = false;
+                            }
+
+                            @Override
+                            public void onResponse(DeviceInfoWrapper response) {
+                                Log.d(TAG, "kim Start onResponse");
+                                EasyPlayerActivity.mSendingTalkData = false;
+                            }
+                        });
+                    }
+                }
+
+                mTalkCmdDataList.clear();
+            }
+        });
+        th.start();
+    }
+
+    @Override
+    public void recordStart(long presentationTimeStamp){
+        mSeq = 1;
+        mTalkCmdDataList.clear();
+        mIsTalking = true;
+        buildTalkBackCommand("START", presentationTimeStamp, "");
+        startSendTalkCmdData();
+    }
+
+    @Override
+    public void recordSendData(String data, long presentationTimeStamp){
+        buildTalkBackCommand("SENDDATA", presentationTimeStamp, data);
+    }
+
+    @Override
+    public void recordEnd(long presentationTimeStamp){
+        buildTalkBackCommand("STOP", presentationTimeStamp, "");
+        mIsTalking = false;
     }
 }
 

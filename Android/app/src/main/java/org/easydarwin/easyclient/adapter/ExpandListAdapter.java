@@ -266,7 +266,6 @@ public class ExpandListAdapter extends BaseExpandableListAdapter implements
         String url=String.format("http://%s:%s/api/getdevicestream?device=%s&channel=%s&protocol=RTSP",
                 MyApplication.getInstance().getIp(),
                 MyApplication.getInstance().getPort(),serial,channel);
-        Log.d(TAG, "kim channel url="+url);
         OkHttpUtils.post().url(url).build().execute(new DeviceInfoCallback(){
             @Override
             public void onBefore(Request request) {
@@ -292,7 +291,7 @@ public class ExpandListAdapter extends BaseExpandableListAdapter implements
                 }
                 Intent intent = new Intent(MainActivity.instance, EasyPlayerActivity.class);
                 intent.putExtra(DarwinConfig.CAM_URL, deviceInfoWrapper.getEasyDarwin().getBody().getURL());
-                intent.putExtra(DarwinConfig.DEV_SERIAL, serial);
+//                intent.putExtra(DarwinConfig.DEV_SERIAL, serial);
                 MainActivity.instance.startActivity(intent);
             }
         });
