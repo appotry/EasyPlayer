@@ -291,7 +291,8 @@ public class ExpandListAdapter extends BaseExpandableListAdapter implements
                 }
                 Intent intent = new Intent(MainActivity.instance, EasyPlayerActivity.class);
                 intent.putExtra(DarwinConfig.CAM_URL, deviceInfoWrapper.getEasyDarwin().getBody().getURL());
-//                intent.putExtra(DarwinConfig.DEV_SERIAL, serial);
+                intent.putExtra(DarwinConfig.DEV_SERIAL, serial);
+                intent.putExtra(DarwinConfig.DEV_TYPE, "nvr");
                 MainActivity.instance.startActivity(intent);
             }
         });

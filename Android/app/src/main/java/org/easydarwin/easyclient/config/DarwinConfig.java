@@ -30,4 +30,5 @@ public class DarwinConfig {
     public static final String DEFAULT_SERVER_PORT="10000";
 
     public static final String DEV_SERIAL = "serial";
+    public static final String DEV_TYPE = "dev_type";
 }
