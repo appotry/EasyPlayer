@@ -32,7 +32,7 @@
             android:textColor="#ffffff" />
     </FrameLayout>
     <RelativeLayout
-        android:id="@+id/rlMove"
+        android:id="@+id/rlControl"
         android:layout_width="170dp"
         android:layout_height="170dp"
         android:layout_alignParentBottom="true"

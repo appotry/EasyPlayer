@@ -61,7 +61,7 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
     private int mWidth;
     private int mHeight;
     private String TAG = "EasyPlayerActivity";
-    private RelativeLayout mRlMove;
+    private RelativeLayout mRlControl;
     private Button mBtnMoveUp;
     private Button mBtnMoveDown;
     private Button mBtnMoveLeft;
@@ -95,10 +95,15 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
 
         @Override
         public boolean onSingleTapConfirmed(MotionEvent motionEvent){
-                if(mRlMove.getVisibility() == View.VISIBLE)
-                    mRlMove.setVisibility(View.GONE);
-                else
-                    mRlMove.setVisibility(View.VISIBLE);
+            //EasyNVR will support this function soon
+            if(mDevType.equals("nvr")){
+                return true;
+            }
+
+            if(mRlControl.getVisibility() == View.VISIBLE)
+                mRlControl.setVisibility(View.GONE);
+            else
+                mRlControl.setVisibility(View.VISIBLE);
             return true;
         }
     }
@@ -156,7 +161,7 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
             }
         };
 
-        mRlMove = (RelativeLayout)this.findViewById(R.id.rlMove);
+        mRlControl = (RelativeLayout)this.findViewById(R.id.rlControl);
         mBtnMoveUp = (Button)this.findViewById(R.id.btMoveUp);
         mBtnMoveUp.setOnTouchListener(this);
         mBtnMoveDown = (Button)this.findViewById(R.id.btMoveDown);
@@ -166,7 +171,10 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
         mBtnMoveRight = (Button)this.findViewById(R.id.btMoveRight);
         mBtnMoveRight.setOnTouchListener(this);
 
-        if(mDevType.equals("android")){
+        //EasyNVR will support this function soon
+        if(mDevType.equals("nvr")){
+            mRlControl.setVisibility(View.GONE);
+        }else if(mDevType.equals("android")){
             setPtzControlVisiable(false);
         } else {
             setPtzControlVisiable(true);
@@ -183,21 +191,21 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
         mRecordBtn.setAudioRecord(audioRecord);
 
         if (isLandscape()){//横屏
-            RelativeLayout.LayoutParams moveParam = (RelativeLayout.LayoutParams) mRlMove.getLayoutParams();
+            RelativeLayout.LayoutParams moveParam = (RelativeLayout.LayoutParams) mRlControl.getLayoutParams();
             moveParam.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, 0);
             moveParam.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 1);
             moveParam.addRule(RelativeLayout.CENTER_HORIZONTAL, 0);
             moveParam.addRule(RelativeLayout.CENTER_VERTICAL, 1);
             moveParam.setMargins(0,0,50,0);
-            mRlMove.setLayoutParams(moveParam);
+            mRlControl.setLayoutParams(moveParam);
         } else {//竖屏
-            RelativeLayout.LayoutParams moveParam = (RelativeLayout.LayoutParams) mRlMove.getLayoutParams();
+            RelativeLayout.LayoutParams moveParam = (RelativeLayout.LayoutParams) mRlControl.getLayoutParams();
             moveParam.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, 1);
             moveParam.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 0);
             moveParam.addRule(RelativeLayout.CENTER_HORIZONTAL, 1);
             moveParam.addRule(RelativeLayout.CENTER_VERTICAL, 0);
             moveParam.setMargins(0,0,0,80);
-            mRlMove.setLayoutParams(moveParam);
+            mRlControl.setLayoutParams(moveParam);
         }
     }
 
@@ -251,26 +259,26 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
             params.width = ViewGroup.LayoutParams.MATCH_PARENT;
             render.requestLayout();
 
-            final RelativeLayout.LayoutParams moveParam = (RelativeLayout.LayoutParams) mRlMove.getLayoutParams();
+            final RelativeLayout.LayoutParams moveParam = (RelativeLayout.LayoutParams) mRlControl.getLayoutParams();
             moveParam.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, 0);
             moveParam.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 1);
             moveParam.addRule(RelativeLayout.CENTER_HORIZONTAL, 0);
             moveParam.addRule(RelativeLayout.CENTER_VERTICAL, 1);
             moveParam.setMargins(0,0,50,0);
-            mRlMove.setLayoutParams(moveParam);
+            mRlControl.setLayoutParams(moveParam);
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
             fixPlayerRatio(render, getResources().getDisplayMetrics().widthPixels, getResources().getDisplayMetrics().heightPixels);
             setNavVisibility(false);
 
-            final RelativeLayout.LayoutParams moveParam = (RelativeLayout.LayoutParams) mRlMove.getLayoutParams();
+            final RelativeLayout.LayoutParams moveParam = (RelativeLayout.LayoutParams) mRlControl.getLayoutParams();
             moveParam.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, 1);
             moveParam.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 0);
             moveParam.addRule(RelativeLayout.CENTER_HORIZONTAL, 1);
             moveParam.addRule(RelativeLayout.CENTER_VERTICAL, 0);
             moveParam.setMargins(0,0,0,80);
-            mRlMove.setLayoutParams(moveParam);
+            mRlControl.setLayoutParams(moveParam);
         }
     }
 
