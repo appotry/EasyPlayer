@@ -144,7 +144,7 @@ public class AndroidFragment extends BaseFragment implements SwipeRefreshLayout.
         });
     }
 
-    private void getDeviceRtspUrl(String serial){
+    private void getDeviceRtspUrl(final String serial){
         String url=String.format("http://%s:%s/api/getdevicestream?device=%s&protocol=RTSP",
                 MyApplication.getInstance().getIp(),
                 MyApplication.getInstance().getPort(),serial);
@@ -174,6 +174,8 @@ public class AndroidFragment extends BaseFragment implements SwipeRefreshLayout.
                 }
                 Intent intent = new Intent(getContext(), EasyPlayerActivity.class);
                 intent.putExtra(DarwinConfig.CAM_URL, deviceInfoWrapper.getEasyDarwin().getBody().getURL());
+                intent.putExtra(DarwinConfig.DEV_SERIAL, serial);
+                intent.putExtra(DarwinConfig.DEV_TYPE, "android");
                 startActivity(intent);
             }
         });

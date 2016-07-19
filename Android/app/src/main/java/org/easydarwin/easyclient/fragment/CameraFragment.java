@@ -181,6 +181,7 @@ public class CameraFragment extends BaseFragment implements SwipeRefreshLayout.O
                 Intent intent = new Intent(getContext(), EasyPlayerActivity.class);
                 intent.putExtra(DarwinConfig.CAM_URL, deviceInfoWrapper.getEasyDarwin().getBody().getURL());
                 intent.putExtra(DarwinConfig.DEV_SERIAL, serial);
+                intent.putExtra(DarwinConfig.DEV_TYPE, "camera");
                 startActivity(intent);
             }
         });

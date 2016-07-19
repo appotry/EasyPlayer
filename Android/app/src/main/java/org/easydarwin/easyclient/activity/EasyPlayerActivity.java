@@ -53,6 +53,7 @@ import okhttp3.Call;
 public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Callback, View.OnTouchListener, AudioRecorder.RecordListener {
     private String mRTSPUrl;
     private String mDevSerial;
+    private String mDevType; //camera  android   nvr
     private int mChannelId = 0;
     private EasyRTSPClient mStreamRender;
     private ResultReceiver mResultReceiver;
@@ -118,6 +119,12 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
 
         mDevSerial = getIntent().getStringExtra(DarwinConfig.DEV_SERIAL);
 
+        mDevType = getIntent().getStringExtra(DarwinConfig.DEV_TYPE);
+        if (TextUtils.isEmpty(mDevType)) {
+            finish();
+            return;
+        }
+
         mContext = this;
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -159,6 +166,12 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
         mBtnMoveRight = (Button)this.findViewById(R.id.btMoveRight);
         mBtnMoveRight.setOnTouchListener(this);
 
+        if(mDevType.equals("android")){
+            setPtzControlVisiable(false);
+        } else {
+            setPtzControlVisiable(true);
+        }
+
         mRecordImg = (ImageView)this.findViewById(R.id.record_dialog_img);
         mRecordText = (TextView)this.findViewById(R.id.record_dialog_txt);
         mRecordDlg = (LinearLayout)this.findViewById(R.id.dlgRecord);
@@ -185,6 +198,20 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
             moveParam.addRule(RelativeLayout.CENTER_VERTICAL, 0);
             moveParam.setMargins(0,0,0,80);
             mRlMove.setLayoutParams(moveParam);
+        }
+    }
+
+    private void setPtzControlVisiable(boolean visiable){
+        if(visiable){
+            mBtnMoveUp.setVisibility(View.VISIBLE);
+            mBtnMoveDown.setVisibility(View.VISIBLE);
+            mBtnMoveLeft.setVisibility(View.VISIBLE);
+            mBtnMoveRight.setVisibility(View.VISIBLE);
+        } else {
+            mBtnMoveUp.setVisibility(View.INVISIBLE);
+            mBtnMoveDown.setVisibility(View.INVISIBLE);
+            mBtnMoveLeft.setVisibility(View.INVISIBLE);
+            mBtnMoveRight.setVisibility(View.INVISIBLE);
         }
     }
 
