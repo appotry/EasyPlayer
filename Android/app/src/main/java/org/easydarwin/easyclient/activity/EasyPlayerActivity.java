@@ -95,11 +95,6 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
 
         @Override
         public boolean onSingleTapConfirmed(MotionEvent motionEvent){
-            //EasyNVR will support this function soon
-            if(mDevType.equals("nvr")){
-                return true;
-            }
-
             if(mRlControl.getVisibility() == View.VISIBLE)
                 mRlControl.setVisibility(View.GONE);
             else
@@ -128,6 +123,11 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
         if (TextUtils.isEmpty(mDevType)) {
             finish();
             return;
+        }
+
+        String channel = getIntent().getStringExtra(DarwinConfig.CHANNEL_ID);
+        if(!TextUtils.isEmpty(channel)){
+            mChannelId = Integer.parseInt(channel);
         }
 
         mContext = this;
@@ -171,15 +171,6 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
         mBtnMoveRight = (Button)this.findViewById(R.id.btMoveRight);
         mBtnMoveRight.setOnTouchListener(this);
 
-        //EasyNVR will support this function soon
-        if(mDevType.equals("nvr")){
-            mRlControl.setVisibility(View.GONE);
-        }else if(mDevType.equals("android")){
-            setPtzControlVisiable(false);
-        } else {
-            setPtzControlVisiable(true);
-        }
-
         mRecordImg = (ImageView)this.findViewById(R.id.record_dialog_img);
         mRecordText = (TextView)this.findViewById(R.id.record_dialog_txt);
         mRecordDlg = (LinearLayout)this.findViewById(R.id.dlgRecord);
@@ -189,6 +180,15 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
         AudioRecorder audioRecord = new AudioRecorder();
         audioRecord.setRecordListener(this);
         mRecordBtn.setAudioRecord(audioRecord);
+
+        //EasyNVR will support this function soon
+        if(mDevType.equals("nvr")){
+            mRecordBtn.setVisibility(View.INVISIBLE);
+        }else if(mDevType.equals("android")){
+            setPtzControlVisiable(false);
+        } else {
+            setPtzControlVisiable(true);
+        }
 
         if (isLandscape()){//横屏
             RelativeLayout.LayoutParams moveParam = (RelativeLayout.LayoutParams) mRlControl.getLayoutParams();
@@ -409,10 +409,11 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
     }
 
     void sendControlCommand(ControlCmd cmd, ControlType type){
-        String url=String.format("http://%s:%s/api/ptzcontrol?device=%s&channel=0&actiontype=%s&command=%s&speed=5&protocol=onvif",
+        String url=String.format("http://%s:%s/api/ptzcontrol?device=%s&channel=%d&actiontype=%s&command=%s&speed=5&protocol=onvif",
                 MyApplication.getInstance().getIp(),
                 MyApplication.getInstance().getPort(),
                 mDevSerial,
+                mChannelId,
                 type.GetDes(),
                 cmd.GetDes());
 

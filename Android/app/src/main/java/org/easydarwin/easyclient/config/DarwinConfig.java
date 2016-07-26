@@ -31,4 +31,5 @@ public class DarwinConfig {
 
     public static final String DEV_SERIAL = "serial";
     public static final String DEV_TYPE = "dev_type";
+    public static final String CHANNEL_ID="channel_id";
 }

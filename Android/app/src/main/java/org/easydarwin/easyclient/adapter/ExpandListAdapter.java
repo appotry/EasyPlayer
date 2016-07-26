@@ -262,7 +262,7 @@ public class ExpandListAdapter extends BaseExpandableListAdapter implements
         });
     }
 
-    private void getDeviceRtspUrl(final String serial, String channel){
+    private void getDeviceRtspUrl(final String serial, final String channel){
         String url=String.format("http://%s:%s/api/getdevicestream?device=%s&channel=%s&protocol=RTSP",
                 MyApplication.getInstance().getIp(),
                 MyApplication.getInstance().getPort(),serial,channel);
@@ -293,6 +293,7 @@ public class ExpandListAdapter extends BaseExpandableListAdapter implements
                 intent.putExtra(DarwinConfig.CAM_URL, deviceInfoWrapper.getEasyDarwin().getBody().getURL());
                 intent.putExtra(DarwinConfig.DEV_SERIAL, serial);
                 intent.putExtra(DarwinConfig.DEV_TYPE, "nvr");
+                intent.putExtra(DarwinConfig.CHANNEL_ID, channel);
                 MainActivity.instance.startActivity(intent);
             }
         });
