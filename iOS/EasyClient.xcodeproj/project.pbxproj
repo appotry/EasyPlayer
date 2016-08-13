@@ -213,18 +213,18 @@
 		968A3B3E1D54D324005F8925 /* SocketCommunication.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SocketCommunication.m; sourceTree = "<group>"; };
 		969A0F681D52215200D1E660 /* EasyUrl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EasyUrl.h; sourceTree = "<group>"; };
 		969A0F691D52215200D1E660 /* EasyUrl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EasyUrl.m; sourceTree = "<group>"; };
-		C40BD0B01D010C5300FA6F2E /* UIOT-VideoPlayer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "UIOT-VideoPlayer.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C40BD0B01D010C5300FA6F2E /* EasyClient.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EasyClient.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C40BD0B41D010C5300FA6F2E /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		C40BD0B61D010C5300FA6F2E /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		C40BD0B71D010C5300FA6F2E /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		C40BD0BD1D010C5300FA6F2E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		C40BD0BF1D010C5300FA6F2E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C40BD0C41D010C5300FA6F2E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		C40BD0CD1D010C5300FA6F2E /* UIOT_VideoPlayerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UIOT_VideoPlayerTests.m; sourceTree = "<group>"; };
+		C40BD0CD1D010C5300FA6F2E /* EasyClientTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EasyClientTests.m; sourceTree = "<group>"; };
 		C40BD0CF1D010C5300FA6F2E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		C40BD0D81D010C5300FA6F2E /* UIOT_VideoPlayerUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UIOT_VideoPlayerUITests.m; sourceTree = "<group>"; };
+		C40BD0D81D010C5300FA6F2E /* EasyClientUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EasyClientUITests.m; sourceTree = "<group>"; };
 		C40BD0DA1D010C5300FA6F2E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		C40BD0E61D010F2E00FA6F2E /* UIOT-VideoPlayer-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIOT-VideoPlayer-Prefix.pch"; sourceTree = "<group>"; };
+		C40BD0E61D010F2E00FA6F2E /* EasyClient-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "EasyClient-Prefix.pch"; sourceTree = "<group>"; };
 		C4102B3A1D26190600930AD0 /* DESDecrypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DESDecrypt.h; sourceTree = "<group>"; };
 		C4102B3B1D26190600930AD0 /* DESDecrypt.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DESDecrypt.m; sourceTree = "<group>"; };
 		C4102B3C1D26190600930AD0 /* GTMBase64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTMBase64.h; sourceTree = "<group>"; };
@@ -598,9 +598,9 @@
 		C40BD0A71D010C5300FA6F2E = {
 			isa = PBXGroup;
 			children = (
-				C40BD0B21D010C5300FA6F2E /* UIOT-VideoPlayer */,
-				C40BD0CC1D010C5300FA6F2E /* UIOT-VideoPlayerTests */,
-				C40BD0D71D010C5300FA6F2E /* UIOT-VideoPlayerUITests */,
+				C40BD0B21D010C5300FA6F2E /* EasyClient */,
+				C40BD0CC1D010C5300FA6F2E /* EasyClientTests */,
+				C40BD0D71D010C5300FA6F2E /* EasyClientUITests */,
 				C40BD0B11D010C5300FA6F2E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -608,12 +608,12 @@
 		C40BD0B11D010C5300FA6F2E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C40BD0B01D010C5300FA6F2E /* UIOT-VideoPlayer.app */,
+				C40BD0B01D010C5300FA6F2E /* EasyClient.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		C40BD0B21D010C5300FA6F2E /* UIOT-VideoPlayer */ = {
+		C40BD0B21D010C5300FA6F2E /* EasyClient */ = {
 			isa = PBXGroup;
 			children = (
 				C40BD0B61D010C5300FA6F2E /* AppDelegate.h */,
@@ -631,8 +631,9 @@
 				C47119F41D01200C0086891F /* Frameworks */,
 				C40BD0B31D010C5300FA6F2E /* Supporting Files */,
 			);
-			path = "UIOT-VideoPlayer";
+			path = EasyClient;
 			sourceTree = "<group>";
+			usesTabs = 0;
 		};
 		C40BD0B31D010C5300FA6F2E /* Supporting Files */ = {
 			isa = PBXGroup;
@@ -641,27 +642,27 @@
 				7618D9B01D59F65600CA6781 /* EasyClient120.png */,
 				C40BD0C41D010C5300FA6F2E /* Info.plist */,
 				C40BD0B41D010C5300FA6F2E /* main.m */,
-				C40BD0E61D010F2E00FA6F2E /* UIOT-VideoPlayer-Prefix.pch */,
+				C40BD0E61D010F2E00FA6F2E /* EasyClient-Prefix.pch */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		C40BD0CC1D010C5300FA6F2E /* UIOT-VideoPlayerTests */ = {
+		C40BD0CC1D010C5300FA6F2E /* EasyClientTests */ = {
 			isa = PBXGroup;
 			children = (
-				C40BD0CD1D010C5300FA6F2E /* UIOT_VideoPlayerTests.m */,
+				C40BD0CD1D010C5300FA6F2E /* EasyClientTests.m */,
 				C40BD0CF1D010C5300FA6F2E /* Info.plist */,
 			);
-			path = "UIOT-VideoPlayerTests";
+			path = EasyClientTests;
 			sourceTree = "<group>";
 		};
-		C40BD0D71D010C5300FA6F2E /* UIOT-VideoPlayerUITests */ = {
+		C40BD0D71D010C5300FA6F2E /* EasyClientUITests */ = {
 			isa = PBXGroup;
 			children = (
-				C40BD0D81D010C5300FA6F2E /* UIOT_VideoPlayerUITests.m */,
+				C40BD0D81D010C5300FA6F2E /* EasyClientUITests.m */,
 				C40BD0DA1D010C5300FA6F2E /* Info.plist */,
 			);
-			path = "UIOT-VideoPlayerUITests";
+			path = EasyClientUITests;
 			sourceTree = "<group>";
 		};
 		C4102B391D26190600930AD0 /* DES */ = {
@@ -840,9 +841,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		C40BD0AF1D010C5300FA6F2E /* UIOT-VideoPlayer */ = {
+		C40BD0AF1D010C5300FA6F2E /* EasyClient */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C40BD0DD1D010C5300FA6F2E /* Build configuration list for PBXNativeTarget "UIOT-VideoPlayer" */;
+			buildConfigurationList = C40BD0DD1D010C5300FA6F2E /* Build configuration list for PBXNativeTarget "EasyClient" */;
 			buildPhases = (
 				C40BD0AC1D010C5300FA6F2E /* Sources */,
 				C40BD0AD1D010C5300FA6F2E /* Frameworks */,
@@ -852,9 +853,9 @@
 			);
 			dependencies = (
 			);
-			name = "UIOT-VideoPlayer";
-			productName = "UIOT-VideoPlayer";
-			productReference = C40BD0B01D010C5300FA6F2E /* UIOT-VideoPlayer.app */;
+			name = EasyClient;
+			productName = EasyClient;
+			productReference = C40BD0B01D010C5300FA6F2E /* EasyClient.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -864,7 +865,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0720;
-				ORGANIZATIONNAME = YinXX;
+				ORGANIZATIONNAME = EasyDarwin;
 				TargetAttributes = {
 					C40BD0AF1D010C5300FA6F2E = {
 						CreatedOnToolsVersion = 7.2;
@@ -872,7 +873,7 @@
 					};
 				};
 			};
-			buildConfigurationList = C40BD0AB1D010C5300FA6F2E /* Build configuration list for PBXProject "UIOT-VideoPlayer" */;
+			buildConfigurationList = C40BD0AB1D010C5300FA6F2E /* Build configuration list for PBXProject "EasyClient" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -885,7 +886,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				C40BD0AF1D010C5300FA6F2E /* UIOT-VideoPlayer */,
+				C40BD0AF1D010C5300FA6F2E /* EasyClient */,
 			);
 		};
 /* End PBXProject section */
@@ -1102,18 +1103,18 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				ENABLE_BITCODE = NO;
-				GCC_PREFIX_HEADER = "$(SRCROOT)/UIOT-VideoPlayer/UIOT-VideoPlayer-Prefix.pch";
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/UIOT-VideoPlayer/Tool/AliSDKDemo";
-				INFOPLIST_FILE = "UIOT-VideoPlayer/Info.plist";
+				GCC_PREFIX_HEADER = "$(SRCROOT)/EasyClient/EasyClient-Prefix.pch";
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/EasyClient/Tool/AliSDKDemo";
+				INFOPLIST_FILE = EasyClient/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/UIOT-VideoPlayer/Tool/H264",
-					"$(PROJECT_DIR)/UIOT-VideoPlayer/Tool/AliSDKDemo",
+					"$(PROJECT_DIR)/EasyClient/Tool/H264",
+					"$(PROJECT_DIR)/EasyClient/Tool/AliSDKDemo",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.easydarwin.EasyClient;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = EasyClient;
 				PROVISIONING_PROFILE = "";
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -1127,18 +1128,18 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				ENABLE_BITCODE = NO;
-				GCC_PREFIX_HEADER = "$(SRCROOT)/UIOT-VideoPlayer/UIOT-VideoPlayer-Prefix.pch";
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/UIOT-VideoPlayer/Tool/AliSDKDemo";
-				INFOPLIST_FILE = "UIOT-VideoPlayer/Info.plist";
+				GCC_PREFIX_HEADER = "$(SRCROOT)/EasyClient/EasyClient-Prefix.pch";
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/EasyClient/Tool/AliSDKDemo";
+				INFOPLIST_FILE = EasyClient/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/UIOT-VideoPlayer/Tool/H264",
-					"$(PROJECT_DIR)/UIOT-VideoPlayer/Tool/AliSDKDemo",
+					"$(PROJECT_DIR)/EasyClient/Tool/H264",
+					"$(PROJECT_DIR)/EasyClient/Tool/AliSDKDemo",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.easydarwin.EasyClient;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = EasyClient;
 				PROVISIONING_PROFILE = "";
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -1147,7 +1148,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		C40BD0AB1D010C5300FA6F2E /* Build configuration list for PBXProject "UIOT-VideoPlayer" */ = {
+		C40BD0AB1D010C5300FA6F2E /* Build configuration list for PBXProject "EasyClient" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C40BD0DB1D010C5300FA6F2E /* Debug */,
@@ -1156,7 +1157,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C40BD0DD1D010C5300FA6F2E /* Build configuration list for PBXNativeTarget "UIOT-VideoPlayer" */ = {
+		C40BD0DD1D010C5300FA6F2E /* Build configuration list for PBXNativeTarget "EasyClient" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C40BD0DE1D010C5300FA6F2E /* Debug */,

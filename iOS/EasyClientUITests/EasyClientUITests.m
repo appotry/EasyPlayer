@@ -1,5 +1,5 @@
 //
-//  UIOT_VideoPlayerUITests.m
+//  EasyClientUITests.m
 //  UIOT-VideoPlayerUITests
 //
 //  Created by unisiot on 16/6/3.
@@ -8,11 +8,11 @@
 
 #import <XCTest/XCTest.h>
 
-@interface UIOT_VideoPlayerUITests : XCTestCase
+@interface EasyClientUITests : XCTestCase
 
 @end
 
-@implementation UIOT_VideoPlayerUITests
+@implementation EasyClientUITests
 
 - (void)setUp {
     [super setUp];

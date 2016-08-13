@@ -165,7 +165,7 @@ BOOL initH264Decoder( );
 
 // 音频
 #define QUEUE_BUFFER_SIZE 5 //队列缓冲个数
-#define MIN_SIZE_PER_FRAME 2000 //每侦最小数据长度
+#define MIN_SIZE_PER_FRAME 20000 //每侦最小数据长度//penggy:之前2000有点小，会闪退,改为20000
 
 AudioStreamBasicDescription audioDescription;///音频参数
 AudioQueueRef audioQueue;//音频播放队列
@@ -198,9 +198,9 @@ int __RTSPClientCallBack( int _chid, int *_chPtr, int _frameType, char *_pBuf, R
             /*
              要处理的音频
              */
-            
-            
-            
+            if(!_frameInfo || _frameInfo->length > MIN_SIZE_PER_FRAME||_frameInfo->length <= 0){
+                return 0;
+            }
             struct Node *pNode=malloc(sizeof(struct Node));
             pNode->len=_frameInfo->length;
             pNode->data= malloc(pNode->len);
@@ -517,9 +517,9 @@ void readPCMAndPlay(AudioQueueRef outQ,AudioQueueBufferRef outQB)
 //     NSLog(@"读取的数据大小为 = %d",pNode->len);
     
     //outQB->mAudioDataByteSize = (int)readLength;
-    outQB->mAudioDataByteSize = (int)pNode->len;
+    outQB->mAudioDataByteSize = (int)pNode->len > MIN_SIZE_PER_FRAME ? MIN_SIZE_PER_FRAME : (int)pNode->len;
     Byte *audiodata = (Byte *)outQB->mAudioData;
-    for(int i=0;i<pNode->len;i++)
+    for(int i=0;i<outQB->mAudioDataByteSize;i++)
     {
         audiodata[i] = pNode->data[i];
     }
@@ -1085,19 +1085,19 @@ static void AudioPlayerAQInputCallback(void *input, AudioQueueRef outQ, AudioQue
 -(void)clickTounchDownButton:(UIButton *)sender
 {
     self.tempBtn = sender;
-    [self doSomething];
+    [self doControlStart];
     
 }
 //云台控制松开的情况
 -(void)clickTounchUpInside:(UIButton *)sender
 {
     self.tempBtn = sender;
-    [self doNothing];
+    [self doControlStop];
 }
 
 
 //松开手指后，延迟发送请求
-- (void)doNothing
+- (void)doControlStop
 {
     secondsCountDown = Cloud_Time;
     [countDownTimer fire];
@@ -1108,74 +1108,37 @@ static void AudioPlayerAQInputCallback(void *input, AudioQueueRef outQ, AudioQue
         dispatch_queue_t queue = dispatch_get_main_queue();
         dispatch_after(timeDelay, queue, ^{
             
-            [self sendUp];
+            [self controlCameraWidthCmd: @"stop"];
         });
         
     }
-    
-    else
-    {
-        return;
-    }
 }
-/**
- *  有云台的发上下左右控制协议
- *
- *  @param -- {\"TYPE\":\"CAMERA_COM\",\"ID\":%d,\"VAL\":\"%d:%d\"}
- */
-- (void)doSomething{
+
+- (void)doControlStart{
     NSLog(@"按下--------");
-    NSString *upString;
     if ( self.tempBtn.tag == 1000)
-    {   //云台控制上
-        
-        upString = @"up";
-    
-        [self performSelectorOnMainThread:@selector(sendDownWithStr:) withObject:upString waitUntilDone:YES];
+    {   //云台上
+        [self performSelectorOnMainThread:@selector(controlCameraWidthCmd:) withObject:@"up" waitUntilDone:YES];
     }
     else if ( self.tempBtn.tag == 1001)
     {   //云台下
-        upString = @"down";
-  
-        [self performSelectorOnMainThread:@selector(sendDownWithStr:) withObject:upString waitUntilDone:YES];
+        [self performSelectorOnMainThread:@selector(controlCameraWidthCmd:) withObject:@"down" waitUntilDone:YES];
     }
     else if ( self.tempBtn.tag == 1002)
     {   //云台左
-        
-        upString = @"left";
-       
-        [self performSelectorOnMainThread:@selector(sendDownWithStr:) withObject:upString waitUntilDone:YES];
+        [self performSelectorOnMainThread:@selector(controlCameraWidthCmd:) withObject:@"left" waitUntilDone:YES];
     }
     else if ( self.tempBtn.tag == 1003)
     {   //云台右
-        
-        upString = @"right";
-      
-        [self performSelectorOnMainThread:@selector(sendDownWithStr:) withObject:upString waitUntilDone:YES];
-    }
-    
-    else
-    {
-        return;
+        [self performSelectorOnMainThread:@selector(controlCameraWidthCmd:) withObject:@"right" waitUntilDone:YES];
     }
 }
 
-
-//按下
-- (void)sendDownWithStr:(NSString *)str
+//控制摄像头
+- (void)controlCameraWidthCmd:(NSString*) cmd
 {
-    NSLog(@"按下------%@",str);
-  
-    [_requestTool requestControlCamera:[NSString stringWithFormat:@"http://121.40.50.44:10000/api/ptzcontrol?device=%@&channel=%@&actiontype=Continuous&command=%@&speed=5&protocol=onvif",self.urlModel.serial,self.urlModel.channel,str]];
-
-}
-
-
-//松开
-- (void)sendUp
-{
-     [_requestTool requestControlCamera:[NSString stringWithFormat:@"http://121.40.50.44:10000/api/ptzcontrol?device=%@&channel=%@&actiontype=Continuous&command=%@&speed=5&protocol=onvif",self.urlModel.serial,self.urlModel.channel,@"stop"]];
-
+    NSLog(@"请求控件摄像头, cmd = %@", cmd);
+    [_requestTool requestControlCamera:[NSString stringWithFormat:@"http://121.40.50.44:10000/api/ptzcontrol?device=%@&channel=%@&actiontype=Continuous&command=%@&speed=5&protocol=onvif",self.urlModel.serial,self.urlModel.channel,cmd]];
 }
 
 #pragma mark - ClickBtn -- CallActions
@@ -1189,17 +1152,14 @@ static void AudioPlayerAQInputCallback(void *input, AudioQueueRef outQ, AudioQue
             if (granted) {
                 //已同意
                 //发送开启通化协议
-               
-
-                    self.callSocket.kMovie = self;
-//
-                    [self.callSocket  cmsOpen];
+                self.callSocket.kMovie = self;
+                [self.callSocket  cmsOpen];
+            
+                MPMusicPlayerController *musicPlayer = [MPMusicPlayerController applicationMusicPlayer];
+                NSLog(@"--------%f",musicPlayer.volume);
+                musicPlayer.volume = 0;
                 
-                    MPMusicPlayerController *musicPlayer = [MPMusicPlayerController applicationMusicPlayer];
-                    NSLog(@"--------%f",musicPlayer.volume);
-                    musicPlayer.volume = 0;
-                    
-                    self.midBtn.selected = YES;
+                self.midBtn.selected = YES;
               
                 
                 

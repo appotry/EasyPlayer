@@ -1,0 +1,42 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "34E4C26CE5C6F7019367B6704C93E7090BB8A174",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+    "770614ef-74a7-274d-bd5e-43b2384b021a++1681" : {
+
+    },
+    "770614ef-74a7-274d-bd5e-43b2384b021a++2286" : {
+
+    }
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "770614ef-74a7-274d-bd5e-43b2384b021a++1681" : 0,
+    "34E4C26CE5C6F7019367B6704C93E7090BB8A174" : 0,
+    "770614ef-74a7-274d-bd5e-43b2384b021a++2286" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "49AC0546-F7E7-4B9C-B642-BAB9AC5CD658",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "770614ef-74a7-274d-bd5e-43b2384b021a++1681" : "EasyClient\/iOS\/UIOT-VideoPlayer\/Tool\/MJRefresh\/",
+    "34E4C26CE5C6F7019367B6704C93E7090BB8A174" : "EasyClient\/",
+    "770614ef-74a7-274d-bd5e-43b2384b021a++2286" : "EasyClient\/iOS\/UIOT-VideoPlayer\/Tool\/JDStatusBarNotification\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "EasyClient",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "iOS\/EasyClient.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/EasyDarwin\/EasyClient.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "34E4C26CE5C6F7019367B6704C93E7090BB8A174"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/172.16.8.8\/svn\/Unis_Client1",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "770614ef-74a7-274d-bd5e-43b2384b021a++1681"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/172.16.8.8\/svn\/Unis_Client1",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "770614ef-74a7-274d-bd5e-43b2384b021a++2286"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "34E4C26CE5C6F7019367B6704C93E7090BB8A174",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+    "770614ef-74a7-274d-bd5e-43b2384b021a++2286" : {
+
+    }
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "34E4C26CE5C6F7019367B6704C93E7090BB8A174" : 0,
+    "770614ef-74a7-274d-bd5e-43b2384b021a++2286" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "812364E4-18AD-4BE0-BD62-8E71CD67F8E6",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "34E4C26CE5C6F7019367B6704C93E7090BB8A174" : "EasyClient\/",
+    "770614ef-74a7-274d-bd5e-43b2384b021a++2286" : "EasyClient\/iOS\/EasyClient\/Tool\/G711\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "EasyClient1",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "iOS\/EasyClient1.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/EasyDarwin\/EasyClient.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "34E4C26CE5C6F7019367B6704C93E7090BB8A174"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/172.16.8.8\/svn\/Unis_Client1",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "770614ef-74a7-274d-bd5e-43b2384b021a++2286"
+    }
+  ]
+}
