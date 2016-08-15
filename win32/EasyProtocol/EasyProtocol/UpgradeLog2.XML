@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="EasyProtocol">
+</Property><Property Name="Solution File" Value="D:\Dingshuai\开源项目\EasyDarwin云平台\EasyClient_win\EasyPlayer\EasyProtocol\EasyProtocol\EasyProtocol.sln">
+</Property><Property Name="Date" Value="2016年8月11日">
+</Property><Property Name="Time" Value="16:35:45">
+</Property><Property Name="Log Number" Value="2">
+</Property></Properties><Event ErrorLevel="0" Project="lib_json" Source="..\jsoncpp\makefiles\vs71\lib_json.vcproj" Description="Converting project file 'D:\Dingshuai\开源项目\EasyDarwin云平台\EasyClient_win\EasyPlayer\EasyProtocol\jsoncpp\makefiles\vs71\lib_json.vcproj'.">
+</Event><Event ErrorLevel="2" Project="lib_json" Source="..\jsoncpp\makefiles\vs71\lib_json.vcproj" Description="File 'D:\Dingshuai\开源项目\EasyDarwin云平台\EasyClient_win\EasyPlayer\EasyProtocol\jsoncpp\makefiles\vs71\lib_json.vcproj' was not found.">
+</Event><Event ErrorLevel="2" Project="lib_json" Source="..\jsoncpp\makefiles\vs71\lib_json.vcproj" Description="Project upgrade failed.">
+</Event><Event ErrorLevel="3" Project="lib_json" Source="..\jsoncpp\makefiles\vs71\lib_json.vcproj" Description="Not Converted">
+</Event></UpgradeLog>
