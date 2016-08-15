@@ -18,10 +18,9 @@ EasyClient支持获取IPCamera摄像机的RTSP直播流，通过[EasyRTSPClient]
 
 ##更新记录##
 
-### EasyClient(Windows) 后续版本
+### EasyClient(Windows) v1.0.16.08.15
 
-* EasyClient(Windows) 不再更新，删除已有版本；
-* EasyClient(Windows) 后续版本已移至EasyPusher_win，继承EasyClient(Windows)所有功能，并增加更多推送功能；
+* EasyClient(Windows) 作为EasyCMS云平台的客户端，实现获取设备列表，获取设备流URI进行直播,摄像机PTZ云台控制等功能；
 
 ### EasyClient(Windows) v1.2.3.0 (2016-2-18)
 
