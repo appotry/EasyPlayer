@@ -106,6 +106,7 @@
     <None Include="ReadMe.txt" />
     <None Include="res\EasyClient.ico" />
     <None Include="res\EasyClient.rc2" />
+    <None Include="res\TREE_LIST_IMAGE.bmp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CreateDump.h" />

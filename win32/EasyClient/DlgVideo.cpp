@@ -224,7 +224,7 @@ void	CDlgVideo::UpdateComponents()
 	if (rcClient.IsRectEmpty())		return;
 
 	CRect	rcRender;
-	rcRender.SetRect(rcClient.left+1, rcClient.top+1, rcClient.right-1, rcClient.bottom-20);
+	rcRender.SetRect(rcClient.left+1, rcClient.top+1, rcClient.right-1, rcClient.bottom-1);
 	__MOVE_WINDOW(pDlgRender, rcRender);
 	if (NULL != pDlgRender)		pDlgRender->Invalidate();
 
@@ -399,4 +399,52 @@ void CDlgVideo::Draw3DRectState(CDC *pDC)
 
 	rcClient.DeflateRect(dx,dy/2);//dx, dy);
 	pDC->Draw3dRect(rcClient, m_clrCurrent3D, m_clrCurrent3D);
+}
+
+int CDlgVideo::Preview()
+{
+	if (m_ChannelId > 0)
+	{
+		EasyPlayer_CloseStream(m_ChannelId);
+		m_ChannelId = -1;
+
+		if (NULL != pDlgRender)	pDlgRender->SetChannelId(m_ChannelId);
+
+		if (NULL != pDlgRender)			pDlgRender->Invalidate();
+		if (NULL != pBtnPreview)		pBtnPreview->SetWindowText(TEXT("Play"));
+		return 0;
+	}
+	else
+	{
+		wchar_t wszURL[128] = {0,};
+		if (NULL != pEdtURL)	pEdtURL->GetWindowTextW(wszURL, sizeof(wszURL));
+		if (wcslen(wszURL) < 1)		return -1;
+
+		wchar_t wszUsername[32] = {0,};
+		wchar_t wszPassword[32] = {0,};
+		if (NULL != pEdtUsername)	pEdtUsername->GetWindowText(wszUsername, sizeof(wszUsername));
+		if (NULL != pEdtPassword)	pEdtPassword->GetWindowText(wszPassword, sizeof(wszPassword));
+
+		char szURL[128] = {0,};
+		__WCharToMByte(wszURL, szURL, sizeof(szURL)/sizeof(szURL[0]));
+		char szUsername[32] = {0,};
+		char szPassword[32] = {0,};
+		__WCharToMByte(wszUsername, szUsername, sizeof(szUsername)/sizeof(szUsername[0]));
+		__WCharToMByte(wszPassword, szPassword, sizeof(szPassword)/sizeof(szPassword[0]));
+
+		HWND hWnd = NULL;
+		if (NULL != pDlgRender)	hWnd = pDlgRender->GetSafeHwnd();
+		m_ChannelId = EasyPlayer_OpenStream(szURL, hWnd, (RENDER_FORMAT)RenderFormat, 0x01, szUsername, szPassword);
+
+		if (m_ChannelId > 0)
+		{
+			int iPos = pSliderCache->GetPos();
+			EasyPlayer_SetFrameCache(m_ChannelId, iPos);		//ÉèÖÃ»º´æ
+			EasyPlayer_PlaySound(m_ChannelId);
+			if (NULL != pDlgRender)	pDlgRender->SetChannelId(m_ChannelId);
+
+			if (NULL != pBtnPreview)		pBtnPreview->SetWindowText(TEXT("Stop"));
+		}
+	}
+	return 1;
 }

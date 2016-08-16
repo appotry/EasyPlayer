@@ -70,7 +70,6 @@ void CDlgRender::OnLButtonDblClk(UINT nFlags, CPoint point)
 	CDialogEx::OnLButtonDblClk(nFlags, point);
 }
 
-#define	POP_MENU_RECORDING	10010
 void CDlgRender::OnRButtonUp(UINT nFlags, CPoint point)
 {
 	ClosePopupMenu();
@@ -78,10 +77,9 @@ void CDlgRender::OnRButtonUp(UINT nFlags, CPoint point)
 	hMenu = CreatePopupMenu();
 	if (NULL != hMenu)
 	{
-		AppendMenu(hMenu, MF_STRING|(channelStatus.recording==0x01?MF_CHECKED:MF_UNCHECKED), POP_MENU_RECORDING, TEXT("Recording"));
-
-
+		AppendMenu(hMenu, MF_STRING, POP_MENU_Stop, TEXT("Stop"));
 		
+		AppendMenu(hMenu, MF_STRING|(channelStatus.recording==0x01?MF_CHECKED:MF_UNCHECKED), POP_MENU_RECORDING, TEXT("Recording"));
 
 		CPoint	pMousePosition;
 		GetCursorPos(&pMousePosition);
@@ -107,6 +105,17 @@ BOOL CDlgRender::OnCommand(WPARAM wParam, LPARAM lParam)
 
 				if (channelStatus.recording == 0x01)			EasyPlayer_StartManuRecording(mChannelId);
 				else											EasyPlayer_StopManuRecording(mChannelId);
+			}
+		}
+		break;
+	case	POP_MENU_Stop:
+		{
+			if (mChannelId > 0)
+			{
+				if (m_pMainDlg)
+				{
+					m_pMainDlg->Preview();
+				}			
 			}
 		}
 		break;

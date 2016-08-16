@@ -34,20 +34,6 @@ class CEasyClientDlg : public CSkinDialog
 public:
 	CEasyClientDlg(CWnd* pParent = NULL);	// 标准构造函数
 
-
-public:
-	CComboBox		*pComboxSplitScreen;
-	CComboBox		*pComboxRenderFormat;	//IDC_COMBO_RENDER_FORMAT
-	VIDEO_NODE_T	*pVideoWindow;		//视频窗口
-	CSkinButton			pChkShownToScale;	//按比例显示
-	CStatic			*pStaticCopyright;	//IDC_STATIC_COPYRIGHT
-
-	void	InitialComponents();
-	void	CreateComponents();
-	void	UpdateComponents();
-	void	DeleteComponents();
-	void	UpdateVideoPosition(LPRECT lpRect);
-
 // 对话框数据
 	enum { IDD = IDD_EASYPLAYER_DIALOG };
 
@@ -68,6 +54,7 @@ protected:
 	afx_msg void OnBnClickedCheckShowntoscale();
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnDestroy();
+	//设备树上节点双击消息
 	afx_msg void	OnNMDBClickListDevices(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg long HandleButtonMessage(WPARAM wCmdID, LPARAM lParm);	DECLARE_MESSAGE_MAP()
 	LRESULT OnWindowMaximized(WPARAM wParam, LPARAM lParam);
@@ -79,8 +66,30 @@ public:
 	int SendHttpReqDeviceList();
 	static UINT WINAPI ReqDeviceListThread(LPVOID pParam);
 	void ProcessReqDevListThread();
+	void	InitialComponents();
+	void	CreateComponents();
+	void	UpdateComponents();
+	void	DeleteComponents();
+	void	UpdateVideoPosition(LPRECT lpRect);
+	/*
+	函数：DeleteChildren(HTREEITEM hItem)
+	功能：删除hItem下的所有孩子节点
+	*/
+	UINT DeleteChildren(CSkinTreeCtrl *pTreeCtrl, HTREEITEM hItem);
+	void ExpandAllItem(CSkinTreeCtrl *pTreeCtrl, HTREEITEM hTreeItem, bool bExpand = true);
 
 private:
+	//控件声明变量
+	CComboBox		*pComboxSplitScreen;
+	CComboBox		*pComboxRenderFormat;	//IDC_COMBO_RENDER_FORMAT
+	VIDEO_NODE_T	*pVideoWindow;		//视频窗口
+	CSkinButton			pChkShownToScale;	//按比例显示
+	CStatic			*pStaticCopyright;	//IDC_STATIC_COPYRIGHT
+	CSkinTreeCtrl* m_pTreeCtrDevList;
+	HTREEITEM m_hRoot;
+	//树上的图标列表
+	CImageList	m_StatusImage;
+
 	// EasyClient功能扩展 [8/11/2016 Dingshuai]
 	CInternetSession *m_pSession;
 	EasyDarwin::Protocol::EasyDevices m_devices;

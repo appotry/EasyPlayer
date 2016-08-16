@@ -71,6 +71,8 @@ public:
 	{
 		m_sDevSerial = strDevSerival;
 	}
+	int Preview();
+
 public:
 	COLORREF		m_clrDefault3D;
 	COLORREF		m_clrHilight3D;

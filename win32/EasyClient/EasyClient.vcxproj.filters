@@ -25,6 +25,9 @@
     <None Include="res\EasyClient.ico">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="res\TREE_LIST_IMAGE.bmp">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EasyClient.h">

@@ -73,6 +73,7 @@ CEasyClientDlg::CEasyClientDlg(CWnd* pParent /*=NULL*/)
 	m_nCurSelWnd = -1;
 	m_hReqDeviceListThread = INVALID_HANDLE_VALUE;
 	m_bReqDeviceListThreadRuning = false;
+	m_pTreeCtrDevList = NULL;
 }
 
 void CEasyClientDlg::DoDataExchange(CDataExchange* pDX)
@@ -92,6 +93,8 @@ BEGIN_MESSAGE_MAP(CEasyClientDlg, CSkinDialog)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_DESTROY()
 	ON_NOTIFY(NM_DBLCLK, 5010, &CEasyClientDlg::OnNMDBClickListDevices)
+	ON_NOTIFY(NM_DBLCLK, 7000, &CEasyClientDlg::OnNMDBClickListDevices)
+
 	//按钮消息响应
 	ON_MESSAGE( WM_BUSEDDOWNUP_BUTTON, HandleButtonMessage )
 
@@ -151,12 +154,89 @@ BOOL CEasyClientDlg::OnInitDialog()
 		}
 	}
 
-	// 检索设备测试 [8/11/2016 Dingshuai]
-	SendHttpReqDeviceList();
+	//Init Devices Tree root
+	m_pTreeCtrDevList = (CSkinTreeCtrl*)GetItemByName(TEXT("DevListTree"));
+	if (m_pTreeCtrDevList)
+	{
+		//加载图标
+	if (m_StatusImage.GetSafeHandle()==NULL)
+	{
+		CBitmap Image;
+		BITMAP ImageInfo;
+		Image.LoadBitmap(IDB_TREE_LIST_IMAGE);
+		Image.GetBitmap(&ImageInfo);
+		m_StatusImage.Create(18,ImageInfo.bmHeight,ILC_COLOR16|ILC_MASK,0,0);
+		m_StatusImage.Add(&Image,RGB(255,0,255));
+		m_pTreeCtrDevList->SetImageList(&m_StatusImage,TVSIL_NORMAL);
+	}
 
+		// 初始化树控件
+		TVINSERTSTRUCT tvInsert;
+		//m_pTreeCtrDevList->ModifyStyle(NULL,TVS_HASBUTTONS|TVS_HASLINES/*|TVS_CHECKBOXES*/|TVS_SHOWSELALWAYS); 
+		m_pTreeCtrDevList->ModifyStyle(NULL,TVS_HASBUTTONS|TVS_HASLINES|TVS_SHOWSELALWAYS); 
+
+		tvInsert.hParent = NULL;
+		tvInsert.hInsertAfter = TVI_LAST;
+		tvInsert.item.mask = TVIF_IMAGE|TVIF_SELECTEDIMAGE|TVIF_TEXT|TVIF_STATE;
+		tvInsert.item.hItem = NULL;
+		tvInsert.item.state = INDEXTOSTATEIMAGEMASK( 1 );
+		tvInsert.item.stateMask = TVIS_STATEIMAGEMASK;
+		tvInsert.item.cchTextMax = 6;
+		tvInsert.item.cchTextMax = 64;
+		tvInsert.item.cChildren = 1;
+		tvInsert.item.lParam = 0;
+
+		tvInsert.item.iImage = 1;
+		tvInsert.item.iSelectedImage = 6;
+
+		tvInsert.item.pszText = _T("设备列表");
+		//添加根目录
+		m_hRoot = m_pTreeCtrDevList->InsertItem(&tvInsert);
+		m_pTreeCtrDevList->SetItemData(m_hRoot, 0);//根目录数据为0，标识为根节点
+	}
+
+	// 搜索设备测试 [8/11/2016 Dingshuai]
+	SendHttpReqDeviceList();
 	OnCbnSelchangeComboRenderFormat();
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
+}
+
+/*
+函数：DeleteChildren(HTREEITEM hItem)
+功能：删除hItem下的所有孩子节点
+*/
+UINT CEasyClientDlg::DeleteChildren(CSkinTreeCtrl *pTreeCtrl, HTREEITEM hItem)
+{
+	UINT nCount = 0;
+	if (pTreeCtrl)
+	{
+		HTREEITEM hChild = pTreeCtrl->GetChildItem (hItem);
+
+		while (hChild != NULL) 
+		{
+			HTREEITEM hNextItem = pTreeCtrl->GetNextSiblingItem (hChild);
+			pTreeCtrl->DeleteItem (hChild);
+			hChild = hNextItem;
+			nCount++;
+		}
+	}
+	return nCount;
+}
+
+void CEasyClientDlg::ExpandAllItem(CSkinTreeCtrl *pTreeCtrl,HTREEITEM hTreeItem,bool bExpand)
+{
+	if( pTreeCtrl == NULL && pTreeCtrl->GetSafeHwnd() == NULL ) return;
+	if(!pTreeCtrl->ItemHasChildren(hTreeItem)) return;
+
+	HTREEITEM hNextItem = pTreeCtrl->GetChildItem(hTreeItem);
+	while (hNextItem != NULL)
+	{
+		ExpandAllItem(pTreeCtrl, hNextItem, true);
+		hNextItem = pTreeCtrl->GetNextItem(hNextItem, TVGN_NEXT);
+	}
+
+	pTreeCtrl->Expand(hTreeItem,bExpand?TVE_EXPAND:TVE_COLLAPSE);
 }
 
 int CEasyClientDlg::SendHttpReqDeviceList()
@@ -186,18 +266,25 @@ UINT CEasyClientDlg::ReqDeviceListThread(LPVOID pParam)
 			pMaster->ProcessReqDevListThread();
 			pMaster->m_bReqDeviceListThreadRuning = false;
 		}
-	
 	}
 	return 0;
 }
 
 void CEasyClientDlg::ProcessReqDevListThread()
 {
+	//For list
+#if 0
 	CSkinListCtrl*pListCtrl = (CSkinListCtrl*)GetDlgItem(5010);
 	if( pListCtrl )
 	{		
 		// 		pListCtrl->InsertImage(7,TEXT("Res\\ListCtrl\\RarType.png"));
 		pListCtrl->DeleteAllItems();
+#endif
+
+	if (m_pTreeCtrDevList)
+	{
+		DeleteChildren(m_pTreeCtrDevList, m_hRoot);
+
 		//1. 请求设备列表
 		CString strReqURL =_T(""); 
 		strReqURL.Format(_T("http://%s:%d/API/getdevicelist"), m_strCMSIP, m_nCMSPort);
@@ -231,16 +318,60 @@ void CEasyClientDlg::ProcessReqDevListThread()
 			CString strTrmp = _T("");
 			for (EasyDevices::iterator it = m_devices.begin(); it != m_devices.end(); it++)
 			{
+#if 0
 				strTrmp = it->second.serial_.c_str();
 				pListCtrl->InsertItem(i, strTrmp);
 				strTrmp = it->second.name_.c_str();
 				pListCtrl->SetItemText(i,1,strTrmp);
 				strTrmp = it->second.appType_.c_str();
 				pListCtrl->SetItemText(i,2,strTrmp);
+#endif 
+				CString strAppType = (CString)it->second.appType_.c_str();
+				CString strName = (CString)it->second.name_.c_str();
+				CString strSerial = (CString)it->second.serial_.c_str();
+				strTrmp.Format(_T("%s(%s)"), strName, strSerial);
+				//生成树节点
+				TVINSERTSTRUCT tvinsert;
+				tvinsert.hParent = m_hRoot;
+				tvinsert.hInsertAfter = TVI_LAST;
+				tvinsert.item.mask = TVIF_IMAGE|TVIF_SELECTEDIMAGE|TVIF_TEXT|TVIF_STATE;
+				tvinsert.item.hItem = NULL;
+				tvinsert.item.state = INDEXTOSTATEIMAGEMASK( 1 );
+				tvinsert.item.stateMask = TVIS_STATEIMAGEMASK;
+				tvinsert.item.cchTextMax = 6;
+				tvinsert.item.cchTextMax = 64;
+				tvinsert.item.cChildren = 1;
+				tvinsert.item.lParam = 0;
+				tvinsert.item.pszText = (LPTSTR)strTrmp.GetBuffer(strTrmp.GetLength());
+				tvinsert.item.iImage = 9;//FOR Image
+				tvinsert.item.iSelectedImage = 6;//FOR Image
+				
+				HTREEITEM DeviceNo = NULL;
+				DeviceNo  = m_pTreeCtrDevList->InsertItem(&tvinsert);	
+				//设置组节点数据(当前设备ID)
+				m_pTreeCtrDevList->SetItemData(DeviceNo, (DWORD_PTR)it->second.serial_.c_str());//GroupId从1开始，区别IP=0可能重复的情况
+
+				//nvr子节点
+				if (strAppType == _T("EasyNVR"))
+				{
+					tvinsert.hParent = DeviceNo;
+					tvinsert.hInsertAfter  = TVI_LAST;
+					tvinsert.item.iImage = 0;
+					tvinsert.item.iSelectedImage = 6;
+					tvinsert.item.pszText = strSerial.GetBuffer(strSerial.GetLength());
+
+					HTREEITEM NVRMember = m_pTreeCtrDevList->InsertItem(&tvinsert);
+					//设置组员节点项数据(当前组员IP)
+					m_pTreeCtrDevList->SetItemData(NVRMember, (DWORD_PTR)it->second.serial_.c_str());
+				}
+
 				i++;
 			}
-				// 快照请求 [8/12/2016 SwordTwelve]
-				//获取快照JPG图片
+			//展开数的所有子节点
+			ExpandAllItem(m_pTreeCtrDevList, m_pTreeCtrDevList->GetRootItem(), true);
+				
+			// 快照请求 [8/12/2016 SwordTwelve]
+			//获取快照JPG图片
 #if 1
 			for (EasyDevices::iterator it = m_devices.begin(); it != m_devices.end(); it++)
 			{
@@ -297,61 +428,65 @@ void CEasyClientDlg::OnNMDBClickListDevices(NMHDR *pNMHDR, LRESULT *pResult)
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
 	if(pNMItemActivate->iItem != -1)//点击在空白处
 	{
+#if 0
 		CSkinListCtrl*pListCtrl = (CSkinListCtrl*)GetDlgItem(5010);
 		if( pListCtrl )
+#endif
+		if( m_pTreeCtrDevList )	
 		{
-			int nFileType=pListCtrl->GetItemData(pNMItemActivate->iItem);
-			//if(nFileType==4)
-			{
-				CString strDeviceId= pListCtrl->GetItemText(pNMItemActivate->iItem,0);
-				CString strTrmp = _T("");
-				for (EasyDevices::iterator it = m_devices.begin(); it != m_devices.end(); it++)
-				{
-					strTrmp = it->second.serial_.c_str();
-					if (strTrmp == strDeviceId)
-					{
-						//http请求设备推流
-						//http://121.40.50.44:10000/api/getdevicestream?device=001001000010&channel=01&protocol=RTSP&reserve=1
-						CString strReqURL =_T(""); 
-						
-						strReqURL.Format(_T("http://%s:%d/API/getdevicestream?device=%s&channel=01&protocol=RTSP&reserve=1"), m_strCMSIP, m_nCMSPort, strDeviceId);
+			HTREEITEM hTreeItem = m_pTreeCtrDevList->GetSelectedItem();
 
-						std::string strData;
-						CHttpFile *pFile = (CHttpFile *)m_pSession->OpenURL(strReqURL, 1, INTERNET_FLAG_TRANSFER_ASCII | INTERNET_FLAG_RELOAD);
-						if (pFile)
+			char* pData = (char*)m_pTreeCtrDevList->GetItemData(hTreeItem);
+			CString strDeviceId=  (CString)pData;//pListCtrl->GetItemText(pNMItemActivate->iItem,0);
+			CString strTrmp = _T("");
+			for (EasyDevices::iterator it = m_devices.begin(); it != m_devices.end(); it++)
+			{
+				strTrmp = it->second.serial_.c_str();
+				if (strTrmp == strDeviceId)
+				{
+					//http请求设备推流
+					//http://121.40.50.44:10000/api/getdevicestream?device=001001000010&channel=01&protocol=RTSP&reserve=1
+					CString strReqURL =_T(""); 
+
+					strReqURL.Format(_T("http://%s:%d/API/getdevicestream?device=%s&channel=01&protocol=RTSP&reserve=1"), m_strCMSIP, m_nCMSPort, strDeviceId);
+
+					std::string strData;
+					CHttpFile *pFile = (CHttpFile *)m_pSession->OpenURL(strReqURL, 1, INTERNET_FLAG_TRANSFER_ASCII | INTERNET_FLAG_RELOAD);
+					if (pFile)
+					{
+						char ch;
+						while (pFile->Read(&ch, 1))
 						{
-							char ch;
-							while (pFile->Read(&ch, 1))
-							{
-								strData += ch;
-							}
-							pFile->Close();
-							delete pFile;
-							pFile = NULL;
+							strData += ch;
 						}
-						if (!strData.empty())
-						{
-							//解析Json字串
-							EasyDarwin::Protocol::EasyMsgSCGetStreamACK getSreamAck(strData.c_str());
-							std::string strURL = getSreamAck.GetBodyValue("URL");
-							if(!strURL.empty())
-							{
-								int nSelWnd = m_nCurSelWnd;
-								if (nSelWnd <  0)
-								{
-									nSelWnd = 0;
-								}
-								pVideoWindow->pDlgVideo[nSelWnd].SetDeviceSerial(strDeviceId);
-								pVideoWindow->pDlgVideo[nSelWnd].SetURL((char*)strURL.c_str());
-								pVideoWindow->pDlgVideo[nSelWnd].OnBnClickedButtonPreview();				
-							}
-						}
-						break;
+						pFile->Close();
+						delete pFile;
+						pFile = NULL;
 					}
+					if (!strData.empty())
+					{
+						//解析Json字串
+						EasyDarwin::Protocol::EasyMsgSCGetStreamACK getSreamAck(strData.c_str());
+						std::string strURL = getSreamAck.GetBodyValue("URL");
+						if(!strURL.empty())
+						{
+							int nSelWnd = m_nCurSelWnd;
+							if (nSelWnd <  0)
+							{
+								nSelWnd = 0;
+							}
+							pVideoWindow->pDlgVideo[nSelWnd].SetDeviceSerial(strDeviceId);
+							pVideoWindow->pDlgVideo[nSelWnd].SetURL((char*)strURL.c_str());
+							if (!pVideoWindow->pDlgVideo[nSelWnd].Preview())
+							{
+								pVideoWindow->pDlgVideo[nSelWnd].Preview();
+							}
+						}
+					}
+					break;
 				}
 			}
 		}
-
 	}
 	*pResult = 0;
 
@@ -905,7 +1040,10 @@ LRESULT CEasyClientDlg::HandleButtonMessage(WPARAM wParam, LPARAM lParam)
 		CString strReqURL =_T(""); //Continuous / single
 		strReqURL.Format(_T("http://%s:%d/api/ptzcontrol?device=%s&channel=0&actiontype=Continuous&command=%s&speed=5&protocol=onvif"), 
 			m_strCMSIP, m_nCMSPort, strDeviceId, sPtzCmd);
-		m_pSession = new CInternetSession(/*_T("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)")*/);
+		if (!m_pSession)
+		{
+			m_pSession = new CInternetSession(/*_T("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)")*/);
+		}
 
 		std::string strData;
 		CHttpFile *pFile = (CHttpFile *)m_pSession->OpenURL(strReqURL, 1, INTERNET_FLAG_TRANSFER_ASCII | INTERNET_FLAG_RELOAD);
@@ -930,3 +1068,4 @@ LRESULT CEasyClientDlg::HandleButtonMessage(WPARAM wParam, LPARAM lParam)
 
 	return 0;
 }
+
