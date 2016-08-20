@@ -1,19 +1,10 @@
-//
-
-//  EasyCameraVC00.m
-//  EasyDarwinPlayer
-//
-//  Created by Amber on 16/8/1.
-//  Copyright © 2016年 Amber. All rights reserved.
-//
-
 #import "EasyCameraVC.h"
 #import "EasyCameraCell.h"
 #import "EasyCamera.h"
 #import "EasyUrl.h"
 
 
-@interface EasyCameraVC ()<NetRequestDelegate>
+@interface EasyCameraVC()
 {
 
     NSMutableArray *_dataArr;
@@ -32,12 +23,14 @@ static NSString *cellIdentifier1 = @"Cell1";
     [super viewDidLoad];
     
     self.view.backgroundColor = [UIColor whiteColor];
-    //    [self nsvigationSetting];
     [self initSomeView];
     _dataArr = [NSMutableArray array];
     self.requestTool = [[NetRequestTool alloc]init];
-    self.requestTool .delegate = self;
-     _urlStr= @"http://121.40.50.44:10000/api/getdevicelist?AppType=EasyCamera&TerminalType=ARM_Linux";
+    self.requestTool.delegate = self;
+    NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];
+    self.cmsIp = [defs stringForKey:@"cms_ip"];
+    self.cmsPort = [defs stringForKey:@"cms_port"];
+    _urlStr = [NSString stringWithFormat:@"http://%@:%@/api/getdevicelist?AppType=EasyCamera&TerminalType=ARM_Linux",self.cmsIp, self.cmsPort];
 }
 
 
@@ -46,12 +39,12 @@ static NSString *cellIdentifier1 = @"Cell1";
     self.view.backgroundColor = [UIColor whiteColor];
     UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc]init];
     //定义每个UICollectionView 横向的间距
-    layout.minimumLineSpacing = 2;
+    layout.minimumLineSpacing = 5;
     //定义每个UICollectionView 纵向的间距
-    layout.minimumInteritemSpacing = 2;
+    layout.minimumInteritemSpacing = 5;
     //定义每个UICollectionView 的边距距
-    layout.sectionInset = UIEdgeInsetsMake(0, 2, 5, 2);//上左下右
-    self.collectionView = [[UICollectionView alloc]initWithFrame:CGRectMake(0, 0, ScreenWidth, ScreenHeight-40-64) collectionViewLayout:layout];
+    layout.sectionInset = UIEdgeInsetsMake(5, 5, 5, 5);//上左下右
+    self.collectionView = [[UICollectionView alloc]initWithFrame:CGRectMake(0, 0, ScreenWidth, ScreenHeight) collectionViewLayout:layout];
     self.collectionView.delegate = self;
     self.collectionView.dataSource = self;
     self.collectionView.showsHorizontalScrollIndicator = NO;
@@ -68,19 +61,10 @@ static NSString *cellIdentifier1 = @"Cell1";
     self.collectionView.mj_header = [MJRefreshNormalHeader headerWithRefreshingBlock:^{
         [_HUD show:YES];
         [weakSelf requestListData];
-     
-        
     }];
-    
-    _HUD = [[UiotHUD alloc]initWithUiotView:self.view];
-    [self.view addSubview:_HUD];
-    [self.view bringSubviewToFront:_HUD];
-    [_HUD show:YES];
-    [_HUD hide:YES afterDelay:10.0];
  
 }
 
-#pragma mark -  receiveData
 - (void)receiveData:(NSMutableArray *)sender
 {
     _dataArr = sender;
@@ -104,13 +88,18 @@ static NSString *cellIdentifier1 = @"Cell1";
 // item大小
 -(CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    return CGSizeMake((ScreenWidth-10)/2, (ScreenWidth-10)/2);
+    int w = (ScreenWidth - 16) /2;
+    int h = w * 9 /16;
+    return CGSizeMake(w, h + 30);//30 is the bottom title height
+}
+
+-(UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout insetForSectionAtIndex:(NSInteger)section
+{
+    return UIEdgeInsetsMake(5, 5, 5, 5);
 }
 
 -(UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    
-    
     EasyCameraCell * cell = [collectionView dequeueReusableCellWithReuseIdentifier:cellIdentifier1 forIndexPath:indexPath];
     
     EasyCamera *model = _dataArr[indexPath.row];
@@ -120,42 +109,26 @@ static NSString *cellIdentifier1 = @"Cell1";
     cell.backgroundColor = [UIColor orangeColor];
     
     return cell;
-    
-    
-    
 }
 
 -(void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    
-    NSLog(@"========");
-
      EasyCamera *model = _dataArr[indexPath.row];
     [self requestUrlData:model.serial];
 }
-//http://121.40.50.44:10000/api/getdevicestream?device=001001000010&channel=0&protocol=RTSP&reserve=1
+
 // 请求数据
-- (void)requestUrlData:(NSNumber *)deviceStr
+- (void)requestUrlData:(NSString *)deviceStr
 {
     AFHTTPSessionManager * manager = [AFHTTPSessionManager manager];
     manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"html/text",@"text/plain", nil];
-    //    NSString *urlStr = @"http://121.40.50.44:10000/api/getdevicelist";
-    //    NSDictionary *parametersDic = @{@"AppType":@"EasyNVR",@"TerminalType":@"ARM_Linux"};
-    NSString *urlStr =[NSString stringWithFormat:@"http://121.40.50.44:10000/api/getdevicestream?device=%@&channel=0&protocol=RTSP&reserve=1",deviceStr];// @"http://121.40.50.44:10000/api/getdevicelist?AppType=c";
-    NSLog(@"----%@",urlStr);
+    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/getdevicestream?device=%@&channel=0&protocol=RTSP&reserve=1",self.cmsIp,self.cmsPort, deviceStr];
     
-    [manager POST:urlStr parameters:nil progress:^(NSProgress * _Nonnull uploadProgress) {
-        
-    } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        
-        NSLog(@"EasyNVRVC===%@",responseObject);
+    [manager POST:urlStr parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *easyDic = [responseObject objectForKey:@"EasyDarwin"];
         NSDictionary *headerDic =  [easyDic objectForKey:@"Header"];
         NSDictionary *bodyDic =  [easyDic objectForKey:@"Body"];
         if ([[headerDic objectForKey:@"ErrorNum"] isEqualToString:@"200"]) {
-            NSMutableArray *dataArr = [[NSMutableArray alloc]init];
-           
-                
                 _urlModel = [[EasyUrl alloc]init];
                 _urlModel.channel = [bodyDic objectForKey:@"Channel"];
                 _urlModel.protocol = [bodyDic objectForKey:@"Protocol"];
@@ -165,29 +138,15 @@ static NSString *cellIdentifier1 = @"Cell1";
                 PlayViewController *playVC = [[PlayViewController alloc]init];
                 playVC.urlModel = _urlModel;
                 [self presentViewController:playVC animated:YES completion:nil];
-               
-            
-
         }
-        
-        
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"error====%@",error);
     }];
 }
+
+
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
-
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
 
 @end

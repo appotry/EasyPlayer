@@ -1,12 +1,3 @@
-//
-//  PhotoVideoBrowerVC.h
-//  MJPhotoBrowser
-//
-//  Created by UIOT-Amber on 16/7/23.
-//  Copyright © 2016年 Sunnyyoung. All rights reserved.
-//
-
-
 #import "EasyCameraCell.h"
 #import "EasyCamera.h"
 #import "UIImageView+AFNetworking.h"
@@ -19,49 +10,47 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
-        self.imageView = [[UIImageView alloc]initWithFrame:CGRectZero];
+        CGRect imgRect = {CGPointZero,{self.contentView.frame.size.width,self.contentView.frame.size.height - 30}};
+        self.imageView = [[UIImageView alloc]initWithFrame:imgRect];
         [self.contentView addSubview: self.imageView];
-        self.imageView.frame = CGRectMake(0, 0,(ScreenWidth-10)/2,(ScreenWidth-10)/2);
-    
-        self.titleLab = [[UILabel alloc]initWithFrame:CGRectMake(0,(ScreenWidth-10)/2-30, (ScreenWidth-10)/2, 30)];
+        self.titleLab = [[UILabel alloc]initWithFrame:CGRectMake(0,self.contentView.frame.size.height-30, self.contentView.frame.size.width, 30)];
         self.titleLab.font = [UIFont systemFontOfSize:10];
         self.titleLab.textAlignment = NSTextAlignmentLeft;
-        self.titleLab.backgroundColor = [UIColor darkTextColor];
-        self.titleLab.textColor = [UIColor whiteColor];
-        self.titleLab.alpha= 0.5;
+        self.titleLab.backgroundColor = COLOR(222,222,222,1);
+        self.titleLab.textColor = [UIColor darkGrayColor];
+        self.titleLab.alpha= 1;
         [self bringSubviewToFront:self.titleLab];
         [self.contentView addSubview:self.titleLab];
         
-        self.appType = [[UILabel alloc]initWithFrame:CGRectMake((ScreenWidth-10)/2-100,(ScreenWidth-10)/2-50, 100, 20)];
+        self.appType = [[UILabel alloc]initWithFrame:CGRectMake(0,self.contentView.frame.size.height-52, self.contentView.frame.size.width, 20)];
         self.appType.textColor =[UIColor whiteColor];
-//         self.appType.font = [UIFont fontWithName:@"Helvetica-Bold"size:10];
-          self.appType.font = [UIFont systemFontOfSize:10];
-        self.appType.textAlignment = NSTextAlignmentRight;
+        self.appType.font = [UIFont systemFontOfSize:10];
+        [self.appType setTextAlignment:NSTextAlignmentCenter];
+        self.appType.backgroundColor = COLOR(222,222,222,0.5);
+        self.appType.alpha = 0.8;
         [self.contentView addSubview:self.appType];
-
+        [self bringSubviewToFront:self.appType];
+        
+        
     }
     return self;
 }
 
 - (void)produceCellModel:(EasyCamera *)model
 {
-    [ self.imageView setImageWithURL:[NSURL URLWithString:model.snapURL] placeholderImage:[UIImage imageNamed:@"slectImg"]];
-    self.titleLab.text = [NSString stringWithFormat:@" %@ %@",model.name,model.serial];
-    self.appType.text = model.appType;
+    [ self.imageView setImageWithURL:[NSURL URLWithString:model.snapURL]];
+    self.titleLab.text = [NSString stringWithFormat:@" %@ (%@)",model.name,model.serial];
+    self.appType.text = model.terminalType;
+    [self.appType sizeToFit];
+    [self.appType setFrame:CGRectMake(self.contentView.frame.size.width - self.appType.frame.size.width - 7, self.appType.frame.origin.y, self.appType.frame.size.width + 5, 20)];
     
 }
+
+
 - (void)produceCellInfoModel:(EasyInfo *)model
 {
-    [ self.imageView setImageWithURL:[NSURL URLWithString:model.snapURL] placeholderImage:[UIImage imageNamed:@"slectImg"]];
-    self.titleLab.text = [NSString stringWithFormat:@" %@（%@）",model.name,model.status];
+    [ self.imageView setImageWithURL:[NSURL URLWithString:model.snapURL]];
+    self.titleLab.text = [NSString stringWithFormat:@" %@ (%@)",model.name,model.serial];
 }
-/*
-// Only override drawRect: if you perform custom drawing.
-// An empty implementation adversely affects performance during animation.
-- (void)drawRect:(CGRect)rect
-{
-    // Drawing code
-}
-*/
 
 @end

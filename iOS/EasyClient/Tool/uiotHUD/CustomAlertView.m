@@ -1,11 +1,3 @@
-//
-//  UICustomAlertView.m
-//  UIOT-SmartHome-Mobile
-//
-//  Created by apple-mini on 16/4/13.
-//  Copyright © 2016年 UIOT_YF. All rights reserved.
-//
-
 #import "CustomAlertView.h"
 
 @interface CustomAlertView ()

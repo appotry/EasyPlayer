@@ -20,14 +20,15 @@
     self.window = [[UIWindow alloc]initWithFrame:[[UIScreen mainScreen] bounds]];
     self.window.backgroundColor = [UIColor whiteColor];
     
-    
     UINavigationController *rootNavVC = [[UINavigationController alloc]initWithRootViewController:[[RootVC alloc]init]];
-    [UINavigationBar appearance].barTintColor = MAIN_COLOR;//[UIColor colorWithRed:0.843137 green:0.843137 blue:0.843137 alpha:1.0];
-    
+    [UINavigationBar appearance].barTintColor = MAIN_COLOR;
     self.window.rootViewController = rootNavVC;
-    
     [self.window makeKeyAndVisible];
     
+    NSDictionary *defaultValues = [NSDictionary dictionaryWithObjectsAndKeys: LOGIN_CMS_ADDRESS, @"cms_ip", LOGIN_CMS_ADDRESS_PORT, @"cms_port", nil];
+    
+    [[NSUserDefaults standardUserDefaults] registerDefaults:defaultValues];
+    [[NSUserDefaults standardUserDefaults] synchronize];
     return YES;
 }
 

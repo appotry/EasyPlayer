@@ -1,11 +1,3 @@
-//
-//  EasyCameraVC00.m
-//  EasyDarwinPlayer
-//
-//  Created by Amber on 16/8/1.
-//  Copyright © 2016年 Amber. All rights reserved.
-//
-
 #import "EasyNVRVC.h"
 #import "EasyCameraCell.h"
 #import "EasyCamera.h"
@@ -35,12 +27,14 @@ static NSString *cellIdentifier2 = @"Cell2";
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
     
-    //    [self nsvigationSetting];
     [self initSomeView];
     _dataArr = [NSMutableArray array];
     self.requestTool = [[NetRequestTool alloc]init];
     self.requestTool .delegate = self;
-    _urlStr= @"http://121.40.50.44:10000/api/getdevicelist?AppType=EasyNVR&TerminalType=ARM_Linux";
+    self.cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
+    self.cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
+    
+    _urlStr= [NSString stringWithFormat:@"http://%@:%@/api/getdevicelist?AppType=EasyNVR&TerminalType=ARM_Linux",self.cmsIp,self.cmsPort];
     
     
 }
@@ -72,15 +66,7 @@ static NSString *cellIdentifier2 = @"Cell2";
     self.collectionView.mj_header = [MJRefreshNormalHeader headerWithRefreshingBlock:^{
         [_HUD show:YES];
         [weakSelf requestListData];
-        
-        
     }];
-    
-    _HUD = [[UiotHUD alloc]initWithUiotView:self.view];
-    [self.view addSubview:_HUD];
-    [self.view bringSubviewToFront:_HUD];
-    [_HUD show:YES];
-    [_HUD hide:YES afterDelay:10.0];
     
 }
 
@@ -162,7 +148,6 @@ static NSString *cellIdentifier2 = @"Cell2";
 
 -(void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSLog(@"---%d---%d",indexPath.section,indexPath.row);
     if (indexPath.row == 0) {
         EasyCamera *model = _dataArr[indexPath.section];
         _currentCamera = model;
@@ -170,41 +155,26 @@ static NSString *cellIdentifier2 = @"Cell2";
         [self requestListData:model.serial];
     }else
     {
-      
-
-       
          EasyCamera *model = _dataArr[indexPath.section];
         EasyInfo *model1 = model.deviceArr[indexPath.row-1];
         
         [self requestUrlData:model.serial channal:model1.channel];
     }
-    
-    
+
     
 }
 
-
-//http://121.40.50.44:10000/api/getdevicestream?device=001001000010&channel=0&protocol=RTSP&reserve=1
-// 请求数据
-- (void)requestUrlData:(NSNumber *)Serial channal:(NSString *)channal
+- (void)requestUrlData:(NSString *)Serial channal:(NSString *)channal
 {
     AFHTTPSessionManager * manager = [AFHTTPSessionManager manager];
     manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"html/text",@"text/plain", nil];
-    //    NSString *urlStr = @"http://121.40.50.44:10000/api/getdevicelist";
-    //    NSDictionary *parametersDic = @{@"AppType":@"EasyNVR",@"TerminalType":@"ARM_Linux"};
-    NSString *urlStr =[NSString stringWithFormat:@"http://121.40.50.44:10000/api/getdevicestream?device=%@&channel=%@&protocol=RTSP&reserve=1",Serial,channal];// @"http://121.40.50.44:10000/api/getdevicelist?AppType=c";
-    NSLog(@"----%@",urlStr);
+    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/getdevicestream?device=%@&channel=%@&protocol=RTSP&reserve=1",self.cmsIp, self.cmsPort, Serial,channal];
     
-    [manager POST:urlStr parameters:nil progress:^(NSProgress * _Nonnull uploadProgress) {
-        
-    } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        
-        NSLog(@"EasyNVRVC===%@",responseObject);
+    [manager POST:urlStr parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *easyDic = [responseObject objectForKey:@"EasyDarwin"];
         NSDictionary *headerDic =  [easyDic objectForKey:@"Header"];
         NSDictionary *bodyDic =  [easyDic objectForKey:@"Body"];
         if ([[headerDic objectForKey:@"ErrorNum"] isEqualToString:@"200"]) {
-            
            EasyUrl  *urlModel = [[EasyUrl alloc]init];
             urlModel.channel = [bodyDic objectForKey:@"Channel"];
             urlModel.protocol = [bodyDic objectForKey:@"Protocol"];
@@ -214,35 +184,20 @@ static NSString *cellIdentifier2 = @"Cell2";
             PlayViewController *playVC = [[PlayViewController alloc]init];
             playVC.urlModel = urlModel;
             [self presentViewController:playVC animated:YES completion:nil];
-            
-            
-            
         }
-        
-        
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"error====%@",error);
     }];
 }
 
 
-
-
-// 请求数据
 - (void)requestListData:(NSNumber *)deviceStr
 {
     AFHTTPSessionManager * manager = [AFHTTPSessionManager manager];
     manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"html/text",@"text/plain", nil];
-    //    NSString *urlStr = @"http://121.40.50.44:10000/api/getdevicelist";
-    //    NSDictionary *parametersDic = @{@"AppType":@"EasyNVR",@"TerminalType":@"ARM_Linux"};
-    NSString *urlStr =[NSString stringWithFormat:@"http://121.40.50.44:10000/api/getdeviceinfo?device=%@",deviceStr];// @"http://121.40.50.44:10000/api/getdevicelist?AppType=c";
-    NSLog(@"----%@",urlStr);
+    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/getdeviceinfo?device=%@",self.cmsIp, self.cmsPort, deviceStr];
     
-    [manager POST:urlStr parameters:nil progress:^(NSProgress * _Nonnull uploadProgress) {
-        
-    } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        
-        NSLog(@"EasyNVRVC===%@",responseObject);
+    [manager POST:urlStr parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *easyDic = [responseObject objectForKey:@"EasyDarwin"];
         NSDictionary *headerDic =  [easyDic objectForKey:@"Header"];
         NSDictionary *bodyDic =  [easyDic objectForKey:@"Body"];
@@ -259,10 +214,8 @@ static NSString *cellIdentifier2 = @"Cell2";
                 [dataArr addObject:model];
             }
             _currentCamera.deviceArr =dataArr;
-            //            _dataArr = dataArr;
             [self.collectionView reloadData];
         }
-        
         
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"error====%@",error);
@@ -271,17 +224,7 @@ static NSString *cellIdentifier2 = @"Cell2";
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
-/*
- #pragma mark - Navigation
- 
- // In a storyboard-based application, you will often want to do a little preparation before navigation
- - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
- // Get the new view controller using [segue destinationViewController].
- // Pass the selected object to the new view controller.
- }
- */
 
 @end

@@ -1,11 +1,3 @@
-//
-//  MBTextHud.m
-//  UIOT-SmartHome-Mobile
-//
-//  Created by apple-mini on 15/12/5.
-//  Copyright © 2015年 UIOT_YF. All rights reserved.
-//
-
 #import "MBTextHud.h"
 #import "MBProgressHUD.h"
 #import "UiotHUD.h"

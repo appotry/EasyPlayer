@@ -1,11 +1,3 @@
-//
-//  EasyClientTests.m
-//  UIOT-VideoPlayerTests
-//
-//  Created by unisiot on 16/6/3.
-//  Copyright © 2016年 YinXX. All rights reserved.
-//
-
 #import <XCTest/XCTest.h>
 
 @interface EasyClientTests : XCTestCase

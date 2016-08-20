@@ -1,11 +1,3 @@
-//
-//  AmberMenuView.m
-//  EasyDarwinPlayer
-//
-//  Created by Amber on 16/8/1.
-//  Copyright © 2016年 Amber. All rights reserved.
-//
-
 #import "AmberMenuView.h"
 
 static const CGFloat kYSLScrollMenuViewWidth  = 107;

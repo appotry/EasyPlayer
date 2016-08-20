@@ -1,11 +1,3 @@
-	//
-//  main.m
-//  UIOT-VideoPlayer
-//
-//  Created by unisiot on 16/6/3.
-//  Copyright © 2016年 YinXX. All rights reserved.
-//
-
 #import <UIKit/UIKit.h>
 #import "AppDelegate.h"
 

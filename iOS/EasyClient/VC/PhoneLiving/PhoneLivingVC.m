@@ -1,14 +1,7 @@
-//
-//  PhoneLivingVC.m
-//  EasyDarwinPlayer
-//
-//  Created by Amber on 16/8/1.
-//  Copyright © 2016年 Amber. All rights reserved.
-//
-
 #import "PhoneLivingVC.h"
 #import "EasyCameraCell.h"
 #import "EasyCamera.h"
+#import "EasyUrl.h"
 
 @interface PhoneLivingVC ()<NetRequestDelegate>
 {
@@ -16,6 +9,7 @@
       NSMutableArray *_dataArr;
     UiotHUD *_HUD;
     NSString *_urlStr;
+    EasyUrl *_urlModel;
 }
 @property(nonatomic,strong) NetRequestTool *requestTool;
 @end
@@ -28,14 +22,11 @@ static NSString *cellIdentifier1 = @"Cell1";
     [super viewDidLoad];
     
     self.view.backgroundColor = [UIColor whiteColor];
-    //    [self nsvigationSetting];
     [self initSomeView];
     _dataArr = [NSMutableArray array];
     self.requestTool = [[NetRequestTool alloc]init];
     self.requestTool.delegate = self;
-//    [_requestTool requestListData:parametersDic];
-//    [self requestListData];
-         _urlStr= @"http://121.40.50.44:10000/api/getdevicelist?AppType=EasyCamera&TerminalType=Android";
+    _urlStr= @"http://121.40.50.44:10000/api/getdevicelist?AppType=EasyCamera&TerminalType=Android";
 }
 
 - (void)initSomeView
@@ -67,8 +58,6 @@ static NSString *cellIdentifier1 = @"Cell1";
     self.collectionView.mj_header = [MJRefreshNormalHeader headerWithRefreshingBlock:^{
         [_HUD show:YES];
         [weakSelf requestListData];
-        
-        
     }];
     
 }
@@ -87,13 +76,10 @@ static NSString *cellIdentifier1 = @"Cell1";
     [self.requestTool  requestListData:_urlStr];
 }
 
-
-
-
 // 返回Items的个数 （图片的个数）
 -(NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
 {
-    return _dataArr.count;//model.fileArray.count;
+    return _dataArr.count;
 }
 
 // item大小
@@ -104,8 +90,6 @@ static NSString *cellIdentifier1 = @"Cell1";
 
 -(UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    
-    
     EasyCameraCell * cell = [collectionView dequeueReusableCellWithReuseIdentifier:cellIdentifier1 forIndexPath:indexPath];
     
     EasyCamera *model = _dataArr[indexPath.row];
@@ -116,33 +100,40 @@ static NSString *cellIdentifier1 = @"Cell1";
     
     return cell;
     
-    
-    
 }
 
 -(void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
 {
+    EasyCamera *model = _dataArr[indexPath.row];
     
-    NSLog(@"========");
-    
-    
+    AFHTTPSessionManager * manager = [AFHTTPSessionManager manager];
+    manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"html/text",@"text/plain", nil];
+    NSString *urlStr =[NSString stringWithFormat:@"http://121.40.50.44:10000/api/getdevicestream?device=%@&channel=0&protocol=RTSP&reserve=1",model.serial];
+    [manager POST:urlStr parameters:nil progress:^(NSProgress * _Nonnull uploadProgress) {
+    } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSDictionary *easyDic = [responseObject objectForKey:@"EasyDarwin"];
+        NSDictionary *headerDic =  [easyDic objectForKey:@"Header"];
+        NSDictionary *bodyDic =  [easyDic objectForKey:@"Body"];
+        if ([[headerDic objectForKey:@"ErrorNum"] isEqualToString:@"200"]) {
+            _urlModel = [[EasyUrl alloc]init];
+            _urlModel.channel = [bodyDic objectForKey:@"Channel"];
+            _urlModel.protocol = [bodyDic objectForKey:@"Protocol"];
+            _urlModel.reserve = [bodyDic objectForKey:@"Reserve"];
+            _urlModel.serial = [bodyDic objectForKey:@"Serial"];
+            _urlModel.url = [bodyDic objectForKey:@"URL"];
+            PlayViewController *playVC = [[PlayViewController alloc]init];
+            playVC.urlModel = _urlModel;
+            [self presentViewController:playVC animated:YES completion:nil];
+        }
+        
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"error====%@",error);
+    }];
     
 }
-
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
-
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
 
 @end

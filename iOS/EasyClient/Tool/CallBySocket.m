@@ -107,18 +107,16 @@ GCDAsyncSocket             *_gcdsocekt;
     //设置话筒属性等
     [self initSession];
     //创造一个录制音频队列
-    AudioQueueNewInput (&(_audioFormat),GenericInputCallback,(__bridge void *)self,NULL,NULL,0,&_inputQueue);
+    AudioQueueNewInput(&_audioFormat,GenericInputCallback,(__bridge void *)self,NULL,NULL,0,&_inputQueue);
     //创建录制音频队列缓冲区
     for (int i = 0; i < kNumberAudioQueueBuffers; i++) {
-      
-            if (self.carmelType == 81 || self.carmelType == 113) {
-                AudioQueueAllocateBuffer(_inputQueue, kDefaultInputBufferSizeL, &_inputBuffers[i]);
-            }else
-            {
-                AudioQueueAllocateBuffer(_inputQueue, kDefaultInputBufferSize, &_inputBuffers[i]);
-            }
-     
-        AudioQueueEnqueueBuffer (_inputQueue,(_inputBuffers[i]),0,NULL);
+        if (self.carmelType == 81 || self.carmelType == 113) {
+            AudioQueueAllocateBuffer(_inputQueue, kDefaultInputBufferSizeL, &_inputBuffers[i]);
+        }else
+        {
+            AudioQueueAllocateBuffer(_inputQueue, kDefaultInputBufferSize, &_inputBuffers[i]);
+        }
+        AudioQueueEnqueueBuffer(_inputQueue,_inputBuffers[i],0,NULL);
     }
     run = 1;
     
@@ -134,21 +132,18 @@ GCDAsyncSocket             *_gcdsocekt;
 
 - (void)stopCall
 {
-    
-    NSString *bodyStr = [NSString stringWithFormat:@"{\"UiotDarwin\":{\"Header\":{\"Version\":\"1.0\",\"CSeq\":\"654321\",\"MessageType\":\"MSG_CS_SHOUT_END_REQ\"},\"Body\":{\"UserID\":\"%d\",\"DeviceSerial\":\"%@\",\"CameraSerial\":\"%@\"}}}",@"",@"",@""];
-       NSMutableData *sendData = [[NSMutableData alloc]init];
-    NSLog(@"bodyStr.length:%d",bodyStr.length);
-    
+    NSString *bodyStr = [NSString stringWithFormat:@"{\"UiotDarwin\":{\"Header\":{\"Version\":\"1.0\",\"CSeq\":\"654321\",\"MessageType\":\"MSG_CS_SHOUT_END_REQ\"},\"Body\":{\"UserID\":\"%@\",\"DeviceSerial\":\"%@\",\"CameraSerial\":\"%@\"}}}",@"",@"",@""];
+    NSMutableData *sendData = [[NSMutableData alloc]init];
+    NSLog(@"bodyStr.length:%d",(int)bodyStr.length);
     NSData *bodyData = [bodyStr dataUsingEncoding:NSUTF8StringEncoding];
-    
     NSString *dataStr = [NSString stringWithFormat:@"POST http://%@:%@/clientinfo?sign=1&sessionid=%@    HTTP/1.1\r\nContent-Length:%d\r\n\r\n",LOGIN_CMS_ADDRESS,LOGIN_CMS_ADDRESS_PORT,@"" ,12];
-    
+
     [sendData appendData:[dataStr dataUsingEncoding:NSUTF8StringEncoding]];
     [sendData appendData :bodyData];
-    
+
 
      [_gcdsocekt  writeData:sendData withTimeout:-1 tag:0];
-    
+
     MPMusicPlayerController *musicPlayer = [MPMusicPlayerController applicationMusicPlayer];
     musicPlayer.volume = 1.0;
     
@@ -199,16 +194,13 @@ void GenericInputCallback (
     if (inNumberPackets > 0) {
         
         NSData *pcmData = [[NSData alloc] initWithBytes:inBuffer->mAudioData length:inBuffer->mAudioDataByteSize];
-        //pcm数据不为空，编码为g711u
-        CallBySocket *callSelf = (__bridge CallBySocket *)(inUserData);
+        //pcm数据不为空，编码为g711a
+        memset(buffer, 0, 800);
+        memset(newBu, 0, 800);
+        memset(allData, 0, 1500);
         
-   
-            memset(buffer, 0, 800);
-            memset(newBu, 0, 800);
-            memset(allData, 0, 1500);
-        
-        char *c = [pcmData bytes];
-        int size = PCM2G711u(c, buffer, pcmData.length, 0);
+        char *c = (char*)[pcmData bytes];
+        int size = PCM2G711a(c, buffer, (int)pcmData.length, 0);
         
         if (size <= 0) {
             return;
@@ -242,7 +234,7 @@ void GenericInputCallback (
             
         }
     }
-    AudioQueueEnqueueBuffer (inAQ,inBuffer,0,NULL);
+    AudioQueueEnqueueBuffer(inAQ,inBuffer,0,NULL);
     
 }
 

@@ -22,8 +22,6 @@
     PhoneLivingVC *_VC2;
     
     EasyNVRVC *_VC3;
-    
-
 }
 @end
 
@@ -33,7 +31,7 @@
     [super viewDidLoad];
     
     self.view.backgroundColor = [UIColor whiteColor];
-    [self nsvigationSetting];
+    [self navigationSetting];
     [self initSomeView];
     
 }
@@ -50,14 +48,13 @@
     float navigationHeight = self.navigationController.navigationBar.frame.size.height;
     
      _VC1.title = @"EasyCamera";
-     _VC2.title = @"Phone Living";
+     _VC2.title = @"手机直播";
      _VC3.title = @"EasyNVR";
     
     AmberContainerVC *containerVC = [[AmberContainerVC alloc]initWithControllers:@[_VC1,_VC2,_VC3]
                                                                                         topBarHeight:statusHeight + navigationHeight
                                                                                 parentViewController:self];
     containerVC.delegate = self;
-    containerVC.menuItemFont = [UIFont fontWithName:@"Futura-Medium" size:16];
     
     [self.view addSubview:containerVC.view];
     [_VC1 requestListData];
@@ -65,9 +62,7 @@
 #pragma mark -- AmberContainerViewControllerDelegate
 - (void)containerViewItemIndex:(NSInteger)index currentController:(UIViewController *)controller
 {
-    //    NSLog(@"current Index : %ld",(long)index);
     NSLog(@"current controller : %@",controller);
-    //    [controller viewWillAppear:YES];
     if (index ==1) {
             [_VC2 requestListData];
     }else if (index == 2)
@@ -79,12 +74,26 @@
 
 
 //导航栏设置
-- (void)nsvigationSetting
+- (void)navigationSetting
 {
-    self.navigationItem.title = @"EasyDarwin";
     [self.navigationController.navigationBar setTitleTextAttributes:
      @{NSFontAttributeName:[UIFont systemFontOfSize:17],
        NSForegroundColorAttributeName:[UIColor whiteColor]}];
+    
+    UIView* logo = [[UIView alloc]init];
+    logo.frame = CGRectMake(0, 0, 160, 30);
+    UIImageView* img = [[UIImageView alloc]init];
+    img.layer.masksToBounds = YES;
+    img.layer.cornerRadius = 5;
+    img.image = [UIImage imageNamed:@"EasyClient60.png"];
+    img.frame = CGRectMake(0, 0, 30, 30);
+    [logo addSubview:img];
+    
+    UILabel* label = [[UILabel alloc] initWithFrame:CGRectMake(40, 0, 130, 30)];
+    [label setText:@"EasyClient"];
+    [label setTextColor:[UIColor whiteColor]];
+    [logo addSubview:label];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:logo];
     
     UIButton *rightBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [rightBtn setFrame:CGRectMake(0, 0, 30, 30)];
@@ -103,7 +112,6 @@
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 @end
