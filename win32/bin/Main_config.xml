@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="1280,720" clip="true" Resizing="true" DragMoving="true" bkcolor="#666666" mininfo="800,60" roundcorner="2,2">
+	<Font name="幼圆" size="20" bold="true"/>
+	<Font name="微软雅黑" size="15" italic="true"/>
+	<Font name="微软雅黑" size="15" bold="true"/>
+
+	<String text="EasyClient" font="1" color="#FFFFFF" pos="0,0,40,7,300,42" id="1"/>
+	<String text="Version: 1.0.16.0815 Powered by SwordTwelve QQ交流群：544917793" font="2" color="#FFFFFF" pos="3,3,810,25,0,0" id="2"/>
+	<String text="PTZ摄像机控制" font="3" color="#000000" pos="2,2,60,340,180,310" id="3"/>
+
+	<Image path="Res\Skin\header.png" pos="0,3,0,0,0,0" id="1"/>
+	<Image path="Res\EasyTeam\Easy_32.png" pos="0,0,4,2,36,34" id="2" />
+
+	<Button pos="1,1,35,0,8,22" type="push" id="5000" normalimage="Res\Button\close_normal.png" hotimage="Res\Button\close_hover.png" pushedimage="Res\Button\close_pressed.png" focusedimage="Res\Button\close_normal.png" size="27,22" trans="true"/>
+	<Button pos="1,1,62,0,35,22" type="push" id="5001" normalimage="Res\Button\min_normal.png" hotimage="Res\Button\min_hover.png" pushedimage="Res\Button\min_pressed.png" focusedimage="Res\Button\min_normal.png" size="27,22" trans="true"/>
+
+	<Button keyname="Refresh" pos="2,2,200,376,290,350" type="push" id="5002" text="刷新" normalimage="Res\EasyTeam\按钮常规.png" hotimage="Res\EasyTeam\按钮选中.png" pushedimage="Res\EasyTeam\按钮选中-2.png" focusedimage="Res\EasyTeam\按钮常规.png" size="62,33" trans="true"/>
+
+	<Button pos="3,3,240,25,120,0" type="push" id="5045" fontnormalcolor="#FFFFFF" fontselcolor="#FF00FF" trans="true" text="©EasyDarwin.ORG" url="http://www.easydarwin.org/"/>
+	<Button pos="3,3,120,25,0,0" type="push" id="5046" fontnormalcolor="#FFFFFF" fontselcolor="#FF00FF" trans="true" text="Code On Github" url="https://github.com/EasyDarwin/EasyClient"/>
+
+<!--
+	<ListCtrl pos="0,2,10,36,296,380" scrollimage="Res\Scroll\SKIN_SCROLL.bmp" id="5010" itemheight="30" trans="false">
+		<headbkimage value="Res\ListCtrl\folder_nav_item_bg_hover.png" ninepart="2,2,2,2"/>
+		<headpressimage value="Res\ListCtrl\folder_nav_item_bg_pressed.png" ninepart="2,2,2,2"/>
+		<headgirdimage value="Res\ListCtrl\category_sep.png"/>
+
+		<hovenimage value="Res\ListCtrl\item_bg_hover.png" ninepart="2,2,2,2"/>		
+		<selectimage value="Res\ListCtrl\item_bg_selected.png" ninepart="2,2,2,2"/>		
+		<headstring value="设备ID,100;设备名称,100;设备类型,94;"/>
+	</ListCtrl>
+-->
+	<TreeCtrl keyname="DevListTree" pos="0,2,10,36,296,380" scrollimage="Res\Scroll\SKIN_SCROLL.bmp" bkcolor="FFFFFF" 
+	 buttonimage="Res\\TreeCtrl\\Button.png" hoverimage="Res\\TreeCtrl\\LIST_ITEM_SELECT.png" pressimage="Res\\TreeCtrl\\LIST_ITEM_DOWN.png" id="7000" trans="true"/>	
+
+
+	<Button keyname="Left" pos="2,2,33,236,65,204" type="icon" id="5012" text="" normalimage="allbtn_down" hotimage="Res\Button\allbtn_highlight.png" pushedimage="Res\Button\allbtn_down.png" focusedimage="allbtn_highlight.png" iconimage="Res\ClientResources\left.png" size="32,32" trans="true"/>	
+
+	<Button keyname="Upper" pos="2,2,101,304,137,272" type="icon" id="5014" text="" normalimage="allbtn_down" hotimage="Res\Button\allbtn_highlight.png" pushedimage="Res\Button\allbtn_down.png" focusedimage="allbtn_highlight.png" iconimage="Res\ClientResources\upper.png" size="32,32" trans="true"/>
+
+<!--
+	<Button keyname="Center" pos="2,2,85,236,117,204" type="icon" id="5015" text="" normalimage="allbtn_down" hotimage="Res\Button\allbtn_highlight.png" pushedimage="Res\Button\allbtn_down.png" focusedimage="allbtn_highlight.png" iconimage="Res\ClientResources\center.png" size="32,32" trans="true"/>	
+-->
+	<Button keyname="Down" pos="2,2,101,168,137,136" type="icon" id="5016" text="" normalimage="allbtn_down" hotimage="Res\Button\allbtn_highlight.png" pushedimage="Res\Button\allbtn_down.png" focusedimage="allbtn_highlight.png" iconimage="Res\ClientResources\down.png" size="32,32" trans="true"/>
+	
+	<Button keyname="Right" pos="2,2,173,236,205,204" type="icon" id="5018" text="" normalimage="allbtn_down" hotimage="Res\Button\allbtn_highlight.png" pushedimage="Res\Button\allbtn_down.png" focusedimage="allbtn_highlight.png" iconimage="Res\ClientResources\right.png" size="32,32" trans="true"/>	
+	
+</Window>	
