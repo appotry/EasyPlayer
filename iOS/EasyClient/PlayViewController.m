@@ -9,6 +9,7 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <MediaPlayer/MediaPlayer.h>
 #import <AVFoundation/AVFoundation.h>
+#include <pthread.h>
 
 #import "VideoPacket.h"
 #import "AAPLEAGLLayer.h"
@@ -36,91 +37,7 @@ uint8_t *_ppsTemp=NULL;
 NSInteger _ppsTempSize;
 //添加缓冲队列实现两个回调函数的数据传递
 char sIfHaveDone=0;
-struct Node
-{
-    char *data;//音频数据
-    int len;//音频数据长度
-    struct Node *pNext;//指向下一个结点的指针
-};
-NSLock *synlockEx ;///同步控制
-struct List//以单链表实现队列
-{
-    int NodeLen;//结点个数
-    struct Node *pHead;//队列头，每次从队列头获取数据
-    struct Node *pTail;//队列尾，每次从队列尾添加数据
-};
-void Init(struct List * plist)//队列初始化
-{
-    synlockEx = [[NSLock alloc] init];//互斥锁
-    plist->NodeLen=0;
-    plist->pHead=NULL;
-    plist->pTail=NULL;
-}
-void  AddToTail(struct List * plist,struct Node *pNode)//将结点插入到队列尾部
-{
-    [synlockEx lock];
-    pNode->pNext=NULL;
-    if(plist->NodeLen==0)//空
-    {
-        plist->pHead=pNode;
-        plist->pTail=pNode;
-    }
-    else
-    {
-        plist->pTail->pNext=pNode;
-        plist->pTail=pNode;
-    }
-    plist->NodeLen=plist->NodeLen+1;
-    [synlockEx unlock];
-}
-void ClearAllData(struct List * plist)
-{
-    [synlockEx lock];
-    struct Node *pTemp=NULL;
-    while(plist->NodeLen>0)
-    {
-        plist->NodeLen=plist->NodeLen-1;
-        pTemp=plist->pHead;
-        plist->pHead=plist->pHead->pNext;
-        free(pTemp->data);
-        free(pTemp);
-    }
-    [synlockEx unlock];
-}
-struct Node* GetFromHead(struct List * plist)//从队列头部获取数据
-{
-    struct Node *pTemp=NULL;
-    [synlockEx lock];
-    if(plist->NodeLen==0)
-    {
-        pTemp= NULL;
-    }
-    else if(plist->NodeLen==1)
-    {
-#if 0
-         plist->NodeLen=0;
-         pTemp=plist->pHead;
-         plist->pHead=NULL;
-         plist->pTail=NULL;
-#else
-        //当队列为1时不移除这个元素
-        struct Node * dataNode=plist->pHead;;
-        pTemp=malloc(sizeof(struct Node));
-        pTemp->len=dataNode->len;
-        pTemp->data= malloc(dataNode->len);
-        memcpy(pTemp->data, dataNode->data, dataNode->len);
-#endif
-    }
-    else
-    {
-        plist->NodeLen=plist->NodeLen-1;
-        pTemp=plist->pHead;
-        plist->pHead=plist->pHead->pNext;
-    }
-    [synlockEx unlock];
-    return pTemp;
-}
-struct List  MyList;
+
 //
 VTDecompressionSessionRef _deocderSession;
 CMVideoFormatDescriptionRef _decoderFormatDescription;
@@ -141,19 +58,10 @@ BOOL initAudio(EASY_MEDIA_INFO_T* pMediaInfo);
 
 
 // 音频
-#define QUEUE_BUFFER_SIZE 5 //队列缓冲个数
 #define MIN_SIZE_PER_FRAME 2000 //每侦最小数据长度//penggy:之前2000有点小，会闪退,改为20000
-
 AudioQueueRef audioQueue = NULL;//音频播放队列
-int audioIdx = 0;
-
-AudioQueueBufferRef outQB[QUEUE_BUFFER_SIZE] = {0};//音频缓存
-
-NSLock * audioLock = NULL;///同步控制
-
-BOOL isSetBuffSize = YES;
-static void AudioPlayerAQInputCallback(void *input, AudioQueueRef outQ, AudioQueueBufferRef outQB);
-void readPCMAndPlay(AudioQueueRef outQ,AudioQueueBufferRef outQB);
+AudioQueueBufferRef outQB;//音频缓存
+void readPCMAndPlay();
 
 //播放
 void configPlayer(NSString *urlString);
@@ -165,15 +73,10 @@ int RTSPClientCallBack( int _chid, int *_chPtr, int _frameType, char *_pBuf, RTS
         if(!audioQueue || _frameInfo->length >= MIN_SIZE_PER_FRAME || _frameInfo->length <= 0){
             return 0;
         }
-        struct Node *pNode=malloc(sizeof(struct Node));
-        pNode->len=_frameInfo->length;
-        pNode->data= malloc(pNode->len);
-        memcpy(pNode->data, _pBuf, pNode->len);
-        AddToTail(&MyList, pNode);
-        audioIdx++;
-        if(audioIdx == 10){
-            readPCMAndPlay(audioQueue, outQB[0]);
-        }
+        memset(outQB->mAudioData,0,MIN_SIZE_PER_FRAME);
+        outQB->mAudioDataByteSize = _frameInfo->length;
+        memcpy(outQB->mAudioData,_pBuf,outQB->mAudioDataByteSize);
+        AudioQueueEnqueueBuffer(audioQueue, outQB, 0, NULL);
     }
     else if (_frameType == EASY_SDK_VIDEO_FRAME_FLAG && _frameInfo != NULL && _pBuf != NULL)
     {
@@ -244,12 +147,12 @@ int RTSPClientCallBack( int _chid, int *_chPtr, int _frameType, char *_pBuf, RTS
                     vp.buffer[1] = *(pNalSize + 2);
                     vp.buffer[2] = *(pNalSize + 1);
                     vp.buffer[3] = *(pNalSize);
-
+                    
                     _sps = malloc(_spsSize);
                     memcpy(_sps, _pBuf+4, _spsSize-4);
                     _pps = malloc(_ppsSize);
                     memcpy(_pps, _pBuf+_spsSize+4, _ppsSize-4);
-
+                    
                 }
                 
                 if(initH264Decoder(nil)) {
@@ -301,8 +204,8 @@ int RTSPClientCallBack( int _chid, int *_chPtr, int _frameType, char *_pBuf, RTS
         memset(&mediainfo, 0x00, sizeof(EASY_MEDIA_INFO_T));
         memcpy(&mediainfo, _pBuf, sizeof(EASY_MEDIA_INFO_T));
         NSLog(@"RTSP DESCRIBE Get Media Info: video:%u fps:%u audio:%u channel:%u sampleRate:%u \n",
-               mediainfo.u32VideoCodec, mediainfo.u32VideoFps, mediainfo.u32AudioCodec, mediainfo.u32AudioChannel, mediainfo.u32AudioSamplerate);
-//        initH264Decoder(&mediainfo);
+              mediainfo.u32VideoCodec, mediainfo.u32VideoFps, mediainfo.u32AudioCodec, mediainfo.u32AudioChannel, mediainfo.u32AudioSamplerate);
+        //        initH264Decoder(&mediainfo);
         initAudio(&mediainfo);
     }
     return 0;
@@ -405,28 +308,10 @@ CVPixelBufferRef decode(VideoPacket* vp) {
     return outputPixelBuffer;
 }
 
-void readPCMAndPlay(AudioQueueRef outQ,AudioQueueBufferRef outQB)
-{
-    struct Node * pNode = GetFromHead(&MyList);
-    if(pNode == NULL){
-        return;
-    }
-
-    outQB->mAudioDataByteSize = (int)pNode->len;
-    memcpy(outQB->mAudioData,pNode->data,outQB->mAudioDataByteSize);
-    free(pNode->data);
-    free(pNode);
-    AudioQueueEnqueueBuffer(audioQueue, outQB, 0, NULL);
-
-}
-
-
-
 void configPlayer(NSString *urlString) {
     const  char *url =  [urlString UTF8String];
     const  char *username = "admin";
     const   char *password = "admin";
-    audioIdx = 0;
     EasyRTSP_Init(&rtspHandle);
     EasyRTSP_SetCallback(rtspHandle, RTSPClientCallBack);
     EasyRTSP_OpenStream(rtspHandle, 1, (char *)url, RTP_OVER_TCP, EASY_SDK_VIDEO_FRAME_FLAG|EASY_SDK_AUDIO_FRAME_FLAG, (char *)username,(char *)password, NULL, 1000, 0,1);
@@ -448,7 +333,6 @@ void configPlayer(NSString *urlString) {
     MBProgressHUD * _hud;
 }
 @property (assign, nonatomic) AudioQueueRef                 inputQueue;//录音对列
-@property (assign, nonatomic) AudioQueueRef                 outputQueue;
 @property (assign)BOOL isVH; //横竖屏
 @property (nonatomic,strong)ToolBar   *topBar,*botBar;
 @property (nonatomic,strong)UIBarButtonItem   *midBtnItem,*upBtnItem,*downBtnItem,*leftBtnItem,*rightBtnItem,*spaceItem,*jirtuItem,*picItem,*videotapeItem;
@@ -468,24 +352,19 @@ void configPlayer(NSString *urlString) {
 
 - (void)viewWillDisappear:(BOOL)animated
 {
+
     [super viewWillDisappear:animated];
     dispatch_queue_t globalQueue=dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-    
-    //异步执行队列任务
     dispatch_async(globalQueue, ^{
         EasyRTSP_CloseStream(rtspHandle);
         EasyRTSP_Deinit(&rtspHandle);
-        
-        NSLog(@"~~~~~~~~~~~ free play view controller ~~~~~~~~~~~~~~~~");
         [self clearH264Deocder];
-        ClearAllData(&MyList);
-        destroyAudio();
-        
         if(self.midBtn.selected){//stop talk if talking
             [self talkStop];
         }
+        destroyAudio();
     });
-  
+    
 }
 
 - (void)viewDidLoad {
@@ -496,12 +375,10 @@ void configPlayer(NSString *urlString) {
     _glLayer.backgroundColor = [UIColor blackColor].CGColor;
     [self.view.layer addSublayer:_glLayer];
     
-    Init(&MyList);
     [self initSomeView];
     configPlayer(self.urlModel.url);
     pvc = self;
-    self.cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
-    self.cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
+
 }
 
 - (void)initSomeView
@@ -665,7 +542,7 @@ void configPlayer(NSString *urlString) {
     [self.downBtn addTarget:self action:@selector(clickTounchDownButton:) forControlEvents:UIControlEventTouchDown];
     [self.downBtn addTarget:self action:@selector(clickTounchUpInside:) forControlEvents:UIControlEventTouchUpInside|UIControlEventTouchUpOutside];
     
-//    [self.jirtuBtn addTarget:self action:@selector(takePhoto:) forControlEvents:UIControlEventTouchUpInside];
+    //    [self.jirtuBtn addTarget:self action:@selector(takePhoto:) forControlEvents:UIControlEventTouchUpInside];
     [self.rightBtn addTarget:self action:@selector(clickTounchDownButton:) forControlEvents:UIControlEventTouchDown];
     [self.rightBtn addTarget:self action:@selector(clickTounchUpInside:) forControlEvents:UIControlEventTouchUpInside|UIControlEventTouchUpOutside];
     [self.leftBtn addTarget:self action:@selector(clickTounchDownButton:) forControlEvents:UIControlEventTouchDown];
@@ -702,8 +579,8 @@ void configPlayer(NSString *urlString) {
         CFRelease(_decoderFormatDescription);
         _decoderFormatDescription = NULL;
     }
-//    free(_sps);
-//    free(_pps);
+    //    free(_sps);
+    //    free(_pps);
     _spsSize = _ppsSize = 0;
 }
 
@@ -711,9 +588,7 @@ void destroyAudio()
 {
     if(audioQueue){
         AudioQueueStop(audioQueue, YES);
-        for (NSInteger m = 0; m < QUEUE_BUFFER_SIZE;m++) {
-            AudioQueueFreeBuffer(audioQueue, outQB[m]);
-        }
+        AudioQueueFreeBuffer(audioQueue, outQB);
         AudioQueueDispose(audioQueue, YES);
         audioQueue = NULL;
     }
@@ -722,79 +597,62 @@ void destroyAudio()
 //**************** 音频  *******************
 BOOL initAudio(EASY_MEDIA_INFO_T* pMediaInfo)
 {
-    NSLog(@"开始设置音频参数");
-    ///设置音频参数 AudioStreamBasicDescription audioDescription;音频参数
-    AudioStreamBasicDescription audioDescription;
+    NSError *audioSessionError;
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+    [audioSession setCategory:AVAudioSessionCategoryAmbient error:&audioSessionError];
+    if(audioSessionError)
+    {
+        NSLog(@"AVAudioSession error setting category:%@",audioSessionError);
+    }
+    [audioSession setActive:YES error:&audioSessionError];
+    if(audioSessionError){
+        NSLog(@"AVAudioSession error activating: %@",audioSessionError);
+    }
+    
+    AudioStreamBasicDescription audioDescription = {0};
     switch (pMediaInfo->u32AudioCodec) {
         case EASY_SDK_AUDIO_CODEC_AAC:
+            NSLog(@"初始化AAC解码器");
             audioDescription.mFormatID = kAudioFormatMPEG4AAC;
             audioDescription.mFramesPerPacket = 1024;//每一个packet一侦数据
-            audioDescription.mSampleRate         =  pMediaInfo->u32AudioSamplerate;
-            audioDescription.mFormatFlags        =  0;
+            audioDescription.mSampleRate =  pMediaInfo->u32AudioSamplerate;
             audioDescription.mChannelsPerFrame = pMediaInfo->u32AudioChannel;//1;///单声道
-            audioDescription.mBitsPerChannel = 0;//每个采样点16bit量化
-            audioDescription.mBytesPerPacket     =  0;//表示这是一个变比特率压缩
-            audioDescription.mBytesPerFrame      =  0;
-            audioDescription.mReserved           =  0;
+            audioDescription.mFormatFlags = 0;
             break;
         case EASY_SDK_AUDIO_CODEC_G711U:
-            audioDescription.mSampleRate = 8000;//pMediaInfo->u32AudioSamplerate;//8000;//采样率
-            audioDescription.mFormatID = kAudioFormatULaw;
-            audioDescription.mFramesPerPacket = 1;//每一个packet一侦数据
-            audioDescription.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
-            audioDescription.mChannelsPerFrame = 1;//pMediaInfo->u32AudioChannel;//1;///单声道
-            audioDescription.mBitsPerChannel = 16;//每个采样点16bit量化
-            audioDescription.mBytesPerFrame = (audioDescription.mBitsPerChannel/8) * audioDescription.mChannelsPerFrame;
-            audioDescription.mBytesPerPacket = audioDescription.mBytesPerFrame ;
-            break;
+
         case EASY_SDK_AUDIO_CODEC_G711A:
-            audioDescription.mSampleRate = 8000;//pMediaInfo->u32AudioSamplerate;//8000;//采样率
-            audioDescription.mFormatID = kAudioFormatALaw;
-            audioDescription.mFramesPerPacket = 1;//每一个packet一侦数据
-            audioDescription.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
-            audioDescription.mChannelsPerFrame = 1;//pMediaInfo->u32AudioChannel;//1;///单声道
-            audioDescription.mBitsPerChannel = 16;//每个采样点16bit量化
-            audioDescription.mBytesPerFrame = (audioDescription.mBitsPerChannel/8) * audioDescription.mChannelsPerFrame;
-            audioDescription.mBytesPerPacket = audioDescription.mBytesPerFrame ;
-            break;
+
         case EASY_SDK_AUDIO_CODEC_G726:
-            NSLog(@"!!!!I don't know G726 relates whick kAudioFormat. use default: alaw");
-            audioDescription.mSampleRate = 8000;//pMediaInfo->u32AudioSamplerate;//8000;//采样率
-            audioDescription.mFormatID = kAudioFormatALaw;
-            audioDescription.mFramesPerPacket = 1;//每一个packet一侦数据
-            audioDescription.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
-            audioDescription.mChannelsPerFrame = 1;//pMediaInfo->u32AudioChannel;//1;///单声道
-            audioDescription.mBitsPerChannel = 16;//每个采样点16bit量化
-            audioDescription.mBytesPerFrame = (audioDescription.mBitsPerChannel/8) * audioDescription.mChannelsPerFrame;
-            audioDescription.mBytesPerPacket = audioDescription.mBytesPerFrame ;
-            break;
+
         default:
-            audioDescription.mSampleRate = 8000;//pMediaInfo->u32AudioSamplerate;//8000;//采样率
+            audioDescription.mSampleRate = pMediaInfo->u32AudioSamplerate;//8000;//采样率
             audioDescription.mFormatID = kAudioFormatALaw;
             audioDescription.mFramesPerPacket = 1;//每一个packet一侦数据
             audioDescription.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
-            audioDescription.mChannelsPerFrame = 1;//pMediaInfo->u32AudioChannel;//1;///单声道
+            audioDescription.mChannelsPerFrame = pMediaInfo->u32AudioChannel;//1;///单声道
             audioDescription.mBitsPerChannel = 16;//每个采样点16bit量化
             audioDescription.mBytesPerFrame = (audioDescription.mBitsPerChannel/8) * audioDescription.mChannelsPerFrame;
             audioDescription.mBytesPerPacket = audioDescription.mBytesPerFrame ;
             break;
     }
-    NSLog(@"创建音频队列");
     OSStatus err = AudioQueueNewOutput(&audioDescription, AudioPlayerAQInputCallback, (__bridge void * _Nullable)(pvc), nil, nil, 0, &audioQueue);//使用player的内部线程播
     if(err != noErr){
         NSLog(@"AudioQueueNewOutput 不成功");
         return NO;
     }
-    for(int i=0;i<QUEUE_BUFFER_SIZE;i++)
-    {
-        err = AudioQueueAllocateBuffer(audioQueue, MIN_SIZE_PER_FRAME, &outQB[i]);///创建buffer区，MIN_SIZE_PER_FRAME为每一侦所需要的最小的大小，该大小应该比每次往buffer里写的最大的一次还大
-        if(err != noErr){
-            NSLog(@"AudioQueueAllocateBuffer 不成功");
-            AudioQueueDispose(audioQueue, TRUE);
-            audioQueue = NULL;
-            return NO;
-        }
+    
+    UInt32 val = kAudioQueueHardwareCodecPolicy_PreferSoftware;//在软解码不可用的情况下用硬解码
+    err = AudioQueueSetProperty(audioQueue, kAudioQueueProperty_HardwareCodecPolicy, &val, sizeof(UInt32));
+    
+    err = AudioQueueAllocateBuffer(audioQueue, MIN_SIZE_PER_FRAME, &outQB);
+    if(err != noErr){
+        NSLog(@"AudioQueueAllocateBuffer 不成功");
+        AudioQueueDispose(audioQueue, TRUE);
+        audioQueue = NULL;
+        return NO;
     }
+
     AudioQueueSetParameter(audioQueue, kAudioQueueParam_Volume, 1.0);
     err = AudioQueueStart(audioQueue, NULL);
     if(err != noErr){
@@ -807,7 +665,6 @@ BOOL initAudio(EASY_MEDIA_INFO_T* pMediaInfo)
 
 static void AudioPlayerAQInputCallback(void *input, AudioQueueRef outQ, AudioQueueBufferRef outQB)
 {
-    readPCMAndPlay(outQ, outQB);
 }
 
 - (void) handleTap
@@ -819,10 +676,10 @@ static void AudioPlayerAQInputCallback(void *input, AudioQueueRef outQ, AudioQue
 {
     if (!_isControlsShowTimer)
         _isControlsShowTimer = [NSTimer scheduledTimerWithTimeInterval:4.
-                                                        target:self
-                                                      selector:@selector(conrolsShowTimerExceeded)
-                                                      userInfo:nil
-                                                       repeats:NO];
+                                                                target:self
+                                                              selector:@selector(conrolsShowTimerExceeded)
+                                                              userInfo:nil
+                                                               repeats:NO];
     [_isControlsShowTimer setFireDate:[NSDate dateWithTimeIntervalSinceNow:4.]];
 }
 
@@ -941,7 +798,9 @@ static void AudioPlayerAQInputCallback(void *input, AudioQueueRef outQ, AudioQue
 - (void)controlCameraWidthCmd:(NSString*) cmd
 {
     NSLog(@"请求控件摄像头, cmd = %@", cmd);
-    NSString* url = [NSString stringWithFormat:@"http://%@:%@/api/ptzcontrol?device=%@&channel=%@&actiontype=Continuous&command=%@&speed=5&protocol=onvif",self.cmsIp,self.cmsPort,self.urlModel.serial,self.urlModel.channel,cmd];
+    NSString *cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
+    NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
+    NSString* url = [NSString stringWithFormat:@"http://%@:%@/api/ptzcontrol?device=%@&channel=%@&actiontype=Continuous&command=%@&speed=5&protocol=onvif",cmsIp,cmsPort,self.urlModel.serial,self.urlModel.channel,cmd];
     AFHTTPSessionManager * manager = [AFHTTPSessionManager manager];
     manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"html/text",@"text/plain", nil];
     
@@ -952,8 +811,6 @@ static void AudioPlayerAQInputCallback(void *input, AudioQueueRef outQ, AudioQue
     }];
 }
 
-#pragma mark - ClickBtn -- CallActions
-//语音通话
 - (void)callDidTouch: (id) sender
 {
     UIButton *btn = (UIButton *)sender;
@@ -982,7 +839,6 @@ static void AudioPlayerAQInputCallback(void *input, AudioQueueRef outQ, AudioQue
  *
  *  @param message 提示文字
  */
-#pragma mark  - hudNotice
 - (void)hudNotice:(NSString *)message
 {
     [self hudNoticeMsg:message];
@@ -1008,43 +864,31 @@ static void AudioPlayerAQInputCallback(void *input, AudioQueueRef outQ, AudioQue
 
 - (void)talkStart
 {
-//    MPMusicPlayerController *musicPlayer = [MPMusicPlayerController applicationMusicPlayer];
-//    musicPlayer.volume = 0;
+    NSString *cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
+    NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
+//        MPMusicPlayerController *musicPlayer = [MPMusicPlayerController applicationMusicPlayer];
+//        musicPlayer.volume = 0;
+    
     NSError *audioSessionError;
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:&audioSessionError];
     if(audioSessionError)
     {
         NSLog(@"AVAudioSession error setting category:%@",audioSessionError);
-        return;
     }
     [audioSession setActive:YES error:&audioSessionError];
     if(audioSessionError){
         NSLog(@"AVAudioSession error activating: %@",audioSessionError);
-        return;
     }
-    //重置下
+    
     memset(&_audioFormat, 0, sizeof(_audioFormat));
-    
-    //采样率的意思是每秒需要采集的帧数 立体声8000
-    _audioFormat.mSampleRate = 8000;//[[AVAudioSession sharedInstance] sampleRate];
-    
-    //设置通道数,这里先使用系统的测试下 //TODO:（1 单声道  2 立体声）
+    _audioFormat.mSampleRate = 8000;
     _audioFormat.mChannelsPerFrame = 1;//(UInt32)[[AVAudioSession sharedInstance] inputNumberOfChannels];
-    
-    //设置format，怎么称呼不知道。
     _audioFormat.mFormatID = kAudioFormatLinearPCM;
-    
     if (_audioFormat.mFormatID == kAudioFormatLinearPCM){
-        //这个属性不知道干啥的。，
         _audioFormat.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked;
-        //每个通道里，一帧采集的bit数目
         _audioFormat.mBitsPerChannel = 16;
-        //结果分析: 8bit为1byte，即为1个通道里1帧需要采集2byte数据，再*通道数，即为所有通道采集的byte数目。
-        //所以这里结果赋值给每帧需要采集的byte数目，然后这里的packet也等于一帧的数据。
-        //至于为什么要这样。。。不知道。。。字节数目
         _audioFormat.mBytesPerPacket = _audioFormat.mBytesPerFrame = (_audioFormat.mBitsPerChannel / 8) * _audioFormat.mChannelsPerFrame;
-        //packet中包含的frame数目，无压缩时为1，可变比特率时，一个达点儿的固定值例如在ACC中1024。
         _audioFormat.mFramesPerPacket = 1;
     }
     
@@ -1058,7 +902,7 @@ static void AudioPlayerAQInputCallback(void *input, AudioQueueRef outQ, AudioQue
     
     NSString* params = [NSString stringWithFormat:@"{\"EasyDarwin\":{\"Header\":{\"CSeq\":\"1\",\"MessageType\":\"MSG_CS_TALKBACK_CONTROL_REQ\",\"Version\":\"1.0\"},\"Body\":{\"Channel\":\"%@\",\"Command\":\"START\",\"AudioType\":\"G711A\",\"AudioData\":\"\",\"Protocol\":\"%@\",\"Reserve\":\"1\",\"Pts\":\"\",\"Serial\":\"%@\"}}}",pvc.urlModel.channel,@"ONVIF",pvc.urlModel.serial];
     
-    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@:%@/",self.cmsIp, self.cmsPort]];
+    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@:%@/",cmsIp, cmsPort]];
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc]initWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:10];
     [request setHTTPMethod:@"POST"];//设置请求方式为POST，默认为GET
     [request setHTTPBody:[params dataUsingEncoding:NSISOLatin1StringEncoding]];
@@ -1071,17 +915,31 @@ static void AudioPlayerAQInputCallback(void *input, AudioQueueRef outQ, AudioQue
 
 - (void)talkStop
 {
+    NSString *cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
+    NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
     AudioQueueStop(self.inputQueue, YES);//停止
     
     NSString* params = [NSString stringWithFormat:@"{\"EasyDarwin\":{\"Header\":{\"CSeq\":\"1\",\"MessageType\":\"MSG_CS_TALKBACK_CONTROL_REQ\",\"Version\":\"1.0\"},\"Body\":{\"Channel\":\"%@\",\"Command\":\"STOP\",\"AudioType\":\"G711A\",\"AudioData\":\"\",\"Protocol\":\"%@\",\"Reserve\":\"1\",\"Pts\":\"\",\"Serial\":\"%@\"}}}",pvc.urlModel.channel,@"ONVIF",pvc.urlModel.serial];
     
-    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@:%@/",self.cmsIp, self.cmsPort]];
+    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@:%@/",cmsIp, cmsPort]];
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc]initWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:10];
     [request setHTTPMethod:@"POST"];//设置请求方式为POST，默认为GET
     [request setHTTPBody:[params dataUsingEncoding:NSISOLatin1StringEncoding]];
     NSData *received = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
     NSString *res = [[NSString alloc]initWithData:received encoding:NSISOLatin1StringEncoding];
     self.midBtn.selected = NO;
+    
+    NSError *audioSessionError;
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+    [audioSession setCategory:AVAudioSessionCategoryAmbient error:&audioSessionError];
+    if(audioSessionError)
+    {
+        NSLog(@"AVAudioSession error setting category:%@",audioSessionError);
+    }
+    [audioSession setActive:YES error:&audioSessionError];
+    if(audioSessionError){
+        NSLog(@"AVAudioSession error activating: %@",audioSessionError);
+    }
 }
 
 
@@ -1090,15 +948,16 @@ static void AudioPlayerAQInputCallback(void *input, AudioQueueRef outQ, AudioQue
 }
 
 void AudioRecordCallback (
-                           void                                *inUserData,
-                           AudioQueueRef                       inAQ,
-                           AudioQueueBufferRef                 inBuffer,
-                           const AudioTimeStamp                *inStartTime,
-                           UInt32                              inNumberPackets,
-                           const AudioStreamPacketDescription  *inPacketDescs
-                           )
+                          void                                *inUserData,
+                          AudioQueueRef                       inAQ,
+                          AudioQueueBufferRef                 inBuffer,
+                          const AudioTimeStamp                *inStartTime,
+                          UInt32                              inNumberPackets,
+                          const AudioStreamPacketDescription  *inPacketDescs
+                          )
 {
-    NSLog(@"录音回调方法");
+    NSString *cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
+    NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
     if (inNumberPackets > 0) {
         NSData *pcmData = [[NSData alloc] initWithBytes:inBuffer->mAudioData length:inBuffer->mAudioDataByteSize];
         //pcm数据不为空，编码为g711a
@@ -1111,16 +970,15 @@ void AudioRecordCallback (
             
             NSString* params = [NSString stringWithFormat:@"{\"EasyDarwin\":{\"Header\":{\"CSeq\":\"1\",\"MessageType\":\"MSG_CS_TALKBACK_CONTROL_REQ\",\"Version\":\"1.0\"},\"Body\":{\"Channel\":\"%@\",\"Command\":\"SENDDATA\",\"AudioType\":\"G711A\",\"AudioData\":\"%@\",\"Protocol\":\"%@\",\"Reserve\":\"1\",\"Pts\":\"%@\",\"Serial\":\"%@\"}}}",pvc.urlModel.channel,[GTMBase64 stringByEncodingBytes:buffer length:size],@"ONVIF",[NSString stringWithFormat:@"%d",pvc.pts.intValue],pvc.urlModel.serial];
             
-            NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@:%@/",pvc.cmsIp, pvc.cmsPort]];
+            NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@:%@/",cmsIp, cmsPort]];
             NSMutableURLRequest *request = [[NSMutableURLRequest alloc]initWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:10];
-            [request setHTTPMethod:@"POST"];//设置请求方式为POST，默认为GET
+            [request setHTTPMethod:@"POST"];
             [request setHTTPBody:[params dataUsingEncoding:NSISOLatin1StringEncoding]];
             NSData *received = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
             NSString *res = [[NSString alloc]initWithData:received encoding:NSISOLatin1StringEncoding];
         }
     }
     AudioQueueEnqueueBuffer(inAQ,inBuffer,0,NULL);
-    
 }
 
 @end

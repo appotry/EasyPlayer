@@ -27,10 +27,9 @@ static NSString *cellIdentifier1 = @"Cell1";
     _dataArr = [NSMutableArray array];
     self.requestTool = [[NetRequestTool alloc]init];
     self.requestTool.delegate = self;
-    NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];
-    self.cmsIp = [defs stringForKey:@"cms_ip"];
-    self.cmsPort = [defs stringForKey:@"cms_port"];
-    _urlStr = [NSString stringWithFormat:@"http://%@:%@/api/getdevicelist?AppType=EasyCamera&TerminalType=ARM_Linux",self.cmsIp, self.cmsPort];
+    NSString *cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
+    NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
+    _urlStr = [NSString stringWithFormat:@"http://%@:%@/api/getdevicelist?AppType=EasyCamera&TerminalType=ARM_Linux",cmsIp, cmsPort];
 }
 
 
@@ -120,9 +119,12 @@ static NSString *cellIdentifier1 = @"Cell1";
 // 请求数据
 - (void)requestUrlData:(NSString *)deviceStr
 {
+    NSString *cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
+    NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
+    
     AFHTTPSessionManager * manager = [AFHTTPSessionManager manager];
     manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"html/text",@"text/plain", nil];
-    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/getdevicestream?device=%@&channel=0&protocol=RTSP&reserve=1",self.cmsIp,self.cmsPort, deviceStr];
+    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/getdevicestream?device=%@&channel=0&protocol=RTSP&reserve=1",cmsIp,cmsPort, deviceStr];
     
     [manager POST:urlStr parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *easyDic = [responseObject objectForKey:@"EasyDarwin"];
@@ -143,7 +145,6 @@ static NSString *cellIdentifier1 = @"Cell1";
         NSLog(@"error====%@",error);
     }];
 }
-
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

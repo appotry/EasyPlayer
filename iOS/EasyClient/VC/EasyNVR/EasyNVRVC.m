@@ -7,7 +7,6 @@
 
 @interface EasyNVRVC ()<NetRequestDelegate>
 {
-    
     NSMutableArray *_dataArr;
     UiotHUD *_HUD;
     NSString *_urlStr;
@@ -31,10 +30,10 @@ static NSString *cellIdentifier2 = @"Cell2";
     _dataArr = [NSMutableArray array];
     self.requestTool = [[NetRequestTool alloc]init];
     self.requestTool .delegate = self;
-    self.cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
-    self.cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
+    NSString *cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
+    NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
     
-    _urlStr= [NSString stringWithFormat:@"http://%@:%@/api/getdevicelist?AppType=EasyNVR&TerminalType=ARM_Linux",self.cmsIp,self.cmsPort];
+    _urlStr= [NSString stringWithFormat:@"http://%@:%@/api/getdevicelist?AppType=EasyNVR&TerminalType=ARM_Linux",cmsIp,cmsPort];
     
     
 }
@@ -166,9 +165,12 @@ static NSString *cellIdentifier2 = @"Cell2";
 
 - (void)requestUrlData:(NSString *)Serial channal:(NSString *)channal
 {
+    NSString *cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
+    NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
+    
     AFHTTPSessionManager * manager = [AFHTTPSessionManager manager];
     manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"html/text",@"text/plain", nil];
-    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/getdevicestream?device=%@&channel=%@&protocol=RTSP&reserve=1",self.cmsIp, self.cmsPort, Serial,channal];
+    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/getdevicestream?device=%@&channel=%@&protocol=RTSP&reserve=1",cmsIp, cmsPort, Serial,channal];
     
     [manager POST:urlStr parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *easyDic = [responseObject objectForKey:@"EasyDarwin"];
@@ -193,10 +195,13 @@ static NSString *cellIdentifier2 = @"Cell2";
 
 - (void)requestListData:(NSNumber *)deviceStr
 {
+    NSString *cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
+    NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
+    
     AFHTTPSessionManager * manager = [AFHTTPSessionManager manager];
     manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"html/text",@"text/plain", nil];
-    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/getdeviceinfo?device=%@",self.cmsIp, self.cmsPort, deviceStr];
-    
+    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/getdeviceinfo?device=%@",cmsIp, cmsPort, deviceStr];
+
     [manager POST:urlStr parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *easyDic = [responseObject objectForKey:@"EasyDarwin"];
         NSDictionary *headerDic =  [easyDic objectForKey:@"Header"];

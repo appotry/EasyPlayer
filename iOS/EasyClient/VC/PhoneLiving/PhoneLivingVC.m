@@ -26,7 +26,11 @@ static NSString *cellIdentifier1 = @"Cell1";
     _dataArr = [NSMutableArray array];
     self.requestTool = [[NetRequestTool alloc]init];
     self.requestTool.delegate = self;
-    _urlStr= @"http://121.40.50.44:10000/api/getdevicelist?AppType=EasyCamera&TerminalType=Android";
+    NSString *cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
+    NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
+    
+    _urlStr= @"http://%@:%@/api/getdevicelist?AppType=EasyCamera&TerminalType=Android";
+    _urlStr = [NSString stringWithFormat:_urlStr, cmsIp,cmsPort];
 }
 
 - (void)initSomeView
@@ -48,9 +52,7 @@ static NSString *cellIdentifier1 = @"Cell1";
     
     
     [self.collectionView registerClass:[EasyCameraCell class] forCellWithReuseIdentifier:cellIdentifier1];
-    
     [self.view addSubview:self.collectionView];
-    
     [self.view addSubview:self.collectionView];
     
     __weak typeof(self) weakSelf = self;
@@ -104,11 +106,13 @@ static NSString *cellIdentifier1 = @"Cell1";
 
 -(void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    EasyCamera *model = _dataArr[indexPath.row];
+    NSString *cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
+    NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
     
+    EasyCamera *model = _dataArr[indexPath.row];
     AFHTTPSessionManager * manager = [AFHTTPSessionManager manager];
     manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"html/text",@"text/plain", nil];
-    NSString *urlStr =[NSString stringWithFormat:@"http://121.40.50.44:10000/api/getdevicestream?device=%@&channel=0&protocol=RTSP&reserve=1",model.serial];
+    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/getdevicestream?device=%@&channel=0&protocol=RTSP&reserve=1",cmsIp,cmsPort,model.serial];
     [manager POST:urlStr parameters:nil progress:^(NSProgress * _Nonnull uploadProgress) {
     } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *easyDic = [responseObject objectForKey:@"EasyDarwin"];

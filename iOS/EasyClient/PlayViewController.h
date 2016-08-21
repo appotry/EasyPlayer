@@ -11,8 +11,6 @@
 @property (nonatomic,strong)UIButton   *doneBtn,*picBtn,*tempBtn,*midBtn;
 @property(nonatomic,strong)EasyUrl *urlModel;
 @property(nonatomic,strong)NSNumber *pts;
-@property(nonatomic,strong)NSString *cmsIp;
-@property(nonatomic,strong)NSString *cmsPort;
 //提示框
 -(void)hudNotice:(NSString *)message;
 @end
