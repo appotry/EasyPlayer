@@ -68,7 +68,7 @@ CEasyClientDlg::CEasyClientDlg(CWnd* pParent /*=NULL*/)
 
 	SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)CrashHandler_Player);
 	m_pSession = NULL;
-	m_strCMSIP = _T("121.40.50.44"); //121.40.50.44
+	m_strCMSIP = _T("121.40.50.44"); //121.40.50.44 192.168.1.121
 	m_nCMSPort = 10000;
 	m_nCurSelWnd = -1;
 	m_hReqDeviceListThread = INVALID_HANDLE_VALUE;
@@ -519,6 +519,10 @@ void CEasyClientDlg::OnNMDBClickListDevices(NMHDR *pNMHDR, LRESULT *pResult)
 			
 			CString strDeviceId=  (CString)pSerial;//pListCtrl->GetItemText(pNMItemActivate->iItem,0);
 			CString strChannel =  (CString)pData;
+			if (strChannel.IsEmpty())
+			{
+				strChannel = _T("0");
+			}
 			if (strDeviceId)
 			{
 				//http请求设备推流
@@ -526,7 +530,7 @@ void CEasyClientDlg::OnNMDBClickListDevices(NMHDR *pNMHDR, LRESULT *pResult)
 				CString strReqURL =_T(""); 
 				if (pData ==NULL)
 				{
-					strReqURL.Format(_T("http://%s:%d/API/getdevicestream?device=%s&channel=01&protocol=RTSP&reserve=1"), m_strCMSIP, m_nCMSPort, strDeviceId);
+					strReqURL.Format(_T("http://%s:%d/API/getdevicestream?device=%s&channel=%s&protocol=RTSP&reserve=1"), m_strCMSIP, m_nCMSPort, strDeviceId,strChannel);
 				}
 				else
 				{
@@ -558,7 +562,7 @@ void CEasyClientDlg::OnNMDBClickListDevices(NMHDR *pNMHDR, LRESULT *pResult)
 						{
 							nSelWnd = 0;
 						}
-						pVideoWindow->pDlgVideo[nSelWnd].SetDeviceSerial(strDeviceId);
+						pVideoWindow->pDlgVideo[nSelWnd].SetDeviceSerial(strDeviceId, strChannel);
 						pVideoWindow->pDlgVideo[nSelWnd].SetURL((char*)strURL.c_str());
 						if (!pVideoWindow->pDlgVideo[nSelWnd].Preview())
 						{
@@ -1116,11 +1120,13 @@ LRESULT CEasyClientDlg::HandleButtonMessage(WPARAM wParam, LPARAM lParam)
 	{
 		//发送http请求PTZ控制
 		CString strDeviceId= _T("");
+		CString strChannel= _T("");
 		strDeviceId = pVideoWindow->pDlgVideo[m_nCurSelWnd].GetDeviceSerial();
+		strChannel = pVideoWindow->pDlgVideo[m_nCurSelWnd].GetDeviceChannel();
 		//http://[ip]:[port]/api/ptzcontrol?device=001001000058&channel=0&actiontype=single&c ommand=down&speed=5&protocol=onvif
 		CString strReqURL =_T(""); //Continuous / single
-		strReqURL.Format(_T("http://%s:%d/api/ptzcontrol?device=%s&channel=0&actiontype=Continuous&command=%s&speed=5&protocol=onvif"), 
-			m_strCMSIP, m_nCMSPort, strDeviceId, sPtzCmd);
+		strReqURL.Format(_T("http://%s:%d/api/ptzcontrol?device=%s&channel=%s&actiontype=Continuous&command=%s&speed=5&protocol=onvif"), 
+			m_strCMSIP, m_nCMSPort, strDeviceId, strChannel, sPtzCmd);
 		if (!m_pSession)
 		{
 			m_pSession = new CInternetSession(/*_T("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)")*/);

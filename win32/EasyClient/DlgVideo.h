@@ -67,9 +67,14 @@ public:
 	{
 		return m_sDevSerial; 
 	}
-	void SetDeviceSerial(CString strDevSerival)
+	CString GetDeviceChannel()
+	{
+		return m_sChannel; 
+	}	
+	void SetDeviceSerial(CString strDevSerival, CString strChannel)
 	{
 		m_sDevSerial = strDevSerival;
+		m_sChannel = strChannel;
 	}
 	int Preview();
 
@@ -81,4 +86,5 @@ public:
 	int			m_nActiveState;
 	CEasyClientDlg* m_pMainDlg;
 	CString m_sDevSerial;
+	CString m_sChannel;
 };

@@ -26,6 +26,7 @@ CDlgVideo::CDlgVideo(CWnd* pParent /*=NULL*/)
 	m_nActiveState = FALSE;
 	m_pMainDlg = NULL;
 	m_sDevSerial=_T("");
+	m_sChannel=_T("");
 }
 
 void CDlgVideo::SetMainDlg(CEasyClientDlg* pMainDlg)
