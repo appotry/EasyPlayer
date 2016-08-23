@@ -696,19 +696,20 @@ namespace EasyDarwin { namespace Protocol
 		EasyProtocol proTemp(json);
 		do
 		{
-			string strTerminalType = proTemp.GetHeaderValue(EASY_TAG_TERMINAL_TYPE);//获取设备类型
-			string strAppType = proTemp.GetHeaderValue(EASY_TAG_APP_TYPE);//获取App类型
 			serial_ = proTemp.GetBodyValue(EASY_TAG_SERIAL);//获取设备序列号
-
-			if ((strTerminalType.size() <= 0) || (serial_.size() <= 0) || (strAppType.size() <= 0))
-				break;
-
-			eDeviceType = static_cast<EasyDarwinTerminalType>(EasyProtocol::GetTerminalType(strTerminalType));
-			if (eDeviceType == -1)
-				break;
-			eAppType = static_cast<EasyDarwinAppType>(EasyProtocol::GetAppType(strAppType));
-			if (eAppType == -1)
-				break;
+			// I do not find like this key value in json [8/23/2016 SwordTwelve] 
+// 			string strTerminalType = proTemp.GetHeaderValue(EASY_TAG_TERMINAL_TYPE);//获取设备类型
+// 			string strAppType = proTemp.GetHeaderValue(EASY_TAG_APP_TYPE);//获取App类型
+// 
+// 			if ((strTerminalType.size() <= 0) || (serial_.size() <= 0) || (strAppType.size() <= 0))
+// 				break;
+// 
+// 			eDeviceType = static_cast<EasyDarwinTerminalType>(EasyProtocol::GetTerminalType(strTerminalType));
+// 			if (eDeviceType == -1)
+// 				break;
+// 			eAppType = static_cast<EasyDarwinAppType>(EasyProtocol::GetAppType(strAppType));
+// 			if (eAppType == -1)
+// 				break;
 
 			name_ = proTemp.GetBodyValue(EASY_TAG_NAME);//获取设备名称
 			password_ = proTemp.GetBodyValue(EASY_TAG_TOKEN);//设备认证码

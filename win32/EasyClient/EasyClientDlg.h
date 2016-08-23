@@ -92,7 +92,7 @@ private:
 
 	// EasyClient¹¦ÄÜÀ©Õ¹ [8/11/2016 Dingshuai]
 	CInternetSession *m_pSession;
-	EasyDarwin::Protocol::EasyDevices m_devices;
+	EasyDarwin::Protocol::EasyDevicesInfo m_devicesInfo;
 	CString m_strCMSIP; 
 	int m_nCMSPort;
 	int m_nCurSelWnd;

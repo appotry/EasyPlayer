@@ -18,6 +18,13 @@ using namespace std;
 namespace EasyDarwin { 
 	namespace Protocol{
 
+typedef boost::variant<int, float, string> value_t;
+typedef map<string, value_t> EasyJsonValue;	//key为string,value可以是int、float、string的一种
+typedef void* EasyObject;
+
+class EasyDevice;
+
+
 class Easy_API EasyDevice//摄像头信息类
 {
 public:
@@ -36,19 +43,15 @@ public:
 	string tag_;
 	string channel_;
 	string snapJpgPath_;//最新的快照路径
-};
 
-//typedef vector<EasyDevice> EasyDevices;		//摄像头数组
-//typedef EasyDevices::iterator EasyDevicesIterator;
+};
 
 typedef map<string,EasyDevice> EasyDevices;		//摄像头表，改为map.方便查找。key为channel_，value为EasyDevice
 typedef EasyDevices::iterator EasyDevicesIterator;
 
 
-typedef boost::variant<int, float, string> value_t;
-typedef map<string, value_t> EasyJsonValue;	//key为string,value可以是int、float、string的一种
-typedef void* EasyObject;
-
+//typedef vector<EasyDevice> EasyDevices;		//摄像头数组
+//typedef EasyDevices::iterator EasyDevicesIterator;
 
 typedef struct
 {
@@ -468,5 +471,10 @@ public:
 	EasyDarwinAppType eAppType;//App类型
 };
 //add,Unisiot，end
+// 
+
+typedef map<string,strDevice> EasyDevicesInfo;		//设备信息表，改为map.方便查找。key为channel_，value为strDevice
+
+
 }}//namespace
 #endif

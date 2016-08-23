@@ -310,10 +310,10 @@ void CEasyClientDlg::ProcessReqDevListThread()
 		//CString  m_strCode = (CString)strData.c_str();
 		if (!strData.empty())
 		{
-			m_devices.clear();
+			m_devicesInfo.clear();
 			//解析Json字串
 			EasyDarwin::Protocol::EasyMsgSCDeviceListACK deviceListAck(strData.c_str());
-			m_devices = deviceListAck.GetDevices();
+			EasyDarwin::Protocol::EasyDevices m_devices = deviceListAck.GetDevices();
 			int i = 0;
 			CString strTrmp = _T("");
 			for (EasyDevices::iterator it = m_devices.begin(); it != m_devices.end(); it++)
@@ -345,26 +345,89 @@ void CEasyClientDlg::ProcessReqDevListThread()
 				tvinsert.item.pszText = (LPTSTR)strTrmp.GetBuffer(strTrmp.GetLength());
 				tvinsert.item.iImage = 9;//FOR Image
 				tvinsert.item.iSelectedImage = 6;//FOR Image
-				
-				HTREEITEM DeviceNo = NULL;
-				DeviceNo  = m_pTreeCtrDevList->InsertItem(&tvinsert);	
-				//设置组节点数据(当前设备ID)
-				m_pTreeCtrDevList->SetItemData(DeviceNo, (DWORD_PTR)it->second.serial_.c_str());//GroupId从1开始，区别IP=0可能重复的情况
+
+// 				string serial_;//设备序列号
+// 				string name_;//设备名称
+// 				string password_;//密码
+// 				string tag_;//标签
+// 				string channelCount_;//该设备包含的摄像头个数
+// 				string snapJpgPath_;//最新的快照路径
+				EasyDarwin::Protocol::strDevice deviceInfo;
+				deviceInfo.serial_ = it->second.serial_;
+				deviceInfo.name_ = it->second.name_;
+				deviceInfo.eDeviceType = static_cast<EasyDarwinTerminalType>(EasyProtocol::GetTerminalType( it->second.terminalType_));
+				deviceInfo.eAppType = static_cast<EasyDarwinAppType>(EasyProtocol::GetAppType(it->second.appType_));
+				deviceInfo.snapJpgPath_ = it->second.snapJpgPath_;
 
 				//nvr子节点
 				if (strAppType == _T("EasyNVR"))
 				{
-					tvinsert.hParent = DeviceNo;
-					tvinsert.hInsertAfter  = TVI_LAST;
-					tvinsert.item.iImage = 0;
-					tvinsert.item.iSelectedImage = 6;
-					tvinsert.item.pszText = strSerial.GetBuffer(strSerial.GetLength());
+					//获取设备信息
+					CString strReqURL =_T(""); 
+					strReqURL.Format(_T("http://%s:%d/API/getdeviceinfo?device=%s"), m_strCMSIP, m_nCMSPort, strSerial);
+					if (!m_pSession)
+					{
+						m_pSession = new CInternetSession(/*_T("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)")*/);
+					}
 
-					HTREEITEM NVRMember = m_pTreeCtrDevList->InsertItem(&tvinsert);
-					//设置组员节点项数据(当前组员IP)
-					m_pTreeCtrDevList->SetItemData(NVRMember, (DWORD_PTR)it->second.serial_.c_str());
+					std::string strData;
+					CHttpFile *pFile = (CHttpFile *)m_pSession->OpenURL(strReqURL, 1, INTERNET_FLAG_TRANSFER_ASCII | INTERNET_FLAG_RELOAD);
+					if (pFile)
+					{
+						char ch;
+						while (pFile->Read(&ch, 1))
+						{
+							strData += ch;
+						}
+						pFile->Close();
+						delete pFile;
+						pFile = NULL;
+					}
+
+					//CString  m_strCode = (CString)strData.c_str();
+					if (!strData.empty())
+					{
+						//解析Json字串
+						//EasyDarwin::Protocol::EasyMsgSCDeviceInfoACK deviceInfoAck(strData.c_str());
+						bool bRet = deviceInfo.GetDevInfo(strData.c_str());
+						if(bRet)
+						{
+							//成功解析
+						}
+					}
+					//添加到设备信息列表
+					m_devicesInfo[it->second.serial_] = deviceInfo;
+
+					HTREEITEM DeviceNo = NULL;
+					DeviceNo  = m_pTreeCtrDevList->InsertItem(&tvinsert);	
+					//设置组节点数据(当前设备ID)
+					m_pTreeCtrDevList->SetItemData(DeviceNo, (DWORD_PTR)m_devicesInfo[it->second.serial_].serial_.c_str());//设备为摄像机，则直接赋予ID序列号
+
+					for (EasyDevices::iterator itor = deviceInfo.channels_.begin(); itor != deviceInfo.channels_.end(); itor++)
+					{
+						tvinsert.hParent = DeviceNo;
+						tvinsert.hInsertAfter  = TVI_LAST;
+						tvinsert.item.iImage = 0;
+						tvinsert.item.iSelectedImage = 6;
+						CString strChannel = (CString)itor->second.channel_.c_str();
+						CString strChannelNode = _T("");
+						strChannelNode.Format(_T("Channel%s"), strChannel);
+						tvinsert.item.pszText = strChannelNode.GetBuffer(strChannelNode.GetLength());
+
+						HTREEITEM NVRMember = m_pTreeCtrDevList->InsertItem(&tvinsert);
+						//设置组员节点项数据(当前组员IP)
+						m_pTreeCtrDevList->SetItemData(NVRMember, (DWORD_PTR)m_devicesInfo[it->second.serial_].channels_[itor->second.channel_].channel_.c_str());
+					}
 				}
-
+				else
+				{
+					//添加到设备信息列表
+					m_devicesInfo[it->second.serial_] = deviceInfo;
+					HTREEITEM DeviceNo = NULL;
+					DeviceNo  = m_pTreeCtrDevList->InsertItem(&tvinsert);	
+					//设置组节点数据(当前设备ID)
+					m_pTreeCtrDevList->SetItemData(DeviceNo, (DWORD_PTR)m_devicesInfo[it->second.serial_].serial_.c_str());//设备为摄像机，则直接赋予ID序列号
+				}
 				i++;
 			}
 			//展开数的所有子节点
@@ -435,55 +498,73 @@ void CEasyClientDlg::OnNMDBClickListDevices(NMHDR *pNMHDR, LRESULT *pResult)
 		if( m_pTreeCtrDevList )	
 		{
 			HTREEITEM hTreeItem = m_pTreeCtrDevList->GetSelectedItem();
+			if(m_pTreeCtrDevList->ItemHasChildren(hTreeItem))//有孩子节点说明是NVR??
+				return;
 
-			char* pData = (char*)m_pTreeCtrDevList->GetItemData(hTreeItem);
-			CString strDeviceId=  (CString)pData;//pListCtrl->GetItemText(pNMItemActivate->iItem,0);
-			CString strTrmp = _T("");
-			for (EasyDevices::iterator it = m_devices.begin(); it != m_devices.end(); it++)
+			HTREEITEM hParentTreeItem = m_pTreeCtrDevList->GetParentItem(hTreeItem);//没有父节点， 说明是根
+			if (!hParentTreeItem)
 			{
-				strTrmp = it->second.serial_.c_str();
-				if (strTrmp == strDeviceId)
+				return;
+			}
+			char* pSerial = (char*) m_pTreeCtrDevList->GetItemData(hParentTreeItem);
+			char* pData = NULL;
+			if (pSerial == 0)
+			{
+				pSerial = (char*)m_pTreeCtrDevList->GetItemData(hTreeItem);
+			}
+			else
+			{
+				pData = (char*)m_pTreeCtrDevList->GetItemData(hTreeItem);
+			}
+			
+			CString strDeviceId=  (CString)pSerial;//pListCtrl->GetItemText(pNMItemActivate->iItem,0);
+			CString strChannel =  (CString)pData;
+			if (strDeviceId)
+			{
+				//http请求设备推流
+				//http://121.40.50.44:10000/api/getdevicestream?device=001001000010&channel=01&protocol=RTSP&reserve=1
+				CString strReqURL =_T(""); 
+				if (pData ==NULL)
 				{
-					//http请求设备推流
-					//http://121.40.50.44:10000/api/getdevicestream?device=001001000010&channel=01&protocol=RTSP&reserve=1
-					CString strReqURL =_T(""); 
-
 					strReqURL.Format(_T("http://%s:%d/API/getdevicestream?device=%s&channel=01&protocol=RTSP&reserve=1"), m_strCMSIP, m_nCMSPort, strDeviceId);
+				}
+				else
+				{
+					strReqURL.Format(_T("http://%s:%d/API/getdevicestream?device=%s&channel=%s&protocol=RTSP&reserve=1"), m_strCMSIP, m_nCMSPort, strDeviceId, strChannel);
+				}
 
-					std::string strData;
-					CHttpFile *pFile = (CHttpFile *)m_pSession->OpenURL(strReqURL, 1, INTERNET_FLAG_TRANSFER_ASCII | INTERNET_FLAG_RELOAD);
-					if (pFile)
+				std::string strData;
+				CHttpFile *pFile = (CHttpFile *)m_pSession->OpenURL(strReqURL, 1, INTERNET_FLAG_TRANSFER_ASCII | INTERNET_FLAG_RELOAD);
+				if (pFile)
+				{
+					char ch;
+					while (pFile->Read(&ch, 1))
 					{
-						char ch;
-						while (pFile->Read(&ch, 1))
-						{
-							strData += ch;
-						}
-						pFile->Close();
-						delete pFile;
-						pFile = NULL;
+						strData += ch;
 					}
-					if (!strData.empty())
+					pFile->Close();
+					delete pFile;
+					pFile = NULL;
+				}
+				if (!strData.empty())
+				{
+					//解析Json字串
+					EasyDarwin::Protocol::EasyMsgSCGetStreamACK getSreamAck(strData.c_str());
+					std::string strURL = getSreamAck.GetBodyValue("URL");
+					if(!strURL.empty())
 					{
-						//解析Json字串
-						EasyDarwin::Protocol::EasyMsgSCGetStreamACK getSreamAck(strData.c_str());
-						std::string strURL = getSreamAck.GetBodyValue("URL");
-						if(!strURL.empty())
+						int nSelWnd = m_nCurSelWnd;
+						if (nSelWnd <  0)
 						{
-							int nSelWnd = m_nCurSelWnd;
-							if (nSelWnd <  0)
-							{
-								nSelWnd = 0;
-							}
-							pVideoWindow->pDlgVideo[nSelWnd].SetDeviceSerial(strDeviceId);
-							pVideoWindow->pDlgVideo[nSelWnd].SetURL((char*)strURL.c_str());
-							if (!pVideoWindow->pDlgVideo[nSelWnd].Preview())
-							{
-								pVideoWindow->pDlgVideo[nSelWnd].Preview();
-							}
+							nSelWnd = 0;
+						}
+						pVideoWindow->pDlgVideo[nSelWnd].SetDeviceSerial(strDeviceId);
+						pVideoWindow->pDlgVideo[nSelWnd].SetURL((char*)strURL.c_str());
+						if (!pVideoWindow->pDlgVideo[nSelWnd].Preview())
+						{
+							pVideoWindow->pDlgVideo[nSelWnd].Preview();
 						}
 					}
-					break;
 				}
 			}
 		}
