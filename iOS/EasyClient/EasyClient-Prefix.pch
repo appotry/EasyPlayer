@@ -1,0 +1,45 @@
+#ifdef __OBJC__
+#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
+#import<QuartzCore/QuartzCore.h>
+#import <SystemConfiguration/SystemConfiguration.h>
+
+#import "AFNetworking.h"
+#import "UiotHUD.h"
+#import "NetRequestTool.h"
+#import "MJRefresh.h"
+#import "PlayViewController.h"
+#endif
+
+
+#define NOTICE_SOCKETCONNECT @"socketConnect"
+
+#define ScreenHeight [[UIScreen mainScreen] bounds].size.height
+#define ScreenWidth [[UIScreen mainScreen] bounds].size.width
+
+#define COLOR(R,G,B,A) [UIColor colorWithRed:R/255.0 green:G/255.0 blue:B/255.0 alpha:A]
+#define MAIN_COLOR COLOR(0, 171, 114, 1)//RGBA(0, 171, 114, 1.00)RGBA(0, 137, 91, 1.00)
+#define MAIN_BACKBLACK_COLOR COLOR(12, 12, 12, 0.7)
+#define TEXT_COLOR COLOR(52, 73, 94, 1) //字体颜色
+
+#define LOGIN_CMS_ADDRESS  @"121.40.50.44"
+#define LOGIN_CMS_ADDRESS_PORT @"10000"
+
+#if 1
+
+#define NSLog(FORMAT, ...) fprintf(stderr,"[%s:%d行] %s\n",[[[NSString stringWithUTF8String:__FILE__] lastPathComponent] UTF8String], __LINE__, [[NSString stringWithFormat:FORMAT, ##__VA_ARGS__] UTF8String]);
+#else
+
+#define NSLog(FORMAT, ...) nil
+
+#endif
+
+
+#if 1
+
+#define  TEST_COLOR [UIColor colorWithRed:arc4random()%256/255.0 green:arc4random()%256/255.0 blue:arc4random()%256/255.0 alpha:1.0]
+#else
+
+#define TEST_COLOR [UIColor clearColor]
+
+#endif
