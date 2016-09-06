@@ -7,6 +7,17 @@ EasyClient是EasyDarwin开源流媒体云平台的客户端实现，包含：Win
 3. 设备云台控制；
 4. 设备语音对讲；
 
+## 版本下载 ##
+
+- Windows：[https://github.com/EasyDarwin/EasyClient/releases](https://github.com/EasyDarwin/EasyClient/releases "EasyClient Windows")
+
+- Android：[http://fir.im/EasyClient](http://fir.im/EasyClient "EasyClient Android")
+
+![EasyClient Android](http://www.easydarwin.org/github/images/firimeasyclientandroid.png)
+
+- iOS：[https://itunes.apple.com/us/app/easyclient/id1141850816](https://itunes.apple.com/us/app/easyclient/id1141850816 "EasyClient iOS")
+
+![EasyClient iOS](http://www.easydarwin.org/github/images/firimeasyclientios.png)
 
 ## 更新记录 ##
 
