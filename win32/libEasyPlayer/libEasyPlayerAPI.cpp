@@ -10,8 +10,7 @@
 
 CChannelManager	*g_pChannelManager = NULL;
 
-//#define KEY "6A59754D6A3469576B5A73414D433158714E4C4F6B76464659584E3555477868655756794C6D56345A536C58444661672F704C67523246326157346D516D466962334E68514449774D545A4659584E355247467964326C75564756686257566863336B3D"
-#define KEY "6A59754D6A3469576B5A73416B5A3558714746746B76464659584E35513278705A5735304C6D56345A536C58444661672F704C67523246326157346D516D466962334E68514449774D545A4659584E355247467964326C75564756686257566863336B3D"
+#define KEY "6A59754D6A3469576B5A73414D433158714E4C4F6B76464659584E3555477868655756794C6D56345A536C58444661672F704C67523246326157346D516D466962334E68514449774D545A4659584E355247467964326C75564756686257566863336B3D"
 
 // ³õÊ¼»¯SDK
 LIB_EASYPLAYER_API int EasyPlayer_Init()
@@ -64,11 +63,11 @@ LIB_EASYPLAYER_API void EasyPlayer_Release()
 }
 
 
-LIB_EASYPLAYER_API int EasyPlayer_OpenStream(const char *url, HWND hWnd, RENDER_FORMAT renderFormat, int rtpovertcp,const char *username, const char *password, MediaSourceCallBack callback, void *userPtr)
+LIB_EASYPLAYER_API int EasyPlayer_OpenStream(const char *url, HWND hWnd, RENDER_FORMAT renderFormat, int rtpovertcp,const char *username, const char *password, MediaSourceCallBack callback, void *userPtr, bool bHardDecode)
 {
 	if (NULL == g_pChannelManager)		return -1;
 
-	return g_pChannelManager->OpenStream(url, hWnd, renderFormat, rtpovertcp, username, password, callback, userPtr);
+	return g_pChannelManager->OpenStream(url, hWnd, renderFormat, rtpovertcp, username, password, callback, userPtr, bHardDecode);
 }
 
 LIB_EASYPLAYER_API void EasyPlayer_CloseStream(int channelId)
