@@ -17,6 +17,12 @@
 #pragma comment(lib, "FFDecoder/FFDecoder.lib")
 #pragma comment(lib, "D3DRender/D3DRender.lib")
 
+#include "IntelHardCodec/IntelHardCodec_Interface.h"
+#pragma comment(lib, "IntelHardCodec/IntelHardCodec.lib")
+
+#include "libEasyAACEncoder/EasyAACEncoderAPI.h"
+#pragma comment(lib, "libEasyAACEncoder/libEasyAACEncoder.lib")
+
 extern "C"
 {
 #include "mp4creator\libmp4creator.h"
@@ -46,8 +52,10 @@ typedef struct __CODEC_T
 }CODEC_T;
 typedef struct __DECODER_OBJ
 {
+	bool bHardDecode;
 	CODEC_T			codec;
 	FFD_HANDLE		ffDecoder;
+	LPIntelHardDecoder pIntelDecoder;
 	int				yuv_size;
 }DECODER_OBJ;
 
@@ -135,7 +143,7 @@ public:
 	int		Initial();
 
 	//OpenStream 返回一个可用的通道ID
-	int		OpenStream(const char *url, HWND hWnd, RENDER_FORMAT renderFormat, int _rtpovertcp, const char *username, const char *password, MediaSourceCallBack callback=NULL, void *userPtr=NULL);
+	int		OpenStream(const char *url, HWND hWnd, RENDER_FORMAT renderFormat, int _rtpovertcp, const char *username, const char *password, MediaSourceCallBack callback=NULL, void *userPtr=NULL, bool bHardDecode=true);
 	void	CloseStream(int channelId);
 	int		ShowStatisticalInfo(int channelId, int _show);
 	int		SetFrameCache(int channelId, int _cache);

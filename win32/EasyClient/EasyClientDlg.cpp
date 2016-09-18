@@ -68,7 +68,7 @@ CEasyClientDlg::CEasyClientDlg(CWnd* pParent /*=NULL*/)
 
 	SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)CrashHandler_Player);
 	m_pSession = NULL;
-	m_strCMSIP = _T("121.40.50.44"); //121.40.50.44 192.168.1.121
+	m_strCMSIP = _T("121.40.50.44"); //121.40.50.44 192.168.1.121 124.193.152.42
 	m_nCMSPort = 10000;
 	m_nCurSelWnd = -1;
 	m_hReqDeviceListThread = INVALID_HANDLE_VALUE;

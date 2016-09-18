@@ -16,7 +16,7 @@
 
 #define	__DELETE_ARRAY(x)	{if (NULL!=x) {delete []x;x=NULL;}}
 
-int CALLBACK __RTSPSourceCallBack( int _channelId, int *_channelPtr, int _frameType, char *pBuf, RTSP_FRAME_INFO* _frameInfo);
+int CALLBACK __RTSPSourceCallBack( int _channelId, void *_channelPtr, int _frameType, char *pBuf, RTSP_FRAME_INFO* _frameInfo);
 
 CChannelManager	*pChannelManager = NULL;
 CChannelManager::CChannelManager(void)
@@ -71,6 +71,14 @@ void CChannelManager::Release()
 
 			ClosePlayThread(&pRealtimePlayThread[i]);
 			DeleteCriticalSection(&pRealtimePlayThread[i].crit);
+			for (int idx=0; idx<MAX_DECODER_NUM; idx++)
+			{
+				if (pRealtimePlayThread[i].decoderObj[idx].pIntelDecoder)
+				{
+					Release_IntelHardDecoder(pRealtimePlayThread[i].decoderObj[idx].pIntelDecoder);
+				}
+			}
+
 		}
 		__DELETE_ARRAY(pRealtimePlayThread);
 	}
@@ -89,7 +97,7 @@ void CChannelManager::Release()
 }
 
 
-int	CChannelManager::OpenStream(const char *url, HWND hWnd, RENDER_FORMAT renderFormat, int _rtpovertcp, const char *username, const char *password, MediaSourceCallBack callback, void *userPtr)
+int	CChannelManager::OpenStream(const char *url, HWND hWnd, RENDER_FORMAT renderFormat, int _rtpovertcp, const char *username, const char *password, MediaSourceCallBack callback, void *userPtr, bool bHardDecode)
 {
 	if (NULL == pRealtimePlayThread)			return -1;
 	if ( (NULL == url) || (0==strcmp(url, "\0")))		return -1;
@@ -114,10 +122,14 @@ int	CChannelManager::OpenStream(const char *url, HWND hWnd, RENDER_FORMAT render
 
 		unsigned int mediaType = MEDIA_TYPE_VIDEO | MEDIA_TYPE_AUDIO;
 		EasyRTSP_SetCallback(pRealtimePlayThread[iNvsIdx].nvsHandle, __RTSPSourceCallBack);
-		EasyRTSP_OpenStream(pRealtimePlayThread[iNvsIdx].nvsHandle, iNvsIdx, (char*)url, _rtpovertcp==0x01?RTP_OVER_TCP:RTP_OVER_UDP, mediaType, (char*)username, (char*)password, (int*)&pRealtimePlayThread[iNvsIdx], 1000, 0, 0);
+		EasyRTSP_OpenStream(pRealtimePlayThread[iNvsIdx].nvsHandle, iNvsIdx, (char*)url, _rtpovertcp==0x01?EASY_RTP_OVER_TCP:EASY_RTP_OVER_UDP, mediaType, (char*)username, (char*)password, (int*)&pRealtimePlayThread[iNvsIdx], 1000, 0, 0x01, 3);
 
 		pRealtimePlayThread[iNvsIdx].pCallback = callback;
 		pRealtimePlayThread[iNvsIdx].pUserPtr = userPtr;
+		for (int nI=0; nI<MAX_DECODER_NUM; nI++)
+		{
+			pRealtimePlayThread[iNvsIdx].decoderObj[nI].bHardDecode = bHardDecode;
+		}
 
 		pRealtimePlayThread[iNvsIdx].hWnd = hWnd;
 		pRealtimePlayThread[iNvsIdx].renderFormat = (D3D_SUPPORT_FORMAT)renderFormat;
@@ -392,6 +404,12 @@ void CChannelManager::ClosePlayThread(PLAY_THREAD_OBJ	*_pPlayThread)
 			FFD_Deinit(&_pPlayThread->decoderObj[i].ffDecoder);
 			_pPlayThread->decoderObj[i].ffDecoder = NULL;
 		}
+		if (NULL != _pPlayThread->decoderObj[i].pIntelDecoder)
+		{
+			Release_IntelHardDecoder(_pPlayThread->decoderObj[i].pIntelDecoder);
+			_pPlayThread->decoderObj[i].pIntelDecoder = NULL;
+		}
+		_pPlayThread->decoderObj[i].bHardDecode = false;
 		memset(&_pPlayThread->decoderObj[i].codec, 0x00, sizeof(CODEC_T));
 		_pPlayThread->decoderObj[i].yuv_size = 0;
 	}
@@ -581,11 +599,34 @@ DECODER_OBJ	*GetDecoder(PLAY_THREAD_OBJ	*_pPlayThread, unsigned int mediaType, M
 					FFD_Init(&_pPlayThread->decoderObj[i].ffDecoder);
 					FFD_SetVideoDecoderParam(_pPlayThread->decoderObj[i].ffDecoder, _frameinfo->width, _frameinfo->height, _frameinfo->codec, nDecoder);
 				}
+				if (NULL == _pPlayThread->decoderObj[i].pIntelDecoder && _pPlayThread->decoderObj[i].bHardDecode)
+				{
+					//硬件解码初始化
+					_pPlayThread->decoderObj[iIdx].pIntelDecoder = Create_IntelHardDecoder();
+					int nRet =_pPlayThread->decoderObj[iIdx].pIntelDecoder->Init(_pPlayThread->hWnd);
+					if (nRet<0)
+					{
+						Release_IntelHardDecoder(_pPlayThread->decoderObj[iIdx].pIntelDecoder);
+						_pPlayThread->decoderObj[iIdx].pIntelDecoder = NULL;
+					}
+				}
 				return &_pPlayThread->decoderObj[i];
 			}
 
 			if (iIdx>=0)
 			{
+				if (NULL == _pPlayThread->decoderObj[i].pIntelDecoder && _pPlayThread->decoderObj[i].bHardDecode)
+				{
+					//硬件解码初始化
+					_pPlayThread->decoderObj[iIdx].pIntelDecoder = Create_IntelHardDecoder();
+					int nRet =_pPlayThread->decoderObj[iIdx].pIntelDecoder->Init(_pPlayThread->hWnd);
+					if (nRet<0)
+					{
+						Release_IntelHardDecoder(_pPlayThread->decoderObj[iIdx].pIntelDecoder);
+						_pPlayThread->decoderObj[iIdx].pIntelDecoder = NULL;
+					}
+				}
+
 				if (NULL == _pPlayThread->decoderObj[iIdx].ffDecoder)
 				{
 					int nDecoder = OUTPUT_PIX_FMT_YUV420P;
@@ -605,7 +646,7 @@ DECODER_OBJ	*GetDecoder(PLAY_THREAD_OBJ	*_pPlayThread, unsigned int mediaType, M
 					FFD_Init(&_pPlayThread->decoderObj[iIdx].ffDecoder);
 					FFD_SetVideoDecoderParam(_pPlayThread->decoderObj[iIdx].ffDecoder, _frameinfo->width, _frameinfo->height, _frameinfo->codec, nDecoder);
 
-					if (NULL != _pPlayThread->decoderObj[iIdx].ffDecoder)
+					if (NULL != _pPlayThread->decoderObj[iIdx].ffDecoder )
 					{
 						EnterCriticalSection(&_pPlayThread->crit);
 						_pPlayThread->resetD3d	=	true;
@@ -614,7 +655,7 @@ DECODER_OBJ	*GetDecoder(PLAY_THREAD_OBJ	*_pPlayThread, unsigned int mediaType, M
 						_pPlayThread->decoderObj[iIdx].codec.vidCodec	= _frameinfo->codec;
 						_pPlayThread->decoderObj[iIdx].codec.width	= _frameinfo->width;
 						_pPlayThread->decoderObj[iIdx].codec.height = _frameinfo->height;
-
+						
 						return &_pPlayThread->decoderObj[iIdx];
 					}
 					else
@@ -622,6 +663,7 @@ DECODER_OBJ	*GetDecoder(PLAY_THREAD_OBJ	*_pPlayThread, unsigned int mediaType, M
 						return NULL;
 					}
 				}
+
 			}
 		}
 		else if (MEDIA_TYPE_AUDIO == mediaType)
@@ -722,6 +764,10 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDecodeThread( LPVOID _pParam )
 	}
 	memset(pbuf, 0x00, buf_size);
 
+	EasyAACEncoder_Handle m_pAACEncoderHandle = NULL;
+	char* m_pAACEncBufer = new char[buf_size];
+	memset(m_pAACEncBufer, 0x00, buf_size);
+
 	pThread->decodeYuvIdx	=	0;
 	memset(&frameinfo, 0x00, sizeof(MEDIA_FRAME_INFO));
 
@@ -730,7 +776,6 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDecodeThread( LPVOID _pParam )
 	int audbuf_len = (AVCODEC_MAX_AUDIO_FRAME_SIZE * 3) / 2;
 	unsigned char *audio_buf = new unsigned char[audbuf_len+1];
 	memset(audio_buf, 0x00, audbuf_len);
-
 
     //FILE *fES = fopen("1920x1080.h264", "wb");
 
@@ -882,44 +927,54 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDecodeThread( LPVOID _pParam )
 
 			//解码
 			EnterCriticalSection(&pThread->crit);
-			if (0 != FFD_DecodeVideo3(pDecoderObj->ffDecoder, pbuf, frameinfo.length, pThread->yuvFrame[pThread->decodeYuvIdx].pYuvBuf, frameinfo.width, frameinfo.height))
+			int nRet = 1;
+			if (pDecoderObj->pIntelDecoder)
 			{
-				_TRACE("解码失败... framesize:%d   %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n", frameinfo.length, 
-					(unsigned char)pbuf[0], (unsigned char)pbuf[1], (unsigned char)pbuf[2], (unsigned char)pbuf[3], (unsigned char)pbuf[4],
-					(unsigned char)pbuf[5], (unsigned char)pbuf[6], (unsigned char)pbuf[7], (unsigned char)pbuf[8], (unsigned char)pbuf[9]);
-
-				if (frameinfo.type == EASY_SDK_VIDEO_FRAME_I)		//关键帧
-				{
-					_TRACE("[ch%d]当前关键帧解码失败...\n", pThread->channelId);
-#ifdef _DEBUG
-					FILE *f = fopen("keyframe.txt", "wb");
-					if (NULL != f)
-					{
-						fwrite(pbuf, 1, frameinfo.length, f);
-						fclose(f);
-					}
-#endif
-				}
-				else
-				{
-#ifdef _DEBUG
-					FILE *f = fopen("pframe.txt", "wb");
-					if (NULL != f)
-					{
-						fwrite(pbuf, 1, frameinfo.length, f);
-						fclose(f);
-					}
-#endif
-				}
-				pThread->findKeyframe = 0x01;
+				nRet = pDecoderObj->pIntelDecoder->Decode((unsigned char*)pbuf, frameinfo.length, (unsigned char*)/*pThread->yuvFrame[pThread->decodeYuvIdx].pYuvBuf*/NULL);
 			}
 			else
 			{
-				memcpy(&pThread->yuvFrame[pThread->decodeYuvIdx].frameinfo, &frameinfo, sizeof(MEDIA_FRAME_INFO));
+				nRet = FFD_DecodeVideo3(pDecoderObj->ffDecoder, pbuf, frameinfo.length, pThread->yuvFrame[pThread->decodeYuvIdx].pYuvBuf, frameinfo.width, frameinfo.height);
+				if (0 != nRet)
+				{
+					_TRACE("解码失败... framesize:%d   %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n", frameinfo.length, 
+						(unsigned char)pbuf[0], (unsigned char)pbuf[1], (unsigned char)pbuf[2], (unsigned char)pbuf[3], (unsigned char)pbuf[4],
+						(unsigned char)pbuf[5], (unsigned char)pbuf[6], (unsigned char)pbuf[7], (unsigned char)pbuf[8], (unsigned char)pbuf[9]);
 
-				pThread->decodeYuvIdx ++;
-				if (pThread->decodeYuvIdx >= MAX_YUV_FRAME_NUM)		pThread->decodeYuvIdx = 0;
+					if (frameinfo.type == EASY_SDK_VIDEO_FRAME_I)		//关键帧
+					{
+						_TRACE("[ch%d]当前关键帧解码失败...\n", pThread->channelId);
+#ifdef _DEBUG
+						FILE *f = fopen("keyframe.txt", "wb");
+						if (NULL != f)
+						{
+							fwrite(pbuf, 1, frameinfo.length, f);
+							fclose(f);
+						}
+#endif
+					}
+					else
+					{
+#ifdef _DEBUG
+						FILE *f = fopen("pframe.txt", "wb");
+						if (NULL != f)
+						{
+							fwrite(pbuf, 1, frameinfo.length, f);
+							fclose(f);
+						}
+#endif
+					}
+					pThread->findKeyframe = 0x01;
+				}
+				else
+				{
+					memcpy(&pThread->yuvFrame[pThread->decodeYuvIdx].frameinfo, &frameinfo, sizeof(MEDIA_FRAME_INFO));
+
+					pThread->decodeYuvIdx ++;
+					if (pThread->decodeYuvIdx >= MAX_YUV_FRAME_NUM)		pThread->decodeYuvIdx = 0;
+				}
 			}
+
 			LeaveCriticalSection(&pThread->crit);
 		}
 		else if (MEDIA_TYPE_AUDIO == mediatype)		//音频
@@ -929,6 +984,40 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDecodeThread( LPVOID _pParam )
 			{
 				if (NULL != pChannelManager->pAudioPlayThread && pChannelManager->pAudioPlayThread->channelId == pThread->channelId)
 				{
+					char* pDecBuffer = pbuf;
+					unsigned int nDecBufLen = frameinfo.length;
+					if (frameinfo.codec == EASY_SDK_AUDIO_CODEC_G711U || EASY_SDK_AUDIO_CODEC_G726 == frameinfo.codec)
+					{
+						if (!m_pAACEncoderHandle)
+						{
+							InitParam initParam;
+							initParam.u32AudioSamplerate=frameinfo.sample_rate;
+							initParam.ucAudioChannel=frameinfo.channels;
+							initParam.u32PCMBitSize=frameinfo.bits_per_sample;
+							if (frameinfo.codec == EASY_SDK_AUDIO_CODEC_G711U)
+							{
+								initParam.ucAudioCodec = Law_ULaw;
+							} 
+							else if (frameinfo.codec == EASY_SDK_AUDIO_CODEC_G726)
+							{
+								initParam.ucAudioCodec = Law_G726;
+							}
+							m_pAACEncoderHandle = Easy_AACEncoder_Init( initParam);;
+						}
+						unsigned int out_len = 0;
+						int nRet = Easy_AACEncoder_Encode(m_pAACEncoderHandle, (unsigned char*)/*m_pG711EncBufer*/pbuf, /*m_nG711BufferLen*/frameinfo.length, (unsigned char*)m_pAACEncBufer, &out_len) ;
+						if (nRet>0&&out_len>0)
+						{
+							pDecBuffer = m_pAACEncBufer;
+							nDecBufLen = out_len;
+							frameinfo.codec = EASY_SDK_AUDIO_CODEC_AAC;
+						} 
+						else
+						{
+							continue;
+						}
+					}
+
 					DECODER_OBJ *pDecoderObj = GetDecoder(pThread, MEDIA_TYPE_AUDIO, &frameinfo);
 					if (NULL == pDecoderObj)
 					{
@@ -940,7 +1029,7 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDecodeThread( LPVOID _pParam )
 
 					memset(audio_buf, 0x00, audbuf_len);
 					int pcm_data_size = 0;
-					int ret = FFD_DecodeAudio(pDecoderObj->ffDecoder, (char*)pbuf, frameinfo.length, (char *)audio_buf, &pcm_data_size);	//音频解码(支持g711(ulaw)和AAC)
+					int ret = FFD_DecodeAudio(pDecoderObj->ffDecoder, (char*)pDecBuffer, nDecBufLen, (char *)audio_buf, &pcm_data_size);	//音频解码(支持g711(ulaw)和AAC)
 					if (ret == 0)
 					{
 						//播放
@@ -993,6 +1082,18 @@ LPTHREAD_START_ROUTINE CChannelManager::_lpDecodeThread( LPVOID _pParam )
 		MP4C_Deinit(&pThread->mp4cHandle);
 		pThread->mp4cHandle = NULL;
 		pThread->vidFrameNum = 0;
+	}
+
+	if (m_pAACEncoderHandle)
+	{
+		Easy_AACEncoder_Release(m_pAACEncoderHandle);
+		m_pAACEncoderHandle = NULL;
+	}
+
+	if (m_pAACEncBufer)
+	{
+		delete[] m_pAACEncBufer ;
+		m_pAACEncBufer = NULL;
 	}
 
 	delete []audio_buf;
@@ -1452,7 +1553,7 @@ int CALLBACK __NVSourceCallBack( int _chid, int *_chPtr, int _mediatype, char *p
 	return 0;
 }
 
-int CALLBACK __RTSPSourceCallBack( int _channelId, int *_channelPtr, int _frameType, char *pBuf, RTSP_FRAME_INFO* _frameInfo)
+int CALLBACK __RTSPSourceCallBack( int _channelId, void *_channelPtr, int _frameType, char *pBuf, RTSP_FRAME_INFO* _frameInfo)
 {
 	PLAY_THREAD_OBJ	*pPlayThread = (PLAY_THREAD_OBJ *)_channelPtr;
 
