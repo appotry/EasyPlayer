@@ -660,6 +660,18 @@ namespace EasyDarwin { namespace Protocol
 		return true;
 	}
 
+	// 关联RMS相应Json解析 [10/10/2016 SwordTwelve]
+	EasyMsgSCRMSAssociateACK::EasyMsgSCRMSAssociateACK()
+		: EasyProtocol(MSG_SC_RMS_ASSOCIATE_ACK)
+	{
+
+	}
+	EasyMsgSCRMSAssociateACK::EasyMsgSCRMSAssociateACK(const string& msg)
+		: EasyProtocol(msg, MSG_SC_GET_STREAM_ACK)
+	{
+
+	}
+
 	void EasyProtocolACK::SetHead(EasyJsonValue &header)
 	{
 		for (EasyJsonValue::iterator it = header.begin(); it != header.end(); ++it)

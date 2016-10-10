@@ -16,6 +16,20 @@
 
 	<Button keyname="Refresh" pos="2,2,200,376,290,350" type="push" id="5002" text="刷新" normalimage="Res\EasyTeam\按钮常规.png" hotimage="Res\EasyTeam\按钮选中.png" pushedimage="Res\EasyTeam\按钮选中-2.png" focusedimage="Res\EasyTeam\按钮常规.png" size="62,33" trans="true"/>
 
+	<Button keyname="ServerRecord" pos="2,2,304,78,390,52" type="push" id="5003" text="开启平台录像" normalimage="Res\EasyTeam\按钮常规.png" hotimage="Res\EasyTeam\按钮选中.png" pushedimage="Res\EasyTeam\按钮选中-2.png" focusedimage="Res\EasyTeam\按钮常规.png" size="62,33" trans="true"/>
+
+	<Button keyname="StopServerRecord" pos="2,2,395,78,481,52" type="push" id="5004" text="停止平台录像" normalimage="Res\EasyTeam\按钮常规.png" hotimage="Res\EasyTeam\按钮选中.png" pushedimage="Res\EasyTeam\按钮选中-2.png" focusedimage="Res\EasyTeam\按钮常规.png" size="62,33" trans="true"/>
+
+	<Edit keyname="CMSIP"  id="5100" pos="2,2,10,376,130,350" defaulttext="">
+		<bknormalimg value="Res\Edit\frameBorderEffect_normalDraw.png" ninepart="2,2,2,2"/>
+		<bkhotimg value="Res\Edit\frameBorderEffect_mouseDownDraw.png" ninepart="2,2,2,2"/>
+	</Edit>
+
+	<Edit keyname="CMSPort"  id="5101" pos="2,2,135,376,190,350" defaulttext="">
+		<bknormalimg value="Res\Edit\frameBorderEffect_normalDraw.png" ninepart="2,2,2,2"/>
+		<bkhotimg value="Res\Edit\frameBorderEffect_mouseDownDraw.png" ninepart="2,2,2,2"/>
+	</Edit>
+
 	<Button pos="3,3,240,25,120,0" type="push" id="5045" fontnormalcolor="#FFFFFF" fontselcolor="#FF00FF" trans="true" text="©EasyDarwin.ORG" url="http://www.easydarwin.org/"/>
 	<Button pos="3,3,120,25,0,0" type="push" id="5046" fontnormalcolor="#FFFFFF" fontselcolor="#FF00FF" trans="true" text="Code On Github" url="https://github.com/EasyDarwin/EasyClient"/>
 

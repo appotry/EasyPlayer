@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "DlgVideo.h"
 #include "afxdialogex.h"
+#include "EasyClient.h"
 #include "EasyClientDlg.h"
 
 // CDlgVideo 对话框
@@ -27,6 +28,9 @@ CDlgVideo::CDlgVideo(CWnd* pParent /*=NULL*/)
 	m_pMainDlg = NULL;
 	m_sDevSerial=_T("");
 	m_sChannel=_T("");
+	m_sRMSIP =_T("");
+	m_sRMSPort =_T("");
+
 }
 
 void CDlgVideo::SetMainDlg(CEasyClientDlg* pMainDlg)
@@ -435,15 +439,23 @@ int CDlgVideo::Preview()
 
 		HWND hWnd = NULL;
 		if (NULL != pDlgRender)	hWnd = pDlgRender->GetSafeHwnd();
-		m_ChannelId = EasyPlayer_OpenStream(szURL, hWnd, (RENDER_FORMAT)RenderFormat, 0x01, szUsername, szPassword);
+		m_ChannelId = EasyPlayer_OpenStream(szURL, hWnd, (RENDER_FORMAT)RenderFormat, 0x01, szUsername, szPassword,0,0,false);
 
 		if (m_ChannelId > 0)
 		{
 			int iPos = pSliderCache->GetPos();
 			EasyPlayer_SetFrameCache(m_ChannelId, iPos);		//设置缓存
 			EasyPlayer_PlaySound(m_ChannelId);
-			if (NULL != pDlgRender)	pDlgRender->SetChannelId(m_ChannelId);
 
+			CString strFilePath = GET_MODULE_FILE_INFO.strPath;
+			char sFilePath[MAX_PATH];
+			__WCharToMByte(strFilePath.GetBuffer(strFilePath.GetLength()), sFilePath, sizeof(sFilePath)/sizeof(sFilePath[0]));
+
+			// 设置抓图和录制存放路径 [10/10/2016 dingshuai]
+			EasyPlayer_SetManuRecordPath(m_ChannelId, sFilePath);
+			EasyPlayer_SetManuPicShotPath(m_ChannelId, sFilePath);
+
+			if (NULL != pDlgRender)	pDlgRender->SetChannelId(m_ChannelId);
 			if (NULL != pBtnPreview)		pBtnPreview->SetWindowText(TEXT("Stop"));
 		}
 	}

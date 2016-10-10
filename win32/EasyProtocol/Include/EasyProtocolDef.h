@@ -173,11 +173,16 @@
 #define MSG_SD_CONTROL_TALKBACK_REQ							0x000f
 #define MSG_DS_CONTROL_TALKBACK_ACK							0xe00f
 
-#define MSG_SC_START_HLS_ACK								0xeee0
-#define MSG_SC_HLS_SESSION_LIST_ACK							0xeee1
-#define MSG_SC_RTSP_PUSH_SESSION_LIST_ACK					0xeee2
-#define MSG_SC_LIST_RECORD_ACK								0xeee3
+//服务端处理客户端的平台录像命令
+#define MSG_SC_START_HLS_ACK								0x0010
+#define MSG_SC_HLS_SESSION_LIST_ACK							0x0011
+#define MSG_SC_LIST_RECORD_ACK								0x0012
+#define MSG_SC_RMS_ASSOCIATE_ACK							0x0013
+
+//保留
+#define MSG_SC_RTSP_PUSH_SESSION_LIST_ACK					0xeee0
 #define MSG_SC_EXCEPTION									0xeeee
+
 
 /*!
 \}

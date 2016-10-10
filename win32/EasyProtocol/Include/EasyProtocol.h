@@ -412,6 +412,16 @@ private:
 	std::list<EasyDarwinRTSPSession> sessions;
 };
 
+// MSG_SC_RMS_ASSOCIATE_ACK
+class EasyMsgSCRMSAssociateACK : public EasyProtocol
+{
+public:
+	EasyMsgSCRMSAssociateACK();
+	EasyMsgSCRMSAssociateACK(const string& msg);
+	virtual ~EasyMsgSCRMSAssociateACK() {}
+};
+
+
 // MSG_SC_LIST_RECORD_ACK
 class Easy_API EasyMsgSCListRecordACK : public EasyProtocol
 {

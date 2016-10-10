@@ -76,6 +76,20 @@ public:
 		m_sDevSerial = strDevSerival;
 		m_sChannel = strChannel;
 	}
+	void SetRMSIPPort(CString strIP, CString strPort)
+	{
+		m_sRMSIP = strIP;
+		m_sRMSPort = strPort;
+	}
+	CString GetRMSIP()
+	{
+		return m_sRMSIP ;
+	}
+	CString GetRMSPort()
+	{
+		return m_sRMSPort ;
+	}
+
 	int Preview();
 
 public:
@@ -87,4 +101,7 @@ public:
 	CEasyClientDlg* m_pMainDlg;
 	CString m_sDevSerial;
 	CString m_sChannel;
+	//RMS IPºÍ¶Ë¿Ú
+	CString m_sRMSIP ;
+	CString m_sRMSPort ;
 };

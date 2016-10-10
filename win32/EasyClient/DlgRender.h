@@ -2,7 +2,7 @@
 
 #define	POP_MENU_RECORDING	10010
 #define	POP_MENU_Stop	10011
-
+#define	POP_MENU_SHOT	10012
 
 typedef struct __CHANNEL_STATUS
 {

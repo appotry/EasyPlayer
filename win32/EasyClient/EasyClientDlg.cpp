@@ -195,6 +195,18 @@ BOOL CEasyClientDlg::OnInitDialog()
 		m_pTreeCtrDevList->SetItemData(m_hRoot, 0);//根目录数据为0，标识为根节点
 	}
 
+	//获取一下最新的CMS地址
+	CSkinEdit* pCMSEdit = (CSkinEdit*)GetDlgItem(5100);
+	if (pCMSEdit)
+	{
+		pCMSEdit->SetWindowText(_T("121.40.50.44"));
+	}
+	CSkinEdit* pCMSPort= (CSkinEdit*)GetDlgItem(5101);
+	if (pCMSPort)
+	{
+		pCMSPort->SetWindowText(_T("10000"));
+	}
+
 	// 搜索设备测试 [8/11/2016 Dingshuai]
 	SendHttpReqDeviceList();
 	OnCbnSelchangeComboRenderFormat();
@@ -284,6 +296,23 @@ void CEasyClientDlg::ProcessReqDevListThread()
 	if (m_pTreeCtrDevList)
 	{
 		DeleteChildren(m_pTreeCtrDevList, m_hRoot);
+
+		//  [10/10/2016 SwordTwelve]
+		//获取一下最新的CMS地址
+		CSkinEdit* pCMSEdit = (CSkinEdit*)GetDlgItem(5100);
+		if (pCMSEdit)
+		{
+			pCMSEdit->GetWindowText(m_strCMSIP);
+		} 
+		CString strCMSPort = _T("10000");
+		CSkinEdit* pCMSPort= (CSkinEdit*)GetDlgItem(5101);
+		if (pCMSPort)
+		{
+			pCMSPort->GetWindowText(strCMSPort);
+		}
+		char szPort[128] = {0,};
+		__WCharToMByte(strCMSPort, szPort, sizeof(szPort)/sizeof(szPort[0]));
+		m_nCMSPort = atoi(szPort);
 
 		//1. 请求设备列表
 		CString strReqURL =_T(""); 
@@ -706,8 +735,8 @@ void	CEasyClientDlg::CreateComponents()
 	}
 	if (NULL != pComboxRenderFormat)
 	{
-		pComboxRenderFormat->AddString(TEXT("YV12"));
 		pComboxRenderFormat->AddString(TEXT("YUY2"));
+		pComboxRenderFormat->AddString(TEXT("YV12"));
 		pComboxRenderFormat->AddString(TEXT("RGB565"));
 		pComboxRenderFormat->AddString(TEXT("GDI"));
 
@@ -733,7 +762,7 @@ void	CEasyClientDlg::UpdateComponents()
 	__MOVE_WINDOW(pComboxRenderFormat, rcRenderFormat);
 
 	CRect	rcShownToScale;
-	rcShownToScale.SetRect(rcRenderFormat.right+10, rcRenderFormat.top, rcRenderFormat.right+10+110, rcRenderFormat.top+30);
+	rcShownToScale.SetRect(rcRenderFormat.right+10, rcRenderFormat.top, rcRenderFormat.right+10+80, rcRenderFormat.top+30);
 	//__MOVE_WINDOW(pChkShownToScale, rcShownToScale);
 	if (pChkShownToScale.GetSafeHwnd())
 	{
@@ -992,8 +1021,8 @@ void CEasyClientDlg::OnCbnSelchangeComboRenderFormat()
 	if (NULL == pComboxRenderFormat)		return;
 
 	int iIdx = pComboxRenderFormat->GetCurSel();
-	if (iIdx == 0)	RenderFormat	=	DISPLAY_FORMAT_YV12;//YV12
-	else if (iIdx == 1)	RenderFormat	=	DISPLAY_FORMAT_YUY2;//YUY2
+	if (iIdx == 0)	RenderFormat	=	DISPLAY_FORMAT_YUY2;//YV12
+	else if (iIdx == 1)	RenderFormat	=	DISPLAY_FORMAT_YV12;//YUY2
 	else if (iIdx == 2)	RenderFormat	=	DISPLAY_FORMAT_RGB565;//RGB565
 	else if (iIdx == 3)	RenderFormat	=	DISPLAY_FORMAT_RGB24_GDI;//GDI
 }
@@ -1066,7 +1095,154 @@ LRESULT CEasyClientDlg::HandleButtonMessage(WPARAM wParam, LPARAM lParam)
 	if(strItemName==_T("Refresh") && nType==2)
 	{
 		SendHttpReqDeviceList();
+	}
+	if (_T("StopServerRecord") == strItemName && nType==2)
+	{
+		//未选择窗口
+		if (m_nCurSelWnd<0)
+		{
+			CString strError = _T("请先选择一个视频窗口。");
+			AfxMessageBox(strError);
+			return 0;
+		}
+		//平台录像
+		//发送http请求PTZ控制
+		CString strDeviceId= _T("");
+		CString strChannel= _T("");
+		strDeviceId = pVideoWindow->pDlgVideo[m_nCurSelWnd].GetDeviceSerial();
+		strChannel = pVideoWindow->pDlgVideo[m_nCurSelWnd].GetDeviceChannel();
+		CString strRMSIP = _T("");
+		CString strRMSPort = _T("");
+		strRMSIP = pVideoWindow->pDlgVideo[m_nCurSelWnd].GetRMSIP();
+		strRMSPort = pVideoWindow->pDlgVideo[m_nCurSelWnd].GetRMSPort();
+		if (strDeviceId.IsEmpty()||strChannel.IsEmpty()||strRMSPort.IsEmpty()||strRMSIP.IsEmpty())
+		{
+			return 0;
+		}
+		CString strName =  _T("");
+		strName.Format(_T("%s_%s"), strDeviceId,  strChannel);
+		CString strReqURL =_T(""); //Continuous / single
+		strReqURL.Format(_T("http://%s:%s/api/easyrecordmodule?name=%s&cmd=stop"), 
+			strRMSIP, strRMSPort, strName);
+		if (!m_pSession)
+		{
+			m_pSession = new CInternetSession(/*_T("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)")*/);
+		}
 
+		std::string strTempData;
+		CHttpFile *pFile = (CHttpFile *)m_pSession->OpenURL(strReqURL, 1, INTERNET_FLAG_TRANSFER_ASCII | INTERNET_FLAG_RELOAD);
+		if (pFile)
+		{
+			char ch;
+			while (pFile->Read(&ch, 1))
+			{
+				strTempData += ch;
+			}
+			pFile->Close();
+			delete pFile;
+			pFile = NULL;
+		}
+
+		if (!strTempData.empty())
+		{
+		}
+	}
+	if (_T("ServerRecord") == strItemName && nType==2)
+	{
+		//未选择窗口
+		if (m_nCurSelWnd<0)
+		{
+			CString strError = _T("请先选择一个视频窗口。");
+			AfxMessageBox(strError);
+			return 0;
+		}
+		//平台录像
+		//发送http请求PTZ控制
+		CString strDeviceId= _T("");
+		CString strChannel= _T("");
+		strDeviceId = pVideoWindow->pDlgVideo[m_nCurSelWnd].GetDeviceSerial();
+		strChannel = pVideoWindow->pDlgVideo[m_nCurSelWnd].GetDeviceChannel();
+		if (strDeviceId.IsEmpty()||strChannel.IsEmpty())
+		{
+			return 0;
+		}
+		CString strReqURL =_T(""); //Continuous / single
+		strReqURL.Format(_T("http://%s:%d/api/associatedRMS?device=%s&channel=%s"), 
+			m_strCMSIP, m_nCMSPort, strDeviceId, strChannel);
+		if (!m_pSession)
+		{
+			m_pSession = new CInternetSession(/*_T("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)")*/);
+		}
+
+		std::string strData;
+		CHttpFile *pFile = (CHttpFile *)m_pSession->OpenURL(strReqURL, 1, INTERNET_FLAG_TRANSFER_ASCII | INTERNET_FLAG_RELOAD);
+		if (pFile)
+		{
+			char ch;
+			while (pFile->Read(&ch, 1))
+			{
+				strData += ch;
+			}
+			pFile->Close();
+			delete pFile;
+			pFile = NULL;
+		}
+
+		if (!strData.empty())
+		{
+			//解析Json字串
+			//EasyRMSAssociated" : "false", "EasyRMSIP" : "192.168.1.172", "EasyRMSPort" : "10100", "Serial" : "001002000002", 
+			EasyDarwin::Protocol::EasyMsgSCRMSAssociateACK associateRMSAck(strData.c_str());
+
+			std::string strbAssociatedRMS = associateRMSAck.GetBodyValue("EasyRMSAssociated");
+			std::string strEasyRMSIP = associateRMSAck.GetBodyValue("EasyRMSIP");
+			std::string strEasyRMSPort = associateRMSAck.GetBodyValue("EasyRMSPort");
+
+			std::string strURL = associateRMSAck.GetBodyValue("url");
+			if(!strURL.empty()&&!strEasyRMSIP.empty()&&!strEasyRMSPort.empty() && strbAssociatedRMS != "true")
+			{
+				//向RMS发送录像命令
+				if (strDeviceId.IsEmpty()||strChannel.IsEmpty())
+				{
+					return 0;
+				}
+				CString sEasyRMSIP = (CString)strEasyRMSIP.c_str();
+				CString sEasyRMSPort = (CString)strEasyRMSPort.c_str();
+				CString sEasyStreamUrl = (CString) strURL.c_str();
+
+				pVideoWindow->pDlgVideo[m_nCurSelWnd].SetRMSIPPort(sEasyRMSIP, sEasyRMSPort);
+
+				CString strName =  _T("");
+				strName.Format(_T("%s_%s"), strDeviceId,  strChannel);
+				CString strReqURL =_T(""); //Continuous / single
+				strReqURL.Format(_T("http://%s:%s/api/easyrecordmodule?name=%s&url=%s"), 
+					sEasyRMSIP, sEasyRMSPort, strName, sEasyStreamUrl);
+				if (!m_pSession)
+				{
+					m_pSession = new CInternetSession(/*_T("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)")*/);
+				}
+
+				std::string strTempData;
+				CHttpFile *pFile = (CHttpFile *)m_pSession->OpenURL(strReqURL, 1, INTERNET_FLAG_TRANSFER_ASCII | INTERNET_FLAG_RELOAD);
+				if (pFile)
+				{
+					char ch;
+					while (pFile->Read(&ch, 1))
+					{
+						strTempData += ch;
+					}
+					pFile->Close();
+					delete pFile;
+					pFile = NULL;
+				}
+
+				if (!strTempData.empty())
+				{
+
+				}
+			}
+
+		}
 	}
 
 // EASY_PTZ_CMD_TYPE_STOP,                         "STOP",
