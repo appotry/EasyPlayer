@@ -41,3 +41,4 @@ ipch/
 *.aps
 *.txt
 *.manifest
+*libEasyPlayer.dll
