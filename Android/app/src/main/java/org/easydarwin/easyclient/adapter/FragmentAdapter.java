@@ -27,7 +27,7 @@ public class FragmentAdapter extends FragmentPagerAdapter {
     private AndroidFragment fragmentAndroid;
     private NVRFragment fragmentNvr;
 
-    private String[] titles = new String[]{"EasyCamera", "手机直播", "EasyNVR"};
+    private String[] titles = new String[]{"EasyCamera", "移动设备", "EasyNVR"};
 
     public void set(){};
 

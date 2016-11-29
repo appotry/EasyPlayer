@@ -80,11 +80,24 @@ public class CameraFragment extends BaseFragment implements SwipeRefreshLayout.O
         Log.d(TAG, "kim onActivityCreated");
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        mGrid_live.setEnabled(true);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mGrid_live.setEnabled(true);
+    }
+
     private void initviews() {
         mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright,
                 android.R.color.holo_green_light,
                 android.R.color.holo_orange_light,
                 android.R.color.holo_red_light);
+        mGrid_live.setEnabled(true);
     }
 
     @Override
@@ -189,6 +202,7 @@ public class CameraFragment extends BaseFragment implements SwipeRefreshLayout.O
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        mGrid_live.setEnabled(false);
         Device device = (Device) parent.getAdapter().getItem(position);
         getDeviceRtspUrl(device.getSerial());
     }

@@ -78,7 +78,13 @@ public class AndroidFragment extends BaseFragment implements SwipeRefreshLayout.
     @Override
     public void onStart() {
         super.onStart();
-        Log.d(TAG, "kim onStart");
+        mGrid_live.setEnabled(true);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mGrid_live.setEnabled(true);
     }
 
     @Override
@@ -103,7 +109,7 @@ public class AndroidFragment extends BaseFragment implements SwipeRefreshLayout.
             return;
         }
 
-        String url = String.format("http://%s:%s/api/getdevicelist?AppType=EasyCamera&TerminalType=Android", ip, port);
+        String url = String.format("http://%s:%s/api/getdevicelist?AppType=EasyCamera&TerminalType=Android|iOS", ip, port);
         Log.d(TAG, "camera url="+url);
         OkHttpUtils.post().url(url).build().execute(new LiveVOCallback() {
 
@@ -183,6 +189,7 @@ public class AndroidFragment extends BaseFragment implements SwipeRefreshLayout.
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        mGrid_live.setEnabled(false);
         Device device = (Device) parent.getAdapter().getItem(position);
         getDeviceRtspUrl(device.getSerial());
     }

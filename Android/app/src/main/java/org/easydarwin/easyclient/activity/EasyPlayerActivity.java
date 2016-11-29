@@ -151,10 +151,10 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
                 } else if (resultCode == EasyRTSPClient.RESULT_VIDEO_SIZE) {
                     mWidth = resultData.getInt(EasyRTSPClient.EXTRA_VIDEO_WIDTH);
                     mHeight = resultData.getInt(EasyRTSPClient.EXTRA_VIDEO_HEIGHT);
-                    if (!isLandscape()) {
+                    //if (!isLandscape()) {
 
                         fixPlayerRatio(surfaceView, getResources().getDisplayMetrics().widthPixels, getResources().getDisplayMetrics().heightPixels);
-                    }
+                    //}
                 } else if (resultCode == EasyRTSPClient.RESULT_TIMEOUT) {
                     Toast.makeText(EasyPlayerActivity.this, "试播时间到", Toast.LENGTH_SHORT).show();
                 }
@@ -249,16 +249,11 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        Log.d(TAG, "kim onConfigurationChanged");
         final View render = findViewById(R.id.surface_view);
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            fixPlayerRatio(render, getResources().getDisplayMetrics().widthPixels, getResources().getDisplayMetrics().heightPixels);
             setNavVisibility(true);
-            final ViewGroup.LayoutParams params = render.getLayoutParams();
-            params.height = ViewGroup.LayoutParams.MATCH_PARENT;
-            params.width = ViewGroup.LayoutParams.MATCH_PARENT;
-            render.requestLayout();
-
             final RelativeLayout.LayoutParams moveParam = (RelativeLayout.LayoutParams) mRlControl.getLayoutParams();
             moveParam.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, 0);
             moveParam.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 1);
@@ -299,7 +294,7 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
 
     private void startRending(Surface surface) {
         mStreamRender = new EasyRTSPClient(this, "1F7A71441EC837799152DB76E2C38022", surface, mResultReceiver);
-        mStreamRender.start(1, mRTSPUrl, RTSPClient.TRANSTYPE_TCP, RTSPClient.EASY_SDK_VIDEO_FRAME_FLAG | RTSPClient.EASY_SDK_AUDIO_FRAME_FLAG, "admin", "admin");
+        mStreamRender.start(mRTSPUrl, RTSPClient.TRANSTYPE_TCP, RTSPClient.EASY_SDK_VIDEO_FRAME_FLAG | RTSPClient.EASY_SDK_AUDIO_FRAME_FLAG, "admin", "admin");
     }
 
     @Override
