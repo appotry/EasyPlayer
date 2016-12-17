@@ -27,9 +27,9 @@ static NSString *cellIdentifier1 = @"Cell1";
     _dataArr = [NSMutableArray array];
     self.requestTool = [[NetRequestTool alloc]init];
     self.requestTool.delegate = self;
-    NSString *cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
-    NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
-    _urlStr = [NSString stringWithFormat:@"http://%@:%@/api/getdevicelist?AppType=EasyCamera&TerminalType=ARM_Linux",cmsIp, cmsPort];
+//    NSString *cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
+//    NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
+//    _urlStr = [NSString stringWithFormat:@"http://%@:%@/api/getdevicelist?AppType=EasyCamera&TerminalType=ARM_Linux",cmsIp, cmsPort];
 }
 
 
@@ -66,6 +66,7 @@ static NSString *cellIdentifier1 = @"Cell1";
 
 - (void)receiveData:(NSMutableArray *)sender
 {
+    [_dataArr removeAllObjects];
     _dataArr = sender;
       [self.collectionView.mj_header endRefreshing];
      [_HUD hide:YES afterDelay:0.5];

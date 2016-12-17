@@ -88,8 +88,13 @@
         [user setObject:_ipTextField.text forKey:@"cms_ip"];
         [user setObject: _portTextField.text forKey:@"cms_port"];
         [[NSUserDefaults standardUserDefaults] synchronize];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"changeConfig" object:nil];
     }
     [self.navigationController popToRootViewControllerAnimated:YES];
+}
+
+- (void)dealloc{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)didReceiveMemoryWarning {

@@ -9,7 +9,6 @@
 {
     NSMutableArray *_dataArr;
     UiotHUD *_HUD;
-    NSString *_urlStr;
     EasyCamera *_currentCamera;
 }
 
@@ -30,12 +29,6 @@ static NSString *cellIdentifier2 = @"Cell2";
     _dataArr = [NSMutableArray array];
     self.requestTool = [[NetRequestTool alloc]init];
     self.requestTool .delegate = self;
-    NSString *cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
-    NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
-    
-    _urlStr= [NSString stringWithFormat:@"http://%@:%@/api/getdevicelist?AppType=EasyNVR&TerminalType=ARM_Linux",cmsIp,cmsPort];
-    
-    
 }
 
 - (void)initSomeView
@@ -45,7 +38,7 @@ static NSString *cellIdentifier2 = @"Cell2";
     //定义每个UICollectionView 横向的间距
     layout.minimumLineSpacing = 2;
     //定义每个UICollectionView 纵向的间距
-    layout.minimumInteritemSpacing = 0;
+    layout.minimumInteritemSpacing = 5;
     //定义每个UICollectionView 的边距距
     layout.sectionInset = UIEdgeInsetsMake(0, 2, 5, 2);//上左下右
     self.collectionView = [[UICollectionView alloc]initWithFrame:CGRectMake(0, 0, ScreenWidth, ScreenHeight-64-40) collectionViewLayout:layout];
@@ -69,9 +62,11 @@ static NSString *cellIdentifier2 = @"Cell2";
     
 }
 
+
 #pragma mark -  receiveData
 - (void)receiveData:(NSMutableArray *)sender
 {
+    [_dataArr removeAllObjects];
     _dataArr = sender;
     [self.collectionView.mj_header endRefreshing];
     [_HUD hide:YES afterDelay:0.5];
@@ -123,7 +118,7 @@ static NSString *cellIdentifier2 = @"Cell2";
     if (indexPath.row == 0) {
         EasyNVRCell * cell = [collectionView dequeueReusableCellWithReuseIdentifier:cellIdentifier2 forIndexPath:indexPath];
         
-        EasyCamera *model = _dataArr[indexPath.row];
+        EasyCamera *model = _dataArr[indexPath.section];
         
         [cell produceCellModel:model];
         

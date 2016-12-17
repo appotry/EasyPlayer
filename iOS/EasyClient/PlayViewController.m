@@ -381,6 +381,10 @@ void configPlayer(NSString *urlString) {
 
 }
 
+- (BOOL)prefersStatusBarHidden{
+    return YES;
+}
+
 - (void)initSomeView
 {
     self.isVH = YES;
@@ -962,6 +966,7 @@ void AudioRecordCallback (
         NSData *pcmData = [[NSData alloc] initWithBytes:inBuffer->mAudioData length:inBuffer->mAudioDataByteSize];
         //pcm数据不为空，编码为g711a
         char buffer[8000] = {0};
+        
         int size = PCM2G711a((char*)[pcmData bytes], buffer, (int)pcmData.length, 0);
         if (size <= 0) {
             return;

@@ -1,6 +1,6 @@
 #import "EasyCameraCell.h"
 #import "EasyCamera.h"
-#import "UIImageView+AFNetworking.h"
+#import "UIImageView+WebCache.h"
 #import "EasyInfo.h"
 
 @implementation EasyCameraCell
@@ -10,8 +10,9 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
-        CGRect imgRect = {CGPointZero,{self.contentView.frame.size.width,self.contentView.frame.size.height - 30}};
+        CGRect imgRect =CGRectMake(0, 0, self.contentView.frame.size.width, self.contentView.frame.size.height - 30);
         self.imageView = [[UIImageView alloc]initWithFrame:imgRect];
+        self.imageView.contentMode = UIViewContentModeScaleToFill;
         [self.contentView addSubview: self.imageView];
         self.titleLab = [[UILabel alloc]initWithFrame:CGRectMake(0,self.contentView.frame.size.height-30, self.contentView.frame.size.width, 30)];
         self.titleLab.font = [UIFont systemFontOfSize:10];
@@ -38,7 +39,7 @@
 
 - (void)produceCellModel:(EasyCamera *)model
 {
-    [ self.imageView setImageWithURL:[NSURL URLWithString:model.snapURL]];
+    [ self.imageView sd_setImageWithURL:[NSURL URLWithString:model.snapURL] placeholderImage:[UIImage imageNamed:@"snap"]];
     self.titleLab.text = [NSString stringWithFormat:@" %@ (%@)",model.name,model.serial];
     self.appType.text = model.terminalType;
     [self.appType sizeToFit];
@@ -49,7 +50,7 @@
 
 - (void)produceCellInfoModel:(EasyInfo *)model
 {
-    [ self.imageView setImageWithURL:[NSURL URLWithString:model.snapURL]];
+    [self.imageView sd_setImageWithURL:[NSURL URLWithString:model.snapURL] placeholderImage:[UIImage imageNamed:@"snap"]];
     self.titleLab.text = [NSString stringWithFormat:@" %@ (%@)",model.name,model.serial];
 }
 

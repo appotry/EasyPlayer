@@ -8,7 +8,7 @@
     NetRequestTool *_requestTool;
       NSMutableArray *_dataArr;
     UiotHUD *_HUD;
-    NSString *_urlStr;
+
     EasyUrl *_urlModel;
 }
 @property(nonatomic,strong) NetRequestTool *requestTool;
@@ -26,11 +26,11 @@ static NSString *cellIdentifier1 = @"Cell1";
     _dataArr = [NSMutableArray array];
     self.requestTool = [[NetRequestTool alloc]init];
     self.requestTool.delegate = self;
-    NSString *cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
-    NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
-    
-    _urlStr= @"http://%@:%@/api/getdevicelist?AppType=EasyCamera&TerminalType=Android";
-    _urlStr = [NSString stringWithFormat:_urlStr, cmsIp,cmsPort];
+//    NSString *cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
+//    NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
+//    
+//    _urlStr= @"http://%@:%@/api/getdevicelist?AppType=EasyCamera&TerminalType=Android";
+//    _urlStr = [NSString stringWithFormat:_urlStr, cmsIp,cmsPort];
 }
 
 - (void)initSomeView
@@ -67,6 +67,7 @@ static NSString *cellIdentifier1 = @"Cell1";
 #pragma mark -  receiveData
 - (void)receiveData:(NSMutableArray *)sender
 {
+    [_dataArr removeAllObjects];
     _dataArr = sender;
     [self.collectionView.mj_header endRefreshing];
     [_HUD hide:YES afterDelay:0.5];
