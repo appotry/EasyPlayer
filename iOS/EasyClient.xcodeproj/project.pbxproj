@@ -851,7 +851,6 @@
 				TargetAttributes = {
 					C40BD0AF1D010C5300FA6F2E = {
 						CreatedOnToolsVersion = 7.2;
-						DevelopmentTeam = 33USAS7KQX;
 					};
 				};
 			};
@@ -1088,6 +1087,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "LaunchImage-1";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				GCC_PREFIX_HEADER = "$(SRCROOT)/EasyClient/EasyClient-Prefix.pch";
 				HEADER_SEARCH_PATHS = "";
@@ -1112,6 +1112,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "LaunchImage-1";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				GCC_PREFIX_HEADER = "$(SRCROOT)/EasyClient/EasyClient-Prefix.pch";
 				HEADER_SEARCH_PATHS = "";

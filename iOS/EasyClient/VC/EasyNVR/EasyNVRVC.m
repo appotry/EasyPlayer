@@ -165,7 +165,7 @@ static NSString *cellIdentifier2 = @"Cell2";
     
     AFHTTPSessionManager * manager = [AFHTTPSessionManager manager];
     manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"html/text",@"text/plain", nil];
-    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/getdevicestream?device=%@&channel=%@&protocol=RTSP&reserve=1",cmsIp, cmsPort, Serial,channal];
+    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/startdevicestream?device=%@&channel=%@&protocol=RTSP&reserve=1",cmsIp, cmsPort, Serial,channal];
     
     [manager POST:urlStr parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *easyDic = [responseObject objectForKey:@"EasyDarwin"];
@@ -174,13 +174,38 @@ static NSString *cellIdentifier2 = @"Cell2";
         if ([[headerDic objectForKey:@"ErrorNum"] isEqualToString:@"200"]) {
            EasyUrl  *urlModel = [[EasyUrl alloc]init];
             urlModel.channel = [bodyDic objectForKey:@"Channel"];
-            urlModel.protocol = [bodyDic objectForKey:@"Protocol"];
+//            urlModel.protocol = [bodyDic objectForKey:@"Protocol"];
             urlModel.reserve = [bodyDic objectForKey:@"Reserve"];
             urlModel.serial = [bodyDic objectForKey:@"Serial"];
-            urlModel.url = [bodyDic objectForKey:@"URL"];
-            PlayViewController *playVC = [[PlayViewController alloc]init];
-            playVC.urlModel = urlModel;
-            [self presentViewController:playVC animated:YES completion:nil];
+//            urlModel.url = [bodyDic objectForKey:@"URL"];
+//            PlayViewController *playVC = [[PlayViewController alloc]init];
+//            playVC.urlModel = urlModel;
+//            [self presentViewController:playVC animated:YES completion:nil];
+            NSString *serviceString = [bodyDic objectForKey:@"Service"];
+            NSArray *urlArray = [serviceString componentsSeparatedByString:@";"];
+            NSString *ip = [urlArray[0] componentsSeparatedByString:@"="][1];
+            NSString *port = [urlArray[1] componentsSeparatedByString:@"="][1];
+            NSString *urlStrGetstream =[NSString stringWithFormat:@"http://%@:%@/api/v1/getdevicestream?device=%@&channel=%@&protocol=RTSP&reserve=1",ip,port, Serial,channal];
+            AFHTTPSessionManager * managerGetstream = [AFHTTPSessionManager manager];
+            managerGetstream.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"html/text",@"text/plain", nil];
+            [managerGetstream GET:urlStrGetstream parameters:nil progress:^(NSProgress * _Nonnull downloadProgress) {
+                
+            } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                NSDictionary *serverDic = [responseObject objectForKey:@"EasyDarwin"];
+                NSDictionary *serverHeaderDic =  [serverDic objectForKey:@"Header"];
+                NSDictionary *serverBodyDic =  [serverDic objectForKey:@"Body"];
+                if ([[serverHeaderDic objectForKey:@"ErrorNum"] isEqualToString:@"200"]) {
+                    urlModel.url = [serverBodyDic objectForKey:@"URL"];
+                    urlModel.protocol = [serverBodyDic objectForKey:@"Protocol"];
+                    PlayViewController *playVC = [[PlayViewController alloc]init];
+                    playVC.urlModel = urlModel;
+                    
+                    [self presentViewController:playVC animated:YES completion:nil];
+                }
+            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                
+            }];
+
         }
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"error====%@",error);

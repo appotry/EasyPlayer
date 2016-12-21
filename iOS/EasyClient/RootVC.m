@@ -43,14 +43,14 @@
     NSString *cmsIp = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_ip"];
     NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
     if (currentPage == 0) {
-        _VC1.urlStr = [NSString stringWithFormat:@"http://%@:%@/api/getdevicelist?AppType=EasyCamera&TerminalType=ARM_Linux",cmsIp, cmsPort];
+        _VC1.urlStr = [NSString stringWithFormat:@"http://%@:%@/api/v1/getdevicelist?AppType=EasyCamera&TerminalType=ARM_Linux",cmsIp, cmsPort];
         [_VC1 requestListData];
     }else if(currentPage == 1){
-        NSString *urlString= @"http://%@:%@/api/getdevicelist?AppType=EasyCamera&TerminalType=Android";
+        NSString *urlString= @"http://%@:%@/api/v1/getdevicelist?AppType=EasyCamera&TerminalType=Android";
         _VC2.urlStr = [NSString stringWithFormat:urlString, cmsIp,cmsPort];
         [_VC2 requestListData];
     }else{
-        _VC3.urlStr = [NSString stringWithFormat:@"http://%@:%@/api/getdevicelist?AppType=EasyNVR&TerminalType=ARM_Linux",cmsIp,cmsPort];
+        _VC3.urlStr = [NSString stringWithFormat:@"http://%@:%@/api/v1/getdevicelist?AppType=EasyNVR&TerminalType=ARM_Linux",cmsIp,cmsPort];
         [_VC3 requestListData];
     }
 }
@@ -77,7 +77,7 @@
     containerVC.delegate = self;
     
     [self.view addSubview:containerVC.view];
-    _VC1.urlStr = [NSString stringWithFormat:@"http://%@:%@/api/getdevicelist?AppType=EasyCamera&TerminalType=ARM_Linux",cmsIp, cmsPort];
+    _VC1.urlStr = [NSString stringWithFormat:@"http://%@:%@/api/v1/getdevicelist?AppType=EasyCamera&TerminalType=ARM_Linux",cmsIp, cmsPort];
     [_VC1 requestListData];
 }
 #pragma mark -- AmberContainerViewControllerDelegate
@@ -88,12 +88,12 @@
     NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
     currentPage = (short)index;
     if (index ==1) {
-        NSString *urlString= @"http://%@:%@/api/getdevicelist?AppType=EasyCamera&TerminalType=Android";
+        NSString *urlString= @"http://%@:%@/api/v1/getdevicelist?AppType=EasyCamera&TerminalType=Android";
         _VC2.urlStr = [NSString stringWithFormat:urlString, cmsIp,cmsPort];
         [_VC2 requestListData];
     }else if (index == 2)
     {
-        _VC3.urlStr = [NSString stringWithFormat:@"http://%@:%@/api/getdevicelist?AppType=EasyNVR&TerminalType=ARM_Linux",cmsIp,cmsPort];
+        _VC3.urlStr = [NSString stringWithFormat:@"http://%@:%@/api/v1/getdevicelist?AppType=EasyNVR&TerminalType=ARM_Linux",cmsIp,cmsPort];
         [_VC3 requestListData];
     }
 }
