@@ -165,7 +165,7 @@ static NSString *cellIdentifier2 = @"Cell2";
     
     AFHTTPSessionManager * manager = [AFHTTPSessionManager manager];
     manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"html/text",@"text/plain", nil];
-    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/startdevicestream?device=%@&channel=%@&protocol=RTSP&reserve=1",cmsIp, cmsPort, Serial,channal];
+    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/v1/startdevicestream?device=%@&channel=%@&protocol=RTSP&reserve=1",cmsIp, cmsPort, Serial,channal];
     
     [manager POST:urlStr parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *easyDic = [responseObject objectForKey:@"EasyDarwin"];
@@ -220,7 +220,7 @@ static NSString *cellIdentifier2 = @"Cell2";
     
     AFHTTPSessionManager * manager = [AFHTTPSessionManager manager];
     manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"html/text",@"text/plain", nil];
-    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/getdeviceinfo?device=%@",cmsIp, cmsPort, deviceStr];
+    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/v1/getdeviceinfo?device=%@",cmsIp, cmsPort, deviceStr];
 
     [manager POST:urlStr parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *easyDic = [responseObject objectForKey:@"EasyDarwin"];

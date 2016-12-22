@@ -113,7 +113,7 @@ static NSString *cellIdentifier1 = @"Cell1";
     EasyCamera *model = _dataArr[indexPath.row];
     AFHTTPSessionManager * manager = [AFHTTPSessionManager manager];
     manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"html/text",@"text/plain", nil];
-    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/startdevicestream?device=%@&channel=1&protocol=RTSP&reserve=1",cmsIp,cmsPort,model.serial];
+    NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/v1/startdevicestream?device=%@&channel=1&protocol=RTSP&reserve=1",cmsIp,cmsPort,model.serial];
     [manager POST:urlStr parameters:nil progress:^(NSProgress * _Nonnull uploadProgress) {
     } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *easyDic = [responseObject objectForKey:@"EasyDarwin"];
