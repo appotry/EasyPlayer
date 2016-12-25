@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+	@@include("./common.html")
+	<style>
+		.main-header .logo {
+			line-height: 48px;
+			background-color: transparent;
+		}
+
+		.main-header .logo .logo-lg img {
+			width: 35px;
+			height: 35px;
+		}
+		.main-header .navbar-custom-menu {
+			float: left;
+			padding: 0;
+		}
+		.main-header .navbar-custom-menu .navbar-nav li {
+			padding: 0;
+		}
+
+		.input-group .input-group-addon {
+			background-color: #eee;
+		}	
+		.channel .thumbnail {
+			position : relative;
+		}
+		.channel .mask {
+			display : none;
+			position : absolute;
+			top:0;left:0;right:0;bottom:0;
+			background:rgba(255,255,255,0.5);
+		}
+		.channel.offline .mask {
+			display : block;
+		}
+	</style>
+</head>
+<body class="hold-transition skin-green fixed layout-top-nav">
+	<div class="wrapper">
+		<header class="main-header">
+			<a href="#" class="logo visible-xs">
+				<span class="logo-lg"><img src="./images/logo.png" class="img-rounded"> EasyClient</span>
+			</a>
+			<nav class="navbar navbar-static-top" role="navigation">
+				<a href="#" class="logo hidden-xs" style="background: transparent;">
+					<span class="logo-lg"><img src="./images/logo.png" class="img-rounded"> EasyClient</span>
+				</a>
+				<div class="navbar-custom-menu col-xs-12 col-sm-6">
+					<ul class="nav navbar-nav text-center" style="float:none;">
+						<li class="col-xs-4 active">
+							<a href="#EasyCamera" data-toggle="tab" role="tab">EasyCamera</a>
+						</li>
+						<li class="col-xs-4">
+							<a href="#mobile" data-toggle="tab" role="tab">移动设备</a>
+						</li>
+						<li class="col-xs-4">
+							<a href="#EasyNVR" data-toggle="tab" role="tab">EasyNVR</a>
+						</li>
+					</ul>
+				</div>
+			</nav>
+		</header>
+
+		<div class="content-wrapper">
+			<section class="content">
+				<div class="container-fluid">
+					<div class="tab-content">
+						<div class="tab-pane fade active in" id="EasyCamera">EasyCamera</div>
+						<div class="tab-pane fade" id="mobile">mobile</div>
+						<div class="tab-pane fade" id="EasyNVR">EasyNVR</div>
+					</div>					
+				</div>
+			</section>
+		</div>
+<!-- content-wrapper -->
+
+		<footer class="main-footer">
+			<div class="pull-right">
+				EasyClient:v1.1
+			</div>
+			EasyDarwin 云平台版本:v1.1
+		</footer>
+	</div>
+<!-- wrapper-->
+</body>
+
+</html>
