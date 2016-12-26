@@ -1,6 +1,6 @@
 # EasyClient #
 
-EasyClient是EasyDarwin开源流媒体云平台的客户端实现，包含：Windows、Android、iOS三个部分，其主要功能包括：
+EasyClient是EasyDarwin开源流媒体云平台的客户端实现，包含：Windows、Android、iOS、H5(支持微信)四个部分，其主要功能包括：
 
 1. 云平台设备列表获取；
 2. 设备实时码流请求与播放；
@@ -18,6 +18,12 @@ EasyClient是EasyDarwin开源流媒体云平台的客户端实现，包含：Win
 - iOS：[https://itunes.apple.com/us/app/easyclient/id1141850816](https://itunes.apple.com/us/app/easyclient/id1141850816 "EasyClient iOS")
 
 ![EasyClient iOS](http://www.easydarwin.org/github/images/firimeasyclientios.png)
+
+H5版本：[http://www.easydarwin.org/article/video/](http://www.easydarwin.org/article/video/ "EasyDarwin视频广场")
+
+微信版本：
+
+![EasyClient 微信版](http://www.easydarwin.org/github/images/qrcode_for_ucbaby.jpg)
 
 ## 更新记录 ##
 
