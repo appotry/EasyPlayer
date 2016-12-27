@@ -275,12 +275,12 @@
 			$(".content-wrapper").swiperight(function(){
 				var $tab = $(".navbar-custom-menu ul li.active").prev();
 				if($tab.length == 1){
-					$tab.find("a").trigger("mouseover").trigger("click");
+					$tab.find("a").trigger("click");
 				}
 			}).swipeleft(function(){
 				var $tab = $(".navbar-custom-menu ul li.active").next();
 				if($tab.length == 1){
-					$tab.find("a").trigger("mouseover").trigger("click");
+					$tab.find("a").trigger("click");
 				}
 			})
 			$(document).on("show.bs.tab",".navbar-custom-menu [data-toggle=tab]",function(e){
