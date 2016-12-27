@@ -31,14 +31,14 @@
 		}
 		.camera .camera-type {
 			position: absolute;
-			height: 20px;
-			line-height: 10px;
-			font-size : 12px;
+			height: 15px;
+			line-height: 5px;
+			font-size : 5px;
 			color : #FFF;
 			right: 5px;
 			bottom: 5px;
 			background-color:rgba(255,255,255,0.4);
-			padding: 5px 5px;
+			padding: 5px;
 			border-radius: 2px;
 		}
 		.camera .thumbnail .caption {
@@ -133,7 +133,7 @@
 							<div class="col-sm-12 col-md-6 nvr">
 								<div class="box box-default box-solid">
 									<div class="box-header with-border" data-toggle="collapse" role="button">
-										<i class="fa fa-chevron-down"></i> <span class="camera-type"></span>:<span class="camera-name"></span>:<span class="camera-serial"></span>
+										<small><i class="fa fa-chevron-down"></i> <span class="camera-type"></span>:<span class="camera-name"></span>:<span class="camera-serial"></span></small>
 									</div>
 									<div class="box-collapse collapse">
 										<div class="box-body">
@@ -216,12 +216,6 @@
 					devs.sort(function(a,b){
 						return (a["Serial"]||"").localeCompare(b["Serial"]||"");
 					})
-					if(devs.length == 0){
-						$.gritter.add({
-							text : "没有请求到数据",
-							class_name : 'gritter-info'
-						})
-					}
 					$.each(devs,function(i,camera){
 						var html = $(".camera-template").html();
 						var $camera = $(html);
@@ -241,13 +235,7 @@
 					var devs = ret.EasyDarwin.Body.Devices||[];
 					devs.sort(function(a,b){
 						return a["Serial"].localeCompare(b["Serial"]);
-					})
-					if(devs.length == 0){
-						$.gritter.add({
-							text : "没有请求到数据",
-							class_name : 'gritter-info'
-						})
-					}					
+					})					
 					$.each(devs,function(i,camera){
 						var html = $(".mobile-template").html();
 						var $camera = $(html);
@@ -267,13 +255,7 @@
 					var devs = ret.EasyDarwin.Body.Devices||[];
 					devs.sort(function(a,b){
 						return a["Serial"].localeCompare(b["Serial"]);
-					})
-					if(devs.length == 0){
-						$.gritter.add({
-							text : "没有请求到数据",
-							class_name : 'gritter-info'
-						})
-					}					
+					})				
 					$.each(devs,function(i,camera){
 						var html = $(".nvr-template").html();
 						var $camera = $(html);
@@ -290,6 +272,19 @@
 			});	
 		}
 		$(function(){
+			$(".content").swiperight(function(){
+				var $tab = $(".navbar-custom-menu ul li.active").prev();
+				console.log($tab.length);
+				if($tab.length > 0){
+					$tab.find("a").trigger("click");
+				}
+			}).swipeleft(function(){
+				var $tab = $(".navbar-custom-menu ul li.active").closest("li").next();
+				console.log($tab.length);
+				if($tab.length > 0){
+					$tab.find("a").trigger("click");
+				}
+			})
 			$(document).on("show.bs.tab",".navbar-custom-menu [data-toggle=tab]",function(e){
 				var target = $(this).attr("href");
 				$.cookie("target",target);
@@ -347,7 +342,7 @@
 				}else{
 					cls += "down";
 				}
-				$box.find(".box-header>i.fa").removeClass("fa-chevron-down").removeClass("fa-chevron-up").addClass(cls);
+				$box.find(".box-header i.fa").removeClass("fa-chevron-down").removeClass("fa-chevron-up").addClass(cls);
 			})
 
 			$(document).on("click",".camera .thumbnail img",function(){

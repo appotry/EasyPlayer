@@ -26,7 +26,7 @@
 	</style>
 </head>
 
-<body class="hold-transition skin-green layout-top-nav fixed">
+<body class="hold-transition skin-green layout-top-nav">
 	<div class="wrapper">
 		<header class="main-header">
 			<nav class="navbar navbar-static-top" role="navigation">
@@ -52,12 +52,13 @@
 	</div>
 	<!-- wrapper-->
 	<script>
-		console.log($.cookie("videoUrl"));
-		console.log($.cookie("videoImg"));
+		if(!$.cookie("videoUrl")){
+			top.location.href = "./index.html";
+		}
 		var player = cyberplayer("dvplay").setup({
 			flashplayer: "cyberplayer.flash.swf",
 			stretching: "uniform",
-			file: $.cookie("videoUrl") || "rtmp://121.40.50.44/live/stream_1",
+			file: $.cookie("videoUrl")||"",
 			image: $.cookie("videoImg") || "./images/snap.png",
 			width: $("#dvplay").width(),
 			height: $("#dvplay").width() * 3 / 5,
@@ -94,7 +95,7 @@
 				})
 			}, 30000);
 
-			$(".channel-title").text($.cookie("videoTitle") || "通道直播");
+			$(".channel-title").text($.cookie("videoTitle") || "");
 		});
 	</script>
 </body>
