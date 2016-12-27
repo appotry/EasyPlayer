@@ -31,14 +31,14 @@
 		}
 		.camera .camera-type {
 			position: absolute;
-			height: 15px;
-			line-height: 5px;
-			font-size : 5px;
+			height: 14px;
+			line-height: 10px;
+			font-size : 8px;
 			color : #FFF;
 			right: 5px;
 			bottom: 5px;
 			background-color:rgba(255,255,255,0.4);
-			padding: 5px;
+			padding: 2px 5px;
 			border-radius: 2px;
 		}
 		.camera .thumbnail .caption {
@@ -274,15 +274,13 @@
 		$(function(){
 			$(".content").swiperight(function(){
 				var $tab = $(".navbar-custom-menu ul li.active").prev();
-				console.log($tab.length);
-				if($tab.length > 0){
-					$tab.find("a").trigger("click");
+				if($tab.length == 1){
+					$tab.find("a").trigger("mouseover").trigger("click");
 				}
 			}).swipeleft(function(){
-				var $tab = $(".navbar-custom-menu ul li.active").closest("li").next();
-				console.log($tab.length);
-				if($tab.length > 0){
-					$tab.find("a").trigger("click");
+				var $tab = $(".navbar-custom-menu ul li.active").next();
+				if($tab.length == 1){
+					$tab.find("a").trigger("mouseover").trigger("click");
 				}
 			})
 			$(document).on("show.bs.tab",".navbar-custom-menu [data-toggle=tab]",function(e){
