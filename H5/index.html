@@ -272,7 +272,7 @@
 			});	
 		}
 		$(function(){
-			$(".content").swiperight(function(){
+			$(".content-wrapper").swiperight(function(){
 				var $tab = $(".navbar-custom-menu ul li.active").prev();
 				if($tab.length == 1){
 					$tab.find("a").trigger("mouseover").trigger("click");
@@ -367,7 +367,7 @@
 						$("body").unmask();
 						try{
 							var ret = JSON.parse(data);
-							var result = Object.assign({},ret.EasyDarwin.Body);
+							var result = $.extend({},ret.EasyDarwin.Body);
 							var videoUrl = "http://{IP}:{Port}/api/v1/getdevicestream?device={Serial}&channel={Channel}&protocol={Protocol}&reserve={Reserve}";
 							var videoLiveUrl = "http://{IP}:{Port}/api/v1/livedevicestream?device={Serial}&channel={Channel}&protocol={Protocol}";
 							var service = result["Service"].split(";");
@@ -406,6 +406,7 @@
 						}catch(e){
 							$("body").unmask();
 							$.gritter.add("启动视频失败!");
+							alert(e.message)
 							console.log(e);
 						}
 					},
