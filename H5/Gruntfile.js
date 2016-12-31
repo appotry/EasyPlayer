@@ -28,7 +28,7 @@ module.exports = function(grunt) {
         main : {
             expand : true,
             cwd : "./",
-            src : ["adminlte-2.3.6/**","images/**","crossdomain.xml","favicon.ico","cyberplayer.flash.swf"],
+            src : ["adminlte-2.3.6/**","images/**","video-js/**","crossdomain.xml","favicon.ico","cyberplayer.flash.swf"],
             dest : "./dist/"
         }
     },
