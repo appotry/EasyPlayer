@@ -35,7 +35,7 @@
 		.video-progress .progress {
 			border-radius: 5px;
 			position: absolute;
-			top: 45%;left:5%;right:5%;
+			top: 45%;left:20%;right:20%;
 		}
 		.video-progress .progress .progress-bar{
 			text-align: right;
@@ -99,13 +99,13 @@
 		if(!$.cookie("videoUrl")){
 			top.location.href = "./index.html";
 		}
-		function showProgress(){
+		function showProgress(cb){
 			var $vp = $(".video-progress").toggleClass("hide");
 			var $p = $(".video-progress .progress");
 			var $pb = $(".video-progress .progress .progress-bar");
-			var timeout = 3000;
-			timeout += 200 * Math.floor(Math.random()*10);
-			var step = 200;
+			var timeout = 5000;
+			//timeout += 200 * Math.floor(Math.random()*10);
+			var step = 125;
 			var cnt = 0;
 			var timer = setInterval(function(){
 				cnt += step;
@@ -116,6 +116,7 @@
 					setTimeout(function(){
 						$vp.toggleClass("hide");
 						$pb.css("width","0%").attr("aria-valuenow","0").text("0%");
+						if(cb) cb();
 					},500);
 				}
 			},step);
@@ -141,15 +142,20 @@
 		}else{
 			$("#dvplay").hide();
 			var html = $(".video-template").html();
-			var $v = $(html);
-			$v.find("video").attr("poster",$.cookie("videoImg")||"./images/snap.png");//.attr("data-setup","{}");
+			var $v = $(html).hide();
+			$v.find("video").attr("poster",$.cookie("videoImg")||"./images/snap.png").attr("data-setup","{}");
 			$v.find("video source").attr("src",$.cookie("videoUrl")||"");
 			$(".content-wrapper .content").append($v);
 			setTimeout(function(){
+				$v.show();
 				var isReady = $.cookie("isReady");
 				$.removeCookie("isReady");
 				if(isReady === "0"){
-					showProgress();
+					showProgress(function(){
+						$("button.vjs-big-play-button").trigger("click");
+					});
+				}else if(isReady === "1"){
+					$("button.vjs-big-play-button").trigger("click");
 				}
 			},100);
 		}
