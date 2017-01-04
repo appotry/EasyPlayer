@@ -436,6 +436,7 @@
 										$.cookie("videoLiveUrl",videoLiveUrl);
 										$.cookie("videoTitle",camera["Name"]);
 										$.cookie("videoImg",camera["SnapURL"]);
+										$.cookie("isReady",ret.EasyDarwin.Body.IsReady);
 										if(ret.EasyDarwin.Body.IsReady == "1" || isPC()){
 											top.location.href = "./play.html";
 										}else {

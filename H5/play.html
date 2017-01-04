@@ -25,6 +25,21 @@
 			width: 80%;
 			height: 500px;
 		}
+
+		.video-progress {
+			position: absolute;
+			left:0;right:0;top:0;bottom: 0;
+			background-color: rgba(0,0,0,0.8);
+			z-index: 99999;
+		}
+		.video-progress .progress {
+			border-radius: 5px;
+			position: absolute;
+			top: 50%;left:10%;right:10%;
+		}
+		.video-progress .progress .progress-bar{
+			text-align: right;
+		}		
 	</style>
 </head>
 
@@ -60,6 +75,15 @@
 									</a>
 								</p>
 							</video>
+							<div class="video-progress hide">
+								<div class="progress">
+									<div class="progress-bar progress-bar-success progress-bar-striped active" 
+										role="progressbar" aria-valuenow="0" aria-valuemin="0" 
+										aria-valuemax="100" style="width: 0%; min-width: 30px;">
+										0%
+									</div>
+								</div>
+							</div>							
 						</div>
 					</div>
 				</div>
@@ -74,6 +98,28 @@
 		if(!$.cookie("videoUrl")){
 			top.location.href = "./index.html";
 		}
+		function showProgress(cb){
+			var $vp = $(".video-progress").toggleClass("hide");
+			var $p = $(".video-progress .progress");
+			var $pb = $(".video-progress .progress .progress-bar");
+			var timeout = 3000;
+			timeout += 200 * Math.floor(Math.random()*10);
+			var step = 100;
+			var cnt = 0;
+			var timer = setInterval(function(){
+				cnt += step;
+				var percent = Math.round(cnt/timeout * 100);	
+				$pb.css("width",percent + "%").attr("aria-valuenow",percent).text(percent + "%");
+				if(cnt >= timeout){
+					clearInterval(timer);
+					setTimeout(function(){
+						$vp.toggleClass("hide");
+						$pb.css("width","0%").attr("aria-valuenow","0").text("0%");
+						cb();
+					},500);
+				}
+			},step);
+		}		
 		var player = null;
 		if(isPC()){
 			player = cyberplayer("dvplay").setup({
@@ -100,6 +146,11 @@
 			$v.find("video source").attr("src",$.cookie("videoUrl")||"");
 			$(".content-wrapper .content").append($v);
 			setTimeout(function(){
+				var isReady = $.cookie("isReady");
+				$.removeCookie("isReady");
+				if(isReady === "1"){
+					
+				}
 				$v.show();
 			},100);
 		}
