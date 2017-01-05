@@ -142,22 +142,21 @@
 		}else{
 			$("#dvplay").hide();
 			var html = $(".video-template").html();
-			var $v = $(html).hide();
-			$v.find("video").attr("poster",$.cookie("videoImg")||"./images/snap.png").attr("data-setup","{}");
+			var $v = $(html);
+			$v.find("video").attr("poster",$.cookie("videoImg")||"./images/snap.png").attr("id","easy-player");
 			$v.find("video source").attr("src",$.cookie("videoUrl")||"");
 			$(".content-wrapper .content").append($v);
-			setTimeout(function(){
-				$v.show();
-				var isReady = $.cookie("isReady");
-				$.removeCookie("isReady");
-				if(isReady === "0"){
-					showProgress(function(){
-						//$("button.vjs-big-play-button").trigger("click");
-					});
-				}else if(isReady === "1"){
+			var isReady = $.cookie("isReady");
+			$.removeCookie("isReady");
+			if(isReady === "0"){
+				showProgress(function(){
+					videojs("easy-player");
 					//$("button.vjs-big-play-button").trigger("click");
-				}
-			},100);
+				});
+			} else {
+				videojs("easy-player");
+				//$("button.vjs-big-play-button").trigger("click");
+			}
 		}
 
 		function onWindowResize() {
