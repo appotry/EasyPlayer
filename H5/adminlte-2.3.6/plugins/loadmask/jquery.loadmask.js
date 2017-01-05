@@ -77,6 +77,9 @@
 		}
 		
 		element.append(maskDiv);
+		if(element.is("body")){
+			maskDiv.css("position","fixed");
+		}
 		
 		if(label !== undefined) {
 			var maskMsgDiv = $('<div class="loadmask-msg" style="display:none;"></div>');

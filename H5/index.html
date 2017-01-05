@@ -294,17 +294,19 @@
 			},step);
 		}
 		$(function(){
-			$(".content-wrapper").swiperight(function(){
-				var $tab = $(".navbar-custom-menu ul li.active").prev();
-				if($tab.length == 1){
-					$tab.find("a").trigger("click");
-				}
-			}).swipeleft(function(){
-				var $tab = $(".navbar-custom-menu ul li.active").next();
-				if($tab.length == 1){
-					$tab.find("a").trigger("click");
-				}
-			})
+			if('ontouchstart' in document.documentElement){
+				$(".content-wrapper").swiperight(function(){
+					var $tab = $(".navbar-custom-menu ul li.active").prev();
+					if($tab.length == 1){
+						$tab.find("a").trigger("click");
+					}
+				}).swipeleft(function(){
+					var $tab = $(".navbar-custom-menu ul li.active").next();
+					if($tab.length == 1){
+						$tab.find("a").trigger("click");
+					}
+				})
+			}
 			$(document).on("show.bs.tab",".navbar-custom-menu [data-toggle=tab]",function(e){
 				var target = $(this).attr("href");
 				$.cookie("target",target);
@@ -330,35 +332,29 @@
 					cls += "up";
 					$box.find(".box-body > .camera").remove();
 					$("body").mask("正在请求通道信息...",100);
-					$.ajax({
-						type : "GET",
-						url : _url + "/getdeviceinfo?device=" + camera["Serial"],
-						success:function(data){
-							$("body").unmask();
-							try{
-								var ret = JSON.parse(data);
-								var channels = ret.EasyDarwin.Body.Channels||[];
-								channels.sort(function(a,b){
-									return (a["Name"]||"").localeCompare(b["Name"]||"");
-								});
-								$.each(channels,function(i,channel){
-									var html = $(".nvr-channel-template").html();
-									var $camera = $(html);
-									$box.find(".box-body").append($camera);
-									$camera.data("camera",channel);
-									renderNvrChannel($camera);
-								})
-							}catch(e){
-								$.gritter.add("请求通道信息失败!");
-								console.log(e);
-							}
-						},
-						error:function(xhr,ts,e){
-							$("body").unmask();
+					$.get(_url + "/getdeviceinfo?device=" + camera["Serial"]).always(function(){
+						$("body").unmask();
+					}).done(function(data){
+						try{
+							var ret = JSON.parse(data);
+							var channels = ret.EasyDarwin.Body.Channels||[];
+							channels.sort(function(a,b){
+								return (a["Name"]||"").localeCompare(b["Name"]||"");
+							});
+							$.each(channels,function(i,channel){
+								var html = $(".nvr-channel-template").html();
+								var $camera = $(html);
+								$box.find(".box-body").append($camera);
+								$camera.data("camera",channel);
+								renderNvrChannel($camera);
+							})
+						}catch(e){
 							$.gritter.add("请求通道信息失败!");
 							console.log(e);
 						}
-					});
+					}).fail(function(xhr,ts,e){
+						$.gritter.add("请求通道信息失败!");
+					})
 				}else{
 					cls += "down";
 				}
@@ -382,62 +378,52 @@
 					params.push("channel=" + channel);
 				}
 				$("body").mask("正在请求EasyCMS启动视频...",100);
+				var msg = "启动视频失败!";
+				var videoLiveUrl = "http://{IP}:{Port}/api/v1/livedevicestream?device={Serial}&channel={Channel}&protocol={Protocol}";
 				$.ajax({
 					type : "GET",
-					url : _url + "/startdevicestream?" + params.join("&"),
-					success : function(data){
-						$("body").unmask();
-						try{
-							var ret = JSON.parse(data);
-							var result = $.extend({},ret.EasyDarwin.Body);
-							var videoUrl = "http://{IP}:{Port}/api/v1/getdevicestream?device={Serial}&channel={Channel}&protocol={Protocol}&reserve={Reserve}";
-							var videoLiveUrl = "http://{IP}:{Port}/api/v1/livedevicestream?device={Serial}&channel={Channel}&protocol={Protocol}";
-							var service = result["Service"].split(";");
-							for(var i in service){
-								var kv = service[i];
-								var _kv = kv.split("=");
-								result[_kv[0]] = _kv[1];
-							}
-							result["Protocol"] = isPC() ? "rtmp" : "hls";
-							videoUrl = videoUrl.format(result);
-							videoLiveUrl = videoLiveUrl.format(result);
-							$("body").mask("正在请求EasyDarwin直播流地址...",100);
-							$.ajax({
-								type : "GET",
-								url : videoUrl,
-								success : function(data){
-									$("body").unmask();
-									try{
-										var ret = JSON.parse(data);
-										$.cookie("videoUrl",ret.EasyDarwin.Body.URL);
-										$.cookie("videoLiveUrl",videoLiveUrl);
-										$.cookie("videoTitle",camera["Name"]);
-										$.cookie("videoImg",camera["SnapURL"]);
-										$.cookie("isReady",ret.EasyDarwin.Body.IsReady);
-										top.location.href = "./play.html";
-									}catch(e){
-										$.gritter.add("获取视频流失败!");
-										console.log(e);
-									}
-								},
-								error : function(xhr,ts,e){
-									$("body").unmask();
-									$.gritter.add("获取视频流失败!");
-									console.log(e);
-								}
-							});
-						}catch(e){
-							$("body").unmask();
-							$.gritter.add("启动视频失败!");
-							console.log(e);
+					url : _url + "/startdevicestream?" + params.join("&")
+				}).then(function(data){
+					$("body").unmask();
+					try{
+						var ret = JSON.parse(data);
+						var result = $.extend({},ret.EasyDarwin.Body);
+						var videoUrl = "http://{IP}:{Port}/api/v1/getdevicestream?device={Serial}&channel={Channel}&protocol={Protocol}&reserve={Reserve}";
+						var service = result["Service"].split(";");
+						for(var i in service){
+							var kv = service[i];
+							var _kv = kv.split("=");
+							result[_kv[0]] = _kv[1];
 						}
-					},
-					error : function(xhr,ts,e){
-						$("body").unmask();
-						$.gritter.add("启动视频失败!");
-						console.log(e);
+						result["Protocol"] = isPC() ? "rtmp" : "hls";
+						videoUrl = videoUrl.format(result);
+						videoLiveUrl = videoLiveUrl.format(result);
+						$("body").mask("正在请求EasyDarwin直播流地址...",100);
+						msg = "获取视频流失败!";
+						return $.ajax({
+							type : "GET",
+							url : videoUrl
+						});					
+					}catch(e){
+						return $.Deferred().reject();
 					}
-				});				
+				}).then(function(data){
+					$("body").unmask();
+					try{
+						var ret = JSON.parse(data);
+						$.cookie("videoUrl",ret.EasyDarwin.Body.URL);
+						$.cookie("videoLiveUrl",videoLiveUrl);
+						$.cookie("videoTitle",camera["Name"]);
+						$.cookie("videoImg",camera["SnapURL"]);
+						$.cookie("isReady",ret.EasyDarwin.Body.IsReady);
+						top.location.href = "./play.html";
+					}catch(e){
+						return $.Deferred().reject();
+					}
+				}).fail(function(){
+					$("body").unmask();
+					$.gritter.add(msg);
+				})
 			})
 		})
 	</script>
