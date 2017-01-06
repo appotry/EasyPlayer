@@ -105,6 +105,27 @@
 								</div>
 							</div>																																
 						</div>
+						<div class="camera-desc-template hide">
+							<div class="col-xs-6 col-sm-4 camera text-green">
+								<div class="thumbnail">
+									<div class="wrapper" style="padding-bottom:55%;position:relative;background-color:#FFF;">
+										<div class="inner"  style="position:absolute;top:0;bottom:0;left:0;right:0;overflow: auto;">
+											<h5>EasyCamera ARM 摄像机功能说明:</h5>
+											<small>
+											EasyCamera ARM 服务是一套独立于各个厂家芯片的对接服务...
+											<br>
+											<br>
+											EasyCamera 摄像机样机:<br>
+											http://www.easydarwin.org/camera/				
+											</small>							
+										</div>
+									</div>
+									<div class="caption">
+										<small>&nbsp;&nbsp;</small>
+									</div>
+								</div>
+							</div>																																
+						</div>
 					</div>
 					<div class="tab-pane fade" id="tab-mobile">
 						<div class="mobile-template hide">
@@ -123,6 +144,30 @@
 										</small>
 									</div>
 									<div class="mask">
+									</div>
+								</div>
+							</div>																																
+						</div>
+						<div class="mobile-desc-template hide">
+							<div class="col-xs-6 col-sm-4 camera text-green">
+								<div class="thumbnail">
+									<div class="wrapper" style="padding-bottom:120%;position:relative;background-color:#FFF;">
+										<div class="inner"  style="position:absolute;top:0;bottom:0;left:0;right:0;overflow: auto;">
+											<h5>EasyCamera 移动终端版本功能:</h5>
+											<small>
+												以 Android,iOS 手机做为摄像机视频源,接入到 EasyDarwin 云平台对外提供音视频服务!
+												<br>
+												<br>
+												EasyCamera 移动端版本下载:<br>
+												1.Android: http://fir.im/EasyCamera;<br>
+												2.iOS: 在 AppStore 搜索 'EasyCamera';<br>
+												<br>
+												或者通过手机扫码下载:<br>
+											</small>											
+										</div>
+									</div>
+									<div class="caption">
+										<small>&nbsp;&nbsp;</small>
 									</div>
 								</div>
 							</div>																																
@@ -164,7 +209,25 @@
 									</div>
 								</div>	
 							</div>
-						</div>
+						</div><!-- nvr-template-->
+						<div class="nvr-desc-template hide">
+							<div class="col-sm-12 col-md-6 nvr text-green">
+								<div class="box box-default box-solid">
+									<div class="box-header with-border text-green" data-toggle="collapse" role="button" data-target="#nvr-desc">
+										<small><i class="fa fa-chevron-down"></i> EasyNVR 设备功能说明:</small>
+									</div>
+									<div class="box-collapse collapse">
+										<div class="box-body" style="overflow: auto;">
+											<small>
+											EasyNVR是一款能够将各个厂家的通用RTSP/Onvif摄像机接入<br>
+											<br>
+											版本下载: http://github.com/EasyDarwin/EasyNVR
+											</small>
+										</div>
+									</div>
+								</div>	
+							</div>
+						</div><!-- nvr-desc-template-->
 					</div>
 				</div>
 									
@@ -223,6 +286,8 @@
 						$camera.data("camera",camera);
 						renderCamera($camera);
 					})
+					var html = $(".camera-desc-template").html();
+					$("#tab-camera").append($(html));
 				}catch(e){
 					console.log(e);
 				}
@@ -243,6 +308,8 @@
 						$camera.data("camera",camera);
 						renderCamera($camera);
 					})
+					var html = $(".mobile-desc-template").html();
+					$("#tab-mobile").append($(html));
 				}catch(e){
 					console.log(e);
 				}
@@ -266,6 +333,9 @@
 						$camera.data("camera",camera);
 						renderNvr($camera);
 					});
+					var html = $(".nvr-desc-template").html();
+					$("#tab-nvr").append($(html));
+					$("#tab-nvr .nvr:last .box-collapse").attr("id","nvr-desc");
 				}catch(e){
 					console.log(e);
 				}
@@ -330,31 +400,33 @@
 				var cls = "fa-chevron-";
 				if(e.type == 'show'){
 					cls += "up";
-					$box.find(".box-body > .camera").remove();
-					$("body").mask("正在请求通道信息...",100);
-					$.get(_url + "/getdeviceinfo?device=" + camera["Serial"]).always(function(){
-						$("body").unmask();
-					}).done(function(data){
-						try{
-							var ret = JSON.parse(data);
-							var channels = ret.EasyDarwin.Body.Channels||[];
-							channels.sort(function(a,b){
-								return (a["Name"]||"").localeCompare(b["Name"]||"");
-							});
-							$.each(channels,function(i,channel){
-								var html = $(".nvr-channel-template").html();
-								var $camera = $(html);
-								$box.find(".box-body").append($camera);
-								$camera.data("camera",channel);
-								renderNvrChannel($camera);
-							})
-						}catch(e){
+					if($(this).attr("id") !== "nvr-desc"){
+						$box.find(".box-body > .camera").remove();
+						$("body").mask("正在请求通道信息...",100);
+						$.get(_url + "/getdeviceinfo?device=" + camera["Serial"]).always(function(){
+							$("body").unmask();
+						}).done(function(data){
+							try{
+								var ret = JSON.parse(data);
+								var channels = ret.EasyDarwin.Body.Channels||[];
+								channels.sort(function(a,b){
+									return (a["Name"]||"").localeCompare(b["Name"]||"");
+								});
+								$.each(channels,function(i,channel){
+									var html = $(".nvr-channel-template").html();
+									var $camera = $(html);
+									$box.find(".box-body").append($camera);
+									$camera.data("camera",channel);
+									renderNvrChannel($camera);
+								})
+							}catch(e){
+								$.gritter.add("请求通道信息失败!");
+								console.log(e);
+							}
+						}).fail(function(xhr,ts,e){
 							$.gritter.add("请求通道信息失败!");
-							console.log(e);
-						}
-					}).fail(function(xhr,ts,e){
-						$.gritter.add("请求通道信息失败!");
-					})
+						})
+					}
 				}else{
 					cls += "down";
 				}
