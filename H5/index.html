@@ -441,6 +441,10 @@
 					$("body").unmask();
 					try{
 						var ret = JSON.parse(data);
+						if(ret.EasyDarwin.Header.ErrorNum !== "200"){
+							msg += ret.EasyDarwin.Header.ErrorString;
+							return $.Deferred().reject();
+						}
 						var result = $.extend({},ret.EasyDarwin.Body);
 						var videoUrl = "http://{IP}:{Port}/api/v1/getdevicestream?device={Serial}&channel={Channel}&protocol={Protocol}&reserve={Reserve}";
 						var service = result["Service"].split(";");
@@ -466,6 +470,10 @@
 					$("body").unmask();
 					try{
 						var ret = JSON.parse(data);
+						if(ret.EasyDarwin.Header.ErrorNum !== "200"){
+							msg += ret.EasyDarwin.Header.ErrorString;
+							return $.Deferred().reject();
+						}						
 						$.cookie("videoUrl",ret.EasyDarwin.Body.URL);
 						$.cookie("videoLiveUrl",videoLiveUrl);
 						$.cookie("videoTitle",camera["Name"]);
