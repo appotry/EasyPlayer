@@ -459,6 +459,7 @@
 							url : videoUrl
 						});					
 					}catch(e){
+						console.log(msg + " data : " + data);
 						return $.Deferred().reject();
 					}
 				}).then(function(data){
@@ -472,6 +473,7 @@
 						$.cookie("isReady",ret.EasyDarwin.Body.IsReady);
 						top.location.href = "./play.html";
 					}catch(e){
+						console.log(msg + " data : " + data);
 						return $.Deferred().reject();
 					}
 				}).fail(function(){
