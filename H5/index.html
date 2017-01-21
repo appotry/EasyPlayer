@@ -102,26 +102,6 @@
 								</div>
 							</div>	
 						</div>							
-						<div class="camera-template hide">
-							<div class="col-xs-6 col-sm-4 camera">
-								<div class="thumbnail">
-									<div class="wrapper" style="padding-bottom:55%;position:relative;">
-										<div class="inner"  style="position:absolute;top:0;bottom:0;left:0;right:0;">
-											<img style="width:100%;height:100%;" role="button" onerror="javascript:this.src='./images/snap.png'" src="./images/snap.png">	
-										</div>
-										<div class="camera-type"></div>
-									</div>
-									<div class="caption">
-										<small>
-										<span class="camera-name"></span>
-										(<span class="camera-serail"></span>)
-										</small>
-									</div>
-									<div class="mask">
-									</div>
-								</div>
-							</div>																																
-						</div>
 					</div>
 					<div class="tab-pane fade" id="tab-mobile">
 						<div class="col-sm-12 text-green">
@@ -145,26 +125,6 @@
 								</div>
 							</div>	
 						</div>						
-						<div class="mobile-template hide">
-							<div class="col-xs-6 col-sm-4 camera">
-								<div class="thumbnail">
-									<div class="wrapper" style="padding-bottom:120%;position:relative;">
-										<div class="inner"  style="position:absolute;top:0;bottom:0;left:0;right:0;">
-											<img style="width:100%;height:100%;" role="button" onerror="javascript:this.src='./images/snap.png'" src="./images/snap.png">	
-										</div>
-										<div class="camera-type"></div>
-									</div>
-									<div class="caption">
-										<small>
-										<span class="camera-name"></span>
-										(<span class="camera-serail"></span>)
-										</small>
-									</div>
-									<div class="mask">
-									</div>
-								</div>
-							</div>																																
-						</div>
 					</div>
 					<div class="tab-pane fade" id="tab-nvr">
 						<div class="col-sm-12 text-green">
@@ -182,44 +142,8 @@
 								</div>
 							</div>	
 						</div>
-						<div class="nvr-template hide">
-							<div class="col-sm-12 col-md-6 nvr">
-								<div class="box box-default box-solid">
-									<div class="box-header with-border" data-toggle="collapse" role="button">
-										<small><i class="fa fa-chevron-down"></i> <span class="camera-type"></span>:<span class="camera-name"></span>:<span class="camera-serial"></span></small>
-									</div>
-									<div class="box-collapse collapse">
-										<div class="box-body">
-											<div class="nvr-channel-template hide">
-												<div class="col-xs-6 col-sm-4 camera">
-													<div class="thumbnail">
-														<div class="wrapper" style="padding-bottom:55%;position:relative;">
-															<div class="inner"  style="position:absolute;top:0;bottom:0;left:0;right:0;">
-																<img style="width:100%;height:100%;" role="button" onerror="javascript:this.src='./images/snap.png'" src="./images/snap.png">	
-															</div>
-														</div>
-														<div class="caption">
-															<small>
-															<span class="channel-name"></span>
-															<span class="channel-status pull-right">
-																<i class="fa fa-check-circle"></i>
-																<span class="channel-status-text"></span>
-															</span>															
-															</small>
-														</div>
-														<div class="mask">
-														</div>
-													</div>
-												</div>																																
-											</div>										
-										</div>
-									</div>
-								</div>	
-							</div>
-						</div><!-- nvr-template-->
 					</div>
 				</div>
-									
 			</section>
 		</div>
 		<!-- content-wrapper -->
@@ -261,10 +185,11 @@
 			}
 		}
 		function getEasyCamera(){
-			$.get(_url + "/getdevicelist?AppType=EasyCamera&TerminalType=ARM_Linux",function(data){
+			var devs = [];
+			$.get(_url + "/getdevicelist?AppType=EasyCamera&TerminalType=ARM_Linux").then(function(data){
 				try{
 					var ret = JSON.parse(data);
-					var devs = ret.EasyDarwin.Body.Devices||[];
+					devs = ret.EasyDarwin.Body.Devices||[];
 					devs.sort(function(a,b){
 						if((a["Serial"]||"") < (b["Serial"]||"")){
 							return -1;
@@ -273,24 +198,29 @@
 						}else {
 							return 1;
 						}
-					})
-					$.each(devs,function(i,camera){
-						var html = $(".camera-template").html();
-						var $camera = $(html);
-						$("#tab-camera").append($camera);
-						$camera.data("camera",camera);
-						renderCamera($camera);
-					})
+					});
+					return $.get("./camera-template.html");
 				}catch(e){
 					console.log(e);
+					return $.Deferred().reject();
 				}
-			});	
+			}).then(function(html){
+				$.each(devs,function(i,camera){
+					var $camera = $(html);
+					$("#tab-camera").append($camera);
+					$camera.data("camera",camera);
+					renderCamera($camera);
+				})
+			}).fail(function(){
+				$.gritter.add("获取EasyCamera数据失败");
+			})
 		}
 		function getMobile(){
-			$.get(_url + "/getdevicelist?AppType=EasyCamera&TerminalType=iOS|Android",function(data){
+			var devs = [];
+			$.get(_url + "/getdevicelist?AppType=EasyCamera&TerminalType=iOS|Android").then(function(data){
 				try{
 					var ret = JSON.parse(data);
-					var devs = ret.EasyDarwin.Body.Devices||[];
+					devs = ret.EasyDarwin.Body.Devices||[];
 					devs.sort(function(a,b){
 						if((a["Serial"]||"") < (b["Serial"]||"")){
 							return -1;
@@ -299,24 +229,29 @@
 						}else {
 							return 1;
 						}
-					})					
-					$.each(devs,function(i,camera){
-						var html = $(".mobile-template").html();
-						var $camera = $(html);
-						$("#tab-mobile").append($camera);
-						$camera.data("camera",camera);
-						renderCamera($camera);
-					})
+					});
+					return $.get("./mobile-template.html");				
 				}catch(e){
 					console.log(e);
+					return $.Deferred().reject();
 				}
-			});	
+			}).then(function(html){
+				$.each(devs,function(i,camera){
+					var $camera = $(html);
+					$("#tab-mobile").append($camera);
+					$camera.data("camera",camera);
+					renderCamera($camera);
+				})
+			}).fail(function(){
+				$.gritter.add("获取移动设备数据失败");
+			})
 		}
 		function getEasyNVR(){
-			$.get(_url + "/getdevicelist?AppType=EasyNVR",function(data){
+			var devs = [];
+			$.get(_url + "/getdevicelist?AppType=EasyNVR").then(function(data){
 				try{
 					var ret = JSON.parse(data);
-					var devs = ret.EasyDarwin.Body.Devices||[];
+					devs = ret.EasyDarwin.Body.Devices||[];
 					devs.sort(function(a,b){
 						if((a["Serial"]||"") < (b["Serial"]||"")){
 							return -1;
@@ -325,43 +260,25 @@
 						}else{
 							return 1;
 						}
-					})				
-					$.each(devs,function(i,camera){
-						var html = $(".nvr-template").html();
-						var $camera = $(html);
-						$("#tab-nvr").append($camera);
-						if(i%2 == 1){
-							$("#tab-nvr").append("<div class='clearfix'></div>");
-						}
-						$camera.data("camera",camera);
-						renderNvr($camera);
 					});
+					return $.get("./nvr-template.html");				
 				}catch(e){
-					console.log(e);
+					console.log(e)
+					return $.Deferred().reject();
 				}
-			});	
-		}
-		function showProgress(){
-			var $vp = $(".video-progress").toggleClass("hide");
-			var $p = $(".video-progress .progress");
-			var $pb = $(".video-progress .progress .progress-bar");
-			var timeout = 3000;
-			timeout += 200 * Math.floor(Math.random()*10);
-			var step = 100;
-			var cnt = 0;
-			var timer = setInterval(function(){
-				cnt += step;
-				var percent = Math.round(cnt/timeout * 100);	
-				$pb.css("width",percent + "%").attr("aria-valuenow",percent).text(percent + "%");
-				if(cnt >= timeout){
-					clearInterval(timer);
-					setTimeout(function(){
-						$vp.toggleClass("hide");
-						$pb.css("width","0%").attr("aria-valuenow","0").text("0%");
-						top.location.href = "./play.html";
-					},1000);
-				}
-			},step);
+			}).then(function(html){
+				$.each(devs,function(i,camera){
+					var $camera = $(html);
+					$("#tab-nvr").append($camera);
+					if(i%2 == 1){
+						$("#tab-nvr").append("<div class='clearfix'></div>");
+					}
+					$camera.data("camera",camera);
+					renderNvr($camera);
+				});				
+			}).fail(function(){
+				$.gritter.add("获取EasyNVR数据失败");
+			});
 		}
 		$(function(){
 			if('ontouchstart' in document.documentElement){
@@ -402,7 +319,7 @@
 					cls += "up";
 					if($(this).attr("id") !== "nvr-desc"){
 						$box.find(".box-body > .camera").remove();
-						$("body").mask("正在请求通道信息...",100);
+						$("body").mask("正在请求通道信息...",300);
 						$.get(_url + "/getdeviceinfo?device=" + camera["Serial"]).always(function(){
 							$("body").unmask();
 						}).done(function(data){
@@ -455,7 +372,7 @@
 				if(channel){
 					params.push("channel=" + channel);
 				}
-				$("body").mask("正在请求EasyCMS启动视频...",100);
+				$("body").mask("正在请求EasyCMS启动视频...",300);
 				var msg = "启动视频失败!";
 				var videoLiveUrl = "http://{IP}:{Port}/api/v1/livedevicestream?device={Serial}&channel={Channel}&protocol={Protocol}";
 				$.ajax({
@@ -480,7 +397,7 @@
 						result["Protocol"] = isPC() ? "rtmp" : "hls";
 						videoUrl = videoUrl.format(result);
 						videoLiveUrl = videoLiveUrl.format(result);
-						$("body").mask("正在请求EasyDarwin直播流地址...",100);
+						$("body").mask("正在请求EasyDarwin直播流地址...",300);
 						msg = "获取视频流失败!";
 						return $.ajax({
 							type : "GET",
