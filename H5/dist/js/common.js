@@ -1,1 +1,215 @@
-function formatDateTime(a,b,c){return a?new Date(a).format("yyyy-MM-dd HH:mm:ss"):""}function formatDate(a,b,c){return a?new Date(a).format("yyyy-MM-dd"):""}function formatLink(a,b,c){return"<a href='{0}'>{1}</a>".format(a,a)}function formatSize(a,b,c){function d(a,b){if(a>=0){var c=parseInt(a*Math.pow(10,b)+.5)/Math.pow(10,b);return c}numberRound1=-a;var c=parseInt(numberRound1*Math.pow(10,b)+.5)/Math.pow(10,b);return-c}if(!a||a<0)return"0 Bytes";var e=new Array("Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"),c=0,f=parseFloat(a),g=d(f/Math.pow(1024,c=Math.floor(Math.log(f)/Math.log(1024))),2);return g+e[c]}function isPC(){var a=navigator.userAgent.toLowerCase(),b=["android","iphone","symbianos","windows phone","ipad","ipod"],c=!0;for(var d in b)if(a.indexOf(b[d])>0){c=!1;break}return c}function fixHover(){var a="ontouchstart"in document.documentElement||navigator.MaxTouchPoints>0||navigator.msMaxTouchPoints>0;if(a)for(var b=document.styleSheets.length-1;b>=0;b--){var c=document.styleSheets[b];if(c.cssRules)for(var d=c.cssRules.length-1;d>=0;d--){var e=c.cssRules[d];e.selectorText&&(e.selectorText=e.selectorText.replace(":hover",":active"),e.selectorText=e.selectorText.replace(":focus",":active"))}}}Date.prototype.format=function(a){var b={"M+":this.getMonth()+1,"d+":this.getDate(),"H+":this.getHours(),"h+":this.getHours()%12,"m+":this.getMinutes(),"s+":this.getSeconds(),"q+":Math.floor((this.getMonth()+3)/3),S:this.getMilliseconds()};/(y+)/.test(a)&&(a=a.replace(RegExp.$1,(this.getFullYear()+"").substr(4-RegExp.$1.length)));for(var c in b)new RegExp("("+c+")").test(a)&&(a=a.replace(RegExp.$1,1==RegExp.$1.length?b[c]:("00"+b[c]).substr((""+b[c]).length)));return a},String.prototype.format=function(a){var b=this;if(arguments.length>0)if(1==arguments.length&&"object"==typeof a){for(var c in a)if(void 0!=a[c]){var d=new RegExp("({"+c+"})","g");b=b.replace(d,a[c])}}else for(var e=0;e<arguments.length;e++)if(void 0!=arguments[e]){var d=new RegExp("({)"+e+"(})","g");b=b.replace(d,arguments[e])}return b},$(function(){fixHover(),$.extend($.gritter.options,{class_name:"gritter-error",position:"bottom-right",fade_in_speed:100,fade_out_speed:100,time:1e3}),$(".content-wrapper").on("transitionend",function(){$("table.easyui-datagrid").each(function(a){$(this).datagrid("resize")})}),$(".main-header").on("transitionend",function(){$.AdminLTE.layout.fix(),$(".main-sidebar").css("padding-top",$(".main-header").outerHeight())}),$.AdminLTE.layout.fix(),$(document).on("click",".sidebar-toggle",function(){$(".main-sidebar").css("padding-top",$(".main-header").outerHeight())}),"undefined"!=typeof errorMsg&&errorMsg&&$.gritter.add({text:errorMsg}),$(document).ajaxSuccess(function(){$("body").removeClass("hide")}),$(document).ajaxError(function(a,b,c,d){if(401==b.status)return $.cookie("token","",{expires:-1}),$.cookie("username","",{expires:-1}),top.location.href="/login.html",!1;404==b.status&&(b.responseText="请求服务不存在或已停止");var e=b.responseText;try{e=JSON.parse(e)}catch(a){}"undefined"!=typeof e&&e&&$.gritter.add({text:e})}),$(document).on("shown.bs.modal",".modal",function(){}).on("hidden.bs.modal",".modal",function(a){$(this).find("form").each(function(){$(this)[0].reset()}),$(this).find("input:hidden").val("")}).on("show.bs.modal",".modal",function(a){$(this).find(".form-group").removeClass("has-error").removeClass("has-success"),$(this).find(".with-errors").empty()}),$(document).ajaxStart(function(){$(".modal:visible .btn-primary").prop("disabled",!0).attr("data-ajaxing","true")}).ajaxComplete(function(){$(".btn-primary:disabled[data-ajaxing=true]").prop("disabled",!1).removeAttr("data-ajaxing")});var a=$("ul.sidebar-menu");a.find("li").removeClass("active"),$link=a.find("li a[href='{0}']".format(location.pathname)).first(),1==$link.size()&&$link.parents("ul.sidebar-menu li").addClass("active"),$("form[data-toggle=validator]").attr("data-disable","false").attr("autocomplete","off"),$("form[data-toggle=validator]").validator().on("submit",function(a){var b=$(this);a.isDefaultPrevented()&&b.find(".form-group.has-error:first").find("input:visible").focus()}),$(document).on("keydown","form[data-toggle=validator]",function(a){if(13==a.keyCode)return!1}),$("input[data-toggle=integer]").inputNumber(),$(".modal.fade").attr("data-backdrop","static")});
+//格式化时间
+Date.prototype.format = function (f) {
+    var o = {
+        "M+": this.getMonth() + 1, // month
+        "d+": this.getDate(), // day
+        "H+": this.getHours(), // hour
+        "h+": this.getHours() % 12, // 12hour
+        "m+": this.getMinutes(), // minute
+        "s+": this.getSeconds(), // second
+        "q+": Math.floor((this.getMonth() + 3) / 3), // quarter
+        "S": this.getMilliseconds()
+        // millisecond
+    }
+    if (/(y+)/.test(f)) {
+        f = f.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+    }
+    for (var k in o) {
+        if (new RegExp("(" + k + ")").test(f)) {
+            f = f.replace(RegExp.$1, RegExp.$1.length == 1 ? o[k] : ("00" + o[k]).substr(("" + o[k]).length));
+        }
+    }
+    return f;
+}
+
+// String 格式化
+String.prototype.format = function (args) {
+    var result = this;
+    if (arguments.length > 0) {
+        if (arguments.length == 1 && typeof (args) == "object") {
+            for (var key in args) {
+                if (args[key] != undefined) {
+                    var reg = new RegExp("({" + key + "})", "g");
+                    result = result.replace(reg, args[key]);
+                }
+            }
+        } else {
+            for (var i = 0; i < arguments.length; i++) {
+                if (arguments[i] != undefined) {
+                    var reg = new RegExp("({)" + i + "(})", "g");
+                    result = result.replace(reg, arguments[i]);
+                }
+            }
+        }
+    }
+    return result;
+}
+
+/** time formatter */
+function formatDateTime(value, row, index) {
+    if (!value) {
+        return "";
+    }
+    return new Date(value).format('yyyy-MM-dd HH:mm:ss');
+}
+function formatDate(value, row, index) {
+    if (!value) {
+        return "";
+    }
+    return new Date(value).format('yyyy-MM-dd');
+}
+/** link formatter */
+function formatLink(value, row, index) {
+    return "<a href='{0}'>{1}</a>".format(value, value);
+}
+/** size formatter */
+function formatSize(value, row, index) {
+    function roundFun(numberRound, roundDigit) {
+        if (numberRound >= 0) {
+            var tempNumber = parseInt((numberRound * Math.pow(10, roundDigit) + 0.5)) / Math.pow(10, roundDigit);
+            return tempNumber;
+        } else {
+            numberRound1 = -numberRound
+            var tempNumber = parseInt((numberRound1 * Math.pow(10, roundDigit) + 0.5)) / Math.pow(10, roundDigit);
+            return -tempNumber;
+        }
+    }
+
+    if (!value || value < 0) {
+        return "0 Bytes";
+    }
+    var unitArr = new Array("Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB");
+    var index = 0;
+    var srcsize = parseFloat(value);
+    var size = roundFun(srcsize / Math.pow(1024, (index = Math.floor(Math.log(srcsize) / Math.log(1024)))), 2);
+    return size + unitArr[index];
+}
+
+function isPC() {
+    var ua = navigator.userAgent.toLowerCase();
+    var agents = ["android", "iphone",
+        "symbianos", "windows phone",
+        "ipad", "ipod"];
+    var flag = true;
+    for (var v in agents) {
+        if (ua.indexOf(agents[v]) > 0) {
+            flag = false;
+            break;
+        }
+    }
+    return flag;
+}
+
+function fixHover() {
+    var touch = 'ontouchstart' in document.documentElement
+            || (navigator.MaxTouchPoints > 0)
+            || (navigator.msMaxTouchPoints > 0);
+    if(touch) {
+        for(var sheetI = document.styleSheets.length - 1; sheetI >= 0; sheetI--) {
+            var sheet = document.styleSheets[sheetI];
+            if(sheet.cssRules) {
+                for(var ruleI = sheet.cssRules.length - 1; ruleI >= 0; ruleI--) {
+                    var rule = sheet.cssRules[ruleI];
+                    if(rule.selectorText) {
+                        rule.selectorText = rule.selectorText.replace(":hover", ":active");
+                        rule.selectorText = rule.selectorText.replace(":focus", ":active");
+                    }
+                }
+            }
+        }
+    }
+}
+
+$(function () {
+    fixHover();
+    $.extend($.gritter.options, {
+        class_name: 'gritter-error',
+        position: 'bottom-right',
+        fade_in_speed: 100,
+        fade_out_speed: 100,
+        time: 1000
+    });
+
+    $(".content-wrapper").on("transitionend", function () {
+        $("table.easyui-datagrid").each(function (i) {
+            $(this).datagrid("resize");
+        });
+    });
+    $(".main-header").on("transitionend", function () {
+        $.AdminLTE.layout.fix();
+        $(".main-sidebar").css('padding-top', $(".main-header").outerHeight());
+    });
+    $.AdminLTE.layout.fix();
+    $(document).on('click', '.sidebar-toggle', function () {
+        $(".main-sidebar").css('padding-top', $(".main-header").outerHeight());
+    })
+
+    if (typeof errorMsg != 'undefined' && errorMsg) {
+        $.gritter.add({
+            text: errorMsg
+        });
+    }
+    $(document).ajaxSuccess(function () {
+        $("body").removeClass("hide");
+    })
+    $(document).ajaxError(function (evt, xhr, opts, ex) {
+        if (xhr.status == 401) {
+            $.cookie("token", "", { expires: -1 });
+            $.cookie("username", "", { expires: -1 });
+            top.location.href = '/login.html';
+            return false;
+        }
+        if (xhr.status == 404) {
+            xhr.responseText = "请求服务不存在或已停止";
+        }
+        var msg = xhr.responseText;
+        try {
+            msg = JSON.parse(msg);
+        } catch (e) {
+        }
+        if (typeof msg != 'undefined' && msg) {
+            $.gritter.add({
+                text: msg
+            });
+        }
+    });
+
+    $(document).on("shown.bs.modal", ".modal", function () {
+        //$(this).find("input:visible:first").focus();
+    }).on("hidden.bs.modal", ".modal", function (e) {
+        $(this).find("form").each(function () {
+            $(this)[0].reset();
+        });
+        $(this).find("input:hidden").val('');
+    }).on("show.bs.modal", ".modal", function (e) {
+        $(this).find(".form-group").removeClass("has-error").removeClass("has-success");
+        $(this).find(".with-errors").empty();
+    });
+
+    $(document).ajaxStart(function () {
+        $(".modal:visible .btn-primary").prop("disabled", true).attr("data-ajaxing", "true");
+    }).ajaxComplete(function () {
+        $(".btn-primary:disabled[data-ajaxing=true]").prop("disabled", false).removeAttr("data-ajaxing");
+    });
+
+    var $menu = $("ul.sidebar-menu");
+    //渲染菜单状态
+    $menu.find("li").removeClass('active');
+    $link = $menu.find("li a[href='{0}']".format(location.pathname)).first();
+    if ($link.size() == 1) {
+        $link.parents("ul.sidebar-menu li").addClass("active");
+    }
+
+    $("form[data-toggle=validator]").attr("data-disable", "false").attr("autocomplete", "off");
+    $('form[data-toggle=validator]').validator().on('submit', function (e) {
+        var $form = $(this);
+        if (e.isDefaultPrevented()) {
+            $form.find(".form-group.has-error:first").find("input:visible").focus();
+        }
+    });
+    $(document).on("keydown", "form[data-toggle=validator]", function (event) {
+        if (event.keyCode == 13) { return false; }
+    })
+    $("input[data-toggle=integer]").inputNumber();
+    $(".modal.fade").attr("data-backdrop", "static");
+});

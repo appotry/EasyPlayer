@@ -1,1 +1,99 @@
-<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"><title>EasyCamera下载</title><script type="text/javascript" src="adminlte-2.3.6/plugins/jQuery/jquery-2.2.3.min.js"></script><style type="text/css">#weixin-tip{position:fixed;left:0;top:0;background:rgba(0,0,0,.8);filter:alpha(opacity=80);width:100%;height:100%;z-index:1000}#weixin-tip p{text-align:center;margin-top:10%;padding:0 5%}</style><script type="text/javascript">function is_weixin(){var i=navigator.userAgent.toLowerCase();return"micromessenger"==i.match(/MicroMessenger/i)}function is_weibo(){var i=navigator.userAgent.toLowerCase();return"weibo"==i.match(/WeiBo/i)}function is_ios(){var i=navigator.userAgent.toLowerCase();return"iphone"==i.match(/iPhone/i)||"ipad"==i.match(/iPad/i)}var Terminal={platform:function(){var i=navigator.userAgent;navigator.appVersion;return{android:i.indexOf("Android")>-1||i.indexOf("Linux")>-1,iPhone:i.indexOf("iPhone")>-1,iPad:i.indexOf("iPad")>-1}}(),language:(navigator.browserLanguage||navigator.language).toLowerCase()},isWeixin=is_weixin(),isIos=is_ios(),isWeibo=is_weibo();$(function(){if(isIos&&(isWeixin||isWeibo)){if(0==$("#weixin-tip").size()){var i=$("<div id='weixin-tip'><p><img src='images/live_weixin.png' alt='浏览器打开'/></p></div>");$("body").append(i)}}else{var e="https://fir.im/EasyCamera";location.href=e}})</script></head><body></body></html>
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>EasyCamera下载</title>
+    <script type="text/javascript" src="adminlte-2.3.6/plugins/jQuery/jquery-2.2.3.min.js"></script>
+    <style type="text/css">
+        #weixin-tip {
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: rgba(0, 0, 0, 0.8);
+            filter: alpha(opacity = 80);
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+        }
+
+        #weixin-tip p {
+            text-align: center;
+            margin-top: 10%;
+            padding: 0 5%;
+        }
+    </style>
+    <script type="text/javascript">
+        // 获取终端的相关信息
+        var Terminal = {
+            // 辨别移动终端类型
+            platform : function(){
+                var u = navigator.userAgent, app = navigator.appVersion;
+                return {
+                    // android终端或者uc浏览器
+                    android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1,
+                    // 是否为iPhone或者QQHD浏览器
+                    iPhone: u.indexOf('iPhone') > -1 ,
+                    // 是否iPad
+                    iPad: u.indexOf('iPad') > -1
+                };
+            }(),
+            // 辨别移动终端的语言：zh-cn、en-us、ko-kr、ja-jp...
+            language : (navigator.browserLanguage || navigator.language).toLowerCase()
+        }
+
+        function is_weixin() {
+            var ua = navigator.userAgent.toLowerCase();
+            if (ua.match(/MicroMessenger/i) == "micromessenger") {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        function is_weibo() {
+            var ua = navigator.userAgent.toLowerCase();
+            if (ua.match(/WeiBo/i) == "weibo") {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        function is_ios() {
+            var ua = navigator.userAgent.toLowerCase();
+            if (ua.match(/iPhone/i) == "iphone" || ua.match(/iPad/i) == "ipad") {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        var isWeixin = is_weixin();
+        var isIos = is_ios();
+        var isWeibo = is_weibo();
+
+        $(function(){
+            if(isIos && (isWeixin || isWeibo)){
+                if($("#weixin-tip").size() == 0){
+                    var $el = $("<div id='weixin-tip'><p><img src='images/live_weixin.png' alt='浏览器打开'/></p></div>");
+                    $("body").append($el);
+                }
+            }else {
+                // 根据不同的终端，跳转到不同的地址
+                var theUrl = 'https://fir.im/EasyCamera';
+                // if(Terminal.platform.android){
+                //     theUrl = 'http://a.app.qq.com/o/simple.jsp?pkgname=com.naoni.naoni';
+                // }else if(Terminal.platform.iPhone || Terminal.platform.iPad){
+                //     theUrl = 'https://appsto.re/cn/5aSabb.i';
+                // }
+                location.href = theUrl;
+            }
+        })
+
+    </script>
+</head>
+<body>
+    <!--
+ 
+    -->
+</body>
+</html>

@@ -174,7 +174,8 @@
 			var camera = $camera.data("camera");
 			var snap = camera["SnapURL"] || "./images/snap.png";
 			$camera.find("img").attr("src",snap).attr("alt",camera["Name"]);
-			$camera.find(".channel-name").text(camera["Name"]);
+			$camera.find(".channel-name").text(camera["Name"]).ellipsis();
+			$camera.find(".channel-status").ellipsis();
 			$camera.find(".channel").text(camera["Channel"]);
 			if((camera["Status"]||"").toLowerCase() ==  "online"){
 				$camera.find(".channel-status-text").text("在线");
@@ -261,7 +262,7 @@
 							return 1;
 						}
 					});
-					return $.get("./nvr-template.html");				
+					return $.ajax("./nvr-template.html",{cache : false});				
 				}catch(e){
 					console.log(e)
 					return $.Deferred().reject();
