@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:text="EasyDarwin流媒体云平台是一套开源流媒体平台框架，能够直接接入各种类型摄像机、移动手持/单兵设备，还能将各种现场已经部署的摄像机通过EasyNVR的内网服务接入到云平台，实现设备的统一接入、管理与控制。支持PC、WEB、Android、iOS、H5全平台客户端接入！"
+        android:drawableLeft="@drawable/qr_easydarwin"
+        android:drawablePadding="@dimen/activity_horizontal_margin"
+        android:padding="@dimen/activity_horizontal_margin"
+        android:gravity="center_vertical"
+        android:layout_height="wrap_content" />
+</LinearLayout>

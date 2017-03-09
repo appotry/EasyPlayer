@@ -1,5 +1,5 @@
 /*
- * 	Copyright (c) 2012-2016 EasyDarwin.ORG.  All rights reserved.
+ * 	Copyright (c) 2012-2017 EasyDarwin.ORG.  All rights reserved.
  * 	Github: https://github.com/EasyDarwin
  * 	WEChat: EasyDarwin
  *	Website: http://www.easydarwin.org
@@ -20,8 +20,6 @@ import org.easydarwin.easyclient.R;
 
 /**
  * 等待加载
- *
- * @author Ming
  */
 public class WaitProgressDialog extends Dialog {
 
@@ -56,6 +54,12 @@ public class WaitProgressDialog extends Dialog {
         mDialog_Meg = ((TextView) mDialog.findViewById(R.id.tv_loding));
         mDialog_Meg.setText(message);
         mDialog.show();
+    }
+
+    public void updateMsg(String msg){
+        if (mDialog_Meg!=null){
+            mDialog_Meg.setText(msg);
+        }
     }
 
     /**

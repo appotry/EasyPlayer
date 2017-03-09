@@ -1,15 +1,12 @@
 /*
-	Copyright (c) 2012-2016 EasyDarwin.ORG.  All rights reserved.
+	Copyright (c) 2012-2017 EasyDarwin.ORG.  All rights reserved.
 	Github: https://github.com/EasyDarwin
 	WEChat: EasyDarwin
 	Website: http://www.easydarwin.org
 */
 package org.easydarwin.easyclient.domain;
 
-/**
- * Created by dell on 2016/5/19 019.
- */
-public class DeviceInfoBody {
+public class DeviceInfoBody extends RespSpec{
     private String Channel;
     private String Protocol;
     private String Reserve;
@@ -54,5 +51,12 @@ public class DeviceInfoBody {
 
     public void setURL(String URL) {
         this.URL = URL;
+    }
+
+
+    public static class Channel{
+        int Channel;
+        String Name;
+        String Status;
     }
 }

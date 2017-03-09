@@ -8,16 +8,59 @@
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/swip_refersh"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_marginTop="55dp">
+
         <GridView
-            android:id="@+id/grid_live"
-            android:numColumns="2"
-            android:stretchMode="columnWidth"
+            android:id="@+id/adapter_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:verticalSpacing="@dimen/gridview_verticalspacing"
-            android:horizontalSpacing="@dimen/gridview_horizontalspacing"/>
+            android:horizontalSpacing="@dimen/gridview_horizontalspacing"
+            android:numColumns="2"
+            android:stretchMode="columnWidth"
+            android:verticalSpacing="@dimen/gridview_verticalspacing" />
 
     </android.support.v4.widget.SwipeRefreshLayout>
+
+
+    <LinearLayout
+        android:id="@+id/tip_content_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:background="@drawable/tip_background"
+        android:orientation="vertical"
+        android:paddingTop="50dp">
+
+        <TextView
+            android:id="@+id/tip_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/activity_horizontal_margin"
+            android:text="EasyCamera ARM摄像机服务是一套独立于各个厂家芯片的对接服务，通过将EasyCamera ARM服务内置到各个硬件摄像机厂家（海康、大华、雄迈等）的摄像机嵌入式系统中，与平台进行交互，控制摄像机的音视频、对讲、PTZ、更新配置、重启服务等动作；
+EasyCamera ARM摄像机样机：http://www.easydarwin.org/camera"
+            android:textColor="#00a65a" />
+
+        <ImageView
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:src="@drawable/easycamera_arm" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tip_title"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:background="@drawable/tip_title_background"
+        android:drawableLeft="@drawable/ic_action_question_circle"
+        android:gravity="center_vertical"
+        android:padding="@dimen/activity_horizontal_margin"
+        android:text="EasyCamera ARM摄像机接入说明:"
+        android:textColor="#00a65a" />
 
 </FrameLayout>

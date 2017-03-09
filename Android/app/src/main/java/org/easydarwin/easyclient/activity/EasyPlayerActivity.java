@@ -1,5 +1,5 @@
 /*
-	Copyright (c) 2012-2016 EasyDarwin.ORG.  All rights reserved.
+	Copyright (c) 2012-2017 EasyDarwin.ORG.  All rights reserved.
 	Github: https://github.com/EasyDarwin
 	WEChat: EasyDarwin
 	Website: http://www.easydarwin.org
@@ -24,24 +24,26 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewConfiguration;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.easydarwin.easyclient.MyApplication;
 import org.easydarwin.easyclient.R;
+
+import com.liuguangqiang.swipeback.SwipeBackActivity;
+import com.liuguangqiang.swipeback.SwipeBackLayout;
+
+import org.easydarwin.easyclient.MyApplication;
 import org.easydarwin.easyclient.audio.AudioRecorder;
 import org.easydarwin.easyclient.audio.RecordButton;
-import org.easydarwin.easyclient.callback.DeviceInfoCallback;
+import org.easydarwin.easyclient.callback.CallbackWrapper;
 import org.easydarwin.easyclient.config.DarwinConfig;
-import org.easydarwin.easyclient.domain.DeviceHeader;
-import org.easydarwin.easyclient.domain.DeviceInfoWrapper;
-import org.easydarwin.okhttplibrary.OkHttpUtils;
+import org.easydarwin.easyclient.domain.DeviceInfoBody;
 import org.easydarwin.video.EasyRTSPClient;
 import org.easydarwin.video.RTSPClient;
 
@@ -50,11 +52,11 @@ import java.util.List;
 
 import okhttp3.Call;
 
-public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Callback, View.OnTouchListener, AudioRecorder.RecordListener {
+public class EasyPlayerActivity extends SwipeBackActivity implements SurfaceHolder.Callback, View.OnTouchListener, AudioRecorder.RecordListener {
     private String mRTSPUrl;
     private String mDevSerial;
     private String mDevType; //camera  android   nvr
-    private int mChannelId = 0;
+    private int mChannelId = 1;
     private EasyRTSPClient mStreamRender;
     private ResultReceiver mResultReceiver;
     private GestureDetectorCompat mDetector;
@@ -77,6 +79,8 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
     private LinearLayout mRecordDlg;
     private ImageView mRecordImg;
     private TextView mRecordText;
+    private ProgressBar mProgress;
+    private TextView mTextView;
 
     class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
 
@@ -88,14 +92,14 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
 
         @Override
         public boolean onDoubleTap(MotionEvent motionEvent) {
-            setRequestedOrientation((getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT || getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT) ?
+            setRequestedOrientation((getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT || getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT || getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) ?
                     ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
             return true;
         }
 
         @Override
-        public boolean onSingleTapConfirmed(MotionEvent motionEvent){
-            if(mRlControl.getVisibility() == View.VISIBLE)
+        public boolean onSingleTapConfirmed(MotionEvent motionEvent) {
+            if (mRlControl.getVisibility() == View.VISIBLE)
                 mRlControl.setVisibility(View.GONE);
             else
                 mRlControl.setVisibility(View.VISIBLE);
@@ -106,7 +110,6 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "kim onCreate");
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
@@ -126,7 +129,7 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
         }
 
         String channel = getIntent().getStringExtra(DarwinConfig.CHANNEL_ID);
-        if(!TextUtils.isEmpty(channel)){
+        if (!TextUtils.isEmpty(channel)) {
             mChannelId = Integer.parseInt(channel);
         }
 
@@ -138,65 +141,64 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
         }
         setContentView(R.layout.activity_easyplayer);
 
+        mProgress = (ProgressBar) findViewById(android.R.id.progress);
         final SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surface_view);
-        surfaceView.getHolder().addCallback(this);
-        mDetector = new GestureDetectorCompat(this, new MyGestureListener());
+		surfaceView.getHolder().addCallback(this);
+        mTextView = (TextView) findViewById(R.id.log_view);
 
         mResultReceiver = new ResultReceiver(new Handler()) {
             @Override
             protected void onReceiveResult(int resultCode, Bundle resultData) {
                 super.onReceiveResult(resultCode, resultData);
                 if (resultCode == EasyRTSPClient.RESULT_VIDEO_DISPLAYED) {
-                    findViewById(android.R.id.progress).setVisibility(View.GONE);
+                    mProgress.setVisibility(View.GONE);
                 } else if (resultCode == EasyRTSPClient.RESULT_VIDEO_SIZE) {
                     mWidth = resultData.getInt(EasyRTSPClient.EXTRA_VIDEO_WIDTH);
                     mHeight = resultData.getInt(EasyRTSPClient.EXTRA_VIDEO_HEIGHT);
                     //if (!isLandscape()) {
-
                         fixPlayerRatio(surfaceView, getResources().getDisplayMetrics().widthPixels, getResources().getDisplayMetrics().heightPixels);
                     //}
-                } else if (resultCode == EasyRTSPClient.RESULT_TIMEOUT) {
-                    Toast.makeText(EasyPlayerActivity.this, "试播时间到", Toast.LENGTH_SHORT).show();
                 }
             }
         };
+        mDetector = new GestureDetectorCompat(this, new MyGestureListener());
 
-        mRlControl = (RelativeLayout)this.findViewById(R.id.rlControl);
-        mBtnMoveUp = (Button)this.findViewById(R.id.btMoveUp);
+        mRlControl = (RelativeLayout) this.findViewById(R.id.rlControl);
+        mBtnMoveUp = (Button) this.findViewById(R.id.btMoveUp);
         mBtnMoveUp.setOnTouchListener(this);
-        mBtnMoveDown = (Button)this.findViewById(R.id.btMoveDown);
+        mBtnMoveDown = (Button) this.findViewById(R.id.btMoveDown);
         mBtnMoveDown.setOnTouchListener(this);
-        mBtnMoveLeft = (Button)this.findViewById(R.id.btMoveLeft);
+        mBtnMoveLeft = (Button) this.findViewById(R.id.btMoveLeft);
         mBtnMoveLeft.setOnTouchListener(this);
-        mBtnMoveRight = (Button)this.findViewById(R.id.btMoveRight);
+        mBtnMoveRight = (Button) this.findViewById(R.id.btMoveRight);
         mBtnMoveRight.setOnTouchListener(this);
 
-        mRecordImg = (ImageView)this.findViewById(R.id.record_dialog_img);
-        mRecordText = (TextView)this.findViewById(R.id.record_dialog_txt);
-        mRecordDlg = (LinearLayout)this.findViewById(R.id.dlgRecord);
+        mRecordImg = (ImageView) this.findViewById(R.id.record_dialog_img);
+        mRecordText = (TextView) this.findViewById(R.id.record_dialog_txt);
+        mRecordDlg = (LinearLayout) this.findViewById(R.id.dlgRecord);
 
-        mRecordBtn = (RecordButton)this.findViewById(R.id.btRecordBtn);
+        mRecordBtn = (RecordButton) this.findViewById(R.id.btRecordBtn);
         mRecordBtn.init(this, mRecordDlg, mRecordImg, mRecordText);
         AudioRecorder audioRecord = new AudioRecorder();
         audioRecord.setRecordListener(this);
         mRecordBtn.setAudioRecord(audioRecord);
 
         //EasyNVR will support this function soon
-        if(mDevType.equals("nvr")){
+        if (mDevType.equals("nvr")) {
             mRecordBtn.setVisibility(View.INVISIBLE);
-        }else if(mDevType.equals("android")){
+        } else if (mDevType.equals("Android|iOS")) {
             setPtzControlVisiable(false);
         } else {
             setPtzControlVisiable(true);
         }
 
-        if (isLandscape()){//横屏
+        if (isLandscape()) {//横屏
             RelativeLayout.LayoutParams moveParam = (RelativeLayout.LayoutParams) mRlControl.getLayoutParams();
             moveParam.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, 0);
             moveParam.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 1);
             moveParam.addRule(RelativeLayout.CENTER_HORIZONTAL, 0);
             moveParam.addRule(RelativeLayout.CENTER_VERTICAL, 1);
-            moveParam.setMargins(0,0,50,0);
+            moveParam.setMargins(0, 0, 50, 0);
             mRlControl.setLayoutParams(moveParam);
         } else {//竖屏
             RelativeLayout.LayoutParams moveParam = (RelativeLayout.LayoutParams) mRlControl.getLayoutParams();
@@ -204,13 +206,15 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
             moveParam.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 0);
             moveParam.addRule(RelativeLayout.CENTER_HORIZONTAL, 1);
             moveParam.addRule(RelativeLayout.CENTER_VERTICAL, 0);
-            moveParam.setMargins(0,0,0,80);
+            moveParam.setMargins(0, 0, 0, 80);
             mRlControl.setLayoutParams(moveParam);
         }
-    }
 
-    private void setPtzControlVisiable(boolean visiable){
-        if(visiable){
+
+        setDragEdge(SwipeBackLayout.DragEdge.LEFT);
+    }
+    private void setPtzControlVisiable(boolean visiable) {
+        if (visiable) {
             mBtnMoveUp.setVisibility(View.VISIBLE);
             mBtnMoveDown.setVisibility(View.VISIBLE);
             mBtnMoveLeft.setVisibility(View.VISIBLE);
@@ -249,22 +253,22 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        final View render = findViewById(R.id.surface_view);
+//        final View render = findViewById(R.id.surface_view);
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-            fixPlayerRatio(render, getResources().getDisplayMetrics().widthPixels, getResources().getDisplayMetrics().heightPixels);
+//            fixPlayerRatio(render, getResources().getDisplayMetrics().widthPixels, getResources().getDisplayMetrics().heightPixels);
             setNavVisibility(true);
             final RelativeLayout.LayoutParams moveParam = (RelativeLayout.LayoutParams) mRlControl.getLayoutParams();
             moveParam.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, 0);
             moveParam.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 1);
             moveParam.addRule(RelativeLayout.CENTER_HORIZONTAL, 0);
             moveParam.addRule(RelativeLayout.CENTER_VERTICAL, 1);
-            moveParam.setMargins(0,0,50,0);
+            moveParam.setMargins(0, 0, 50, 0);
             mRlControl.setLayoutParams(moveParam);
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-            fixPlayerRatio(render, getResources().getDisplayMetrics().widthPixels, getResources().getDisplayMetrics().heightPixels);
+//            fixPlayerRatio(render, getResources().getDisplayMetrics().widthPixels, getResources().getDisplayMetrics().heightPixels);
             setNavVisibility(false);
 
             final RelativeLayout.LayoutParams moveParam = (RelativeLayout.LayoutParams) mRlControl.getLayoutParams();
@@ -272,7 +276,7 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
             moveParam.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 0);
             moveParam.addRule(RelativeLayout.CENTER_HORIZONTAL, 1);
             moveParam.addRule(RelativeLayout.CENTER_VERTICAL, 0);
-            moveParam.setMargins(0,0,0,80);
+            moveParam.setMargins(0, 0, 0, 80);
             mRlControl.setLayoutParams(moveParam);
         }
     }
@@ -293,7 +297,7 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
     }
 
     private void startRending(Surface surface) {
-        mStreamRender = new EasyRTSPClient(this, "1F7A71441EC837799152DB76E2C38022", surface, mResultReceiver);
+        mStreamRender = new EasyRTSPClient(this, "79393674363536526D3430416D384259707A396B70655A76636D63755A57467A65575268636E64706269356C59584E35593278705A573530567778576F502B6C34456468646D6C754A6B4A68596D397A595541794D4445325257467A65555268636E6470626C526C5957316C59584E35", surface, mResultReceiver);
         mStreamRender.start(mRTSPUrl, RTSPClient.TRANSTYPE_TCP, RTSPClient.EASY_SDK_VIDEO_FRAME_FLAG | RTSPClient.EASY_SDK_AUDIO_FRAME_FLAG, "admin", "admin");
     }
 
@@ -326,13 +330,13 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        if(TextUtils.isEmpty(mDevSerial)){
+        if (TextUtils.isEmpty(mDevSerial)) {
             return true;
         }
 
-        switch (event.getAction()){
+        switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                switch (v.getId()){
+                switch (v.getId()) {
                     case R.id.btMoveUp:
                         sendControlCommand(ControlCmd.CMD_MOVEUP, ControlType.TYPE_CONTINUE);
                         break;
@@ -362,37 +366,31 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
     public boolean onTouchEvent(MotionEvent event) {
         int nCnt = event.getPointerCount();
 
-        if( (event.getAction()&MotionEvent.ACTION_MASK) == MotionEvent.ACTION_POINTER_DOWN && 2 <= nCnt)
-        {
-            int xlen = Math.abs((int)event.getX(0) - (int)event.getX(1));
-            int ylen = Math.abs((int)event.getY(0) - (int)event.getY(1));
+        if ((event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_POINTER_DOWN && 2 <= nCnt) {
+            int xlen = Math.abs((int) event.getX(0) - (int) event.getX(1));
+            int ylen = Math.abs((int) event.getY(0) - (int) event.getY(1));
 
-            mLastLen = Math.sqrt((double)xlen*xlen + (double)ylen * ylen);
+            mLastLen = Math.sqrt((double) xlen * xlen + (double) ylen * ylen);
             mZoomingMode = 0;
             return false;
-        }
-        else if( ((event.getAction()&MotionEvent.ACTION_MASK) == MotionEvent.ACTION_MOVE) && (2 <= nCnt) && (mLastLen > 0)){
-            int xlen = Math.abs((int)event.getX(0) - (int)event.getX(1));
-            int ylen = Math.abs((int)event.getY(0) - (int)event.getY(1));
-            double nLenEnd = Math.sqrt((double)xlen*xlen + (double)ylen * ylen);
-            if(nLenEnd > mLastLen)//通过两个手指开始距离和结束距离，来判断放大缩小
+        } else if (((event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_MOVE) && (2 <= nCnt) && (mLastLen > 0)) {
+            int xlen = Math.abs((int) event.getX(0) - (int) event.getX(1));
+            int ylen = Math.abs((int) event.getY(0) - (int) event.getY(1));
+            double nLenEnd = Math.sqrt((double) xlen * xlen + (double) ylen * ylen);
+            if (nLenEnd > mLastLen)//通过两个手指开始距离和结束距离，来判断放大缩小
             {
-                if(mZoomingMode != 1) {
+                if (mZoomingMode != 1) {
                     mZoomingMode = 1;
                     sendControlCommand(ControlCmd.CMD_ZOMEIN, ControlType.TYPE_CONTINUE);
                 }
-            }
-            else
-            {
-                if(mZoomingMode != 2) {
+            } else {
+                if (mZoomingMode != 2) {
                     mZoomingMode = 2;
                     sendControlCommand(ControlCmd.CMD_ZOMEOUT, ControlType.TYPE_CONTINUE);
                 }
             }
-        }
-        else if( (event.getAction()&MotionEvent.ACTION_MASK) == MotionEvent.ACTION_POINTER_UP  && 2 <= nCnt)
-        {
-            if(mZoomingMode != 0) {
+        } else if ((event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_POINTER_UP && 2 <= nCnt) {
+            if (mZoomingMode != 0) {
                 mLastLen = -1;
                 mZoomingMode = 0;
                 sendControlCommand(ControlCmd.CMD_MOVESTOP, ControlType.TYPE_CONTINUE);
@@ -400,11 +398,17 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
             return false;
         }
 
-        return mDetector.onTouchEvent(event);
+        mDetector.onTouchEvent(event);
+        return true;
     }
 
-    void sendControlCommand(ControlCmd cmd, ControlType type){
-        String url=String.format("http://%s:%s/api/ptzcontrol?device=%s&channel=%d&actiontype=%s&command=%s&speed=5&protocol=onvif",
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    void sendControlCommand(ControlCmd cmd, ControlType type) {
+        String url = String.format("http://%s:%s/api/v1/ptzcontrol?device=%s&channel=%d&actiontype=%s&command=%s&speed=5&protocol=onvif",
                 MyApplication.getInstance().getIp(),
                 MyApplication.getInstance().getPort(),
                 mDevSerial,
@@ -412,24 +416,15 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
                 type.GetDes(),
                 cmd.GetDes());
 
-        OkHttpUtils.post().url(url).build().execute(new DeviceInfoCallback() {
+        MyApplication.asyncPost(url, new CallbackWrapper<DeviceInfoBody>(DeviceInfoBody.class) {
             @Override
             public void onError(Call call, Exception e) {
-                mContext.showToadMessage("onError:" + e.toString());
-            }
-
-            @Override
-            public void onResponse(DeviceInfoWrapper response) {
-                if(response.getEasyDarwin().getBody()==null){
-                    DeviceHeader header=response.getEasyDarwin().getHeader();
-                    mContext.showToadMessage(header.getErrorString()+"(" +header.getErrorNum()+")");
-                    return;
-                }
+                Toast.makeText(EasyPlayerActivity.this, "onError:" + e.toString(), Toast.LENGTH_SHORT);
             }
         });
     }
 
-    private void buildTalkBackCommand(String cmd, long pts, String data){
+    private void buildTalkBackCommand(String cmd, long pts, String data) {
         String json = String.format("{\n" +
                 "  \"EasyDarwin\": {\n" +
                 "    \"Body\": {\n" +
@@ -448,7 +443,7 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
                 "      \"Version\": \"1.0\"\n" +
                 "    }\n" +
                 "  }\n" +
-                "}", mChannelId, cmd, pts, data,mDevSerial, mSeq++);
+                "}", mChannelId, cmd, pts, data, mDevSerial, mSeq++);
 
         synchronized (mTalkCmdDataList) {
             mTalkCmdDataList.add(json);
@@ -457,34 +452,35 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
         return;
     }
 
-    private void startSendTalkCmdData(){
+    private void startSendTalkCmdData() {
         Thread th = new Thread(new Runnable() {
             @Override
             public void run() {
-                String url=String.format("http://%s:%s",
+                String url = String.format("http://%s:%s",
                         MyApplication.getInstance().getIp(),
                         MyApplication.getInstance().getPort());
                 EasyPlayerActivity.mSendingTalkData = false;
 
                 int i = 0;
-                while (mIsTalking || i < mTalkCmdDataList.size()){
-                    if(false == EasyPlayerActivity.mSendingTalkData && i < mTalkCmdDataList.size()) {
+                while (mIsTalking || i < mTalkCmdDataList.size()) {
+                    if (false == EasyPlayerActivity.mSendingTalkData && i < mTalkCmdDataList.size()) {
                         String data;
                         synchronized (mTalkCmdDataList) {
                             data = mTalkCmdDataList.get(i++);
                         }
 //                        Log.d(TAG, "kim send data : "+data);
                         EasyPlayerActivity.mSendingTalkData = true;
-                        OkHttpUtils.postString().url(url).content(data).build().execute(new DeviceInfoCallback() {
+                        MyApplication.asyncPost(url, data, new CallbackWrapper<DeviceInfoBody>(DeviceInfoBody.class) {
                             @Override
                             public void onError(Call call, Exception e) {
-                                Log.d(TAG, "kim Start onError");
+                                Log.d(TAG, "Start onError");
                                 EasyPlayerActivity.mSendingTalkData = false;
                             }
 
                             @Override
-                            public void onResponse(DeviceInfoWrapper response) {
-                                Log.d(TAG, "kim Start onResponse");
+                            public void onResponse(DeviceInfoBody response) {
+
+                                Log.d(TAG, "Start onResponse");
                                 EasyPlayerActivity.mSendingTalkData = false;
                             }
                         });
@@ -498,7 +494,7 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
     }
 
     @Override
-    public void recordStart(long presentationTimeStamp){
+    public void recordStart(long presentationTimeStamp) {
         mSeq = 1;
         mTalkCmdDataList.clear();
         mIsTalking = true;
@@ -507,24 +503,24 @@ public class EasyPlayerActivity extends BaseActivity implements SurfaceHolder.Ca
     }
 
     @Override
-    public void recordSendData(String data, long presentationTimeStamp){
+    public void recordSendData(String data, long presentationTimeStamp) {
         buildTalkBackCommand("SENDDATA", presentationTimeStamp, data);
     }
 
     @Override
-    public void recordEnd(long presentationTimeStamp){
+    public void recordEnd(long presentationTimeStamp) {
         buildTalkBackCommand("STOP", presentationTimeStamp, "");
         mIsTalking = false;
     }
 }
 
-enum ControlType{
+enum ControlType {
     TYPE_SINGLE("single"),
     TYPE_CONTINUE("continuous");
     private String des;
 
     private ControlType(String string) {
-        des=string;
+        des = string;
     }
 
     public String GetDes() {
@@ -532,7 +528,7 @@ enum ControlType{
     }
 }
 
-enum ControlCmd{
+enum ControlCmd {
     CMD_MOVESTOP("stop"),
     CMD_MOVEUP("up"),
     CMD_MOVEDOWN("down"),
@@ -543,7 +539,7 @@ enum ControlCmd{
     private String des;
 
     private ControlCmd(String string) {
-        des=string;
+        des = string;
     }
 
     public String GetDes() {

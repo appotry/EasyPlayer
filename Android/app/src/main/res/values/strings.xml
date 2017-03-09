@@ -2,7 +2,7 @@
     <string name="app_name">EasyClient</string>
     <string name="title_activity_live_play">LivePlayActivity</string>
     <string name="title_activity_setting">设置</string>
-    <string name="easydarwin_rights">Copyright © 2012-2016 www.EasyDarwin.org</string>
+    <string name="easydarwin_rights">Copyright © 2012-2017 www.EasyDarwin.org</string>
     <string name="audio_record_time_too_short">时间太短  录音失败</string>
     <string name="audio_record_no_permission">没有录音权限</string>
     <string name="audio_record_action_up_tip">松开手指可取消录音</string>

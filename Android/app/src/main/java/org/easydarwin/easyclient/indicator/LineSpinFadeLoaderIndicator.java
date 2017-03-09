@@ -1,5 +1,5 @@
 /*
-	Copyright (c) 2012-2016 EasyDarwin.ORG.  All rights reserved.
+	Copyright (c) 2012-2017 EasyDarwin.ORG.  All rights reserved.
 	Github: https://github.com/EasyDarwin
 	WEChat: EasyDarwin
 	Website: http://www.easydarwin.org
@@ -10,10 +10,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 
-/**
- * Created by Jack on 2015/10/24.
- * Email:81813780@qq.com
- */
 public class LineSpinFadeLoaderIndicator extends BallSpinFadeLoaderIndicator {
 
 

@@ -5,14 +5,57 @@
     android:background="#ccc"
     tools:context="org.easydarwin.easyclient.fragment.NVRFragment">
 
-    <android.support.v4.widget.SwipeRefreshLayout
-        android:id="@+id/swip_refersh"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <ExpandableListView
-            android:id="@+id/list_nvr"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-    </android.support.v4.widget.SwipeRefreshLayout>
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <android.support.v4.widget.SwipeRefreshLayout
+            android:id="@+id/swip_refersh"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="55dp"
+            android:layout_weight="1">
+
+            <ExpandableListView
+                android:id="@+id/adapter_view"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" />
+        </android.support.v4.widget.SwipeRefreshLayout>
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/tip_content_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:background="@drawable/tip_background"
+        android:orientation="vertical"
+        android:paddingTop="50dp">
+
+        <TextView
+            android:id="@+id/tip_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/activity_horizontal_margin"
+            android:text="EasyNVR是一款能够将各个厂家的通用RTSP/ONVIF摄像机接入，并整合成为全平台直播的综合服务，EasyNVR能够接入到EasyDarwin云平台，接收EasyDarwin云平台对各个通道摄像机的音视频、转动等操作指令，将通用的安防摄像机接入到统一平台中，常用在幼儿园视频、智能家居、智慧社区、智慧农业等项目应用中！"
+            android:textColor="#00a65a" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tip_title"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:background="@drawable/tip_title_background"
+        android:drawableLeft="@drawable/ic_action_question_circle"
+        android:gravity="center_vertical"
+        android:padding="@dimen/activity_horizontal_margin"
+        android:text="EasyNVR设备接入说明:"
+        android:textColor="#00a65a" />
 
 </FrameLayout>

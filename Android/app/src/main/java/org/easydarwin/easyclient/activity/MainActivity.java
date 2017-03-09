@@ -1,5 +1,5 @@
 /*
-	Copyright (c) 2012-2016 EasyDarwin.ORG.  All rights reserved.
+	Copyright (c) 2012-2017 EasyDarwin.ORG.  All rights reserved.
 	Github: https://github.com/EasyDarwin
 	WEChat: EasyDarwin
 	Website: http://www.easydarwin.org
@@ -22,26 +22,25 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+import com.umeng.analytics.MobclickAgent;
+
+import org.easydarwin.easyclient.MyApplication;
 import org.easydarwin.easyclient.R;
 import org.easydarwin.easyclient.adapter.FragmentAdapter;
-import org.easydarwin.easyclient.callback.VersionCallback;
+import org.easydarwin.easyclient.callback.CallbackWrapper;
 import org.easydarwin.easyclient.domain.RemoteVersionInfo;
 import org.easydarwin.easyclient.view.PagerSlidingTabStrip;
-import org.easydarwin.okhttplibrary.OkHttpUtils;
 
 import okhttp3.Call;
-public class MainActivity extends BaseActivity implements View.OnClickListener{
 
-    private static final String TAG="Easy_MainActivity";
-    public static MainActivity instance = null;
+public class MainActivity extends BaseActivity implements View.OnClickListener {
+
+    private static final String TAG = "Easy_MainActivity";
 
     PagerSlidingTabStrip mainTab;
     ViewPager mainPager;
     FragmentAdapter mFragmentAdapter;
     Button mBtnSetting;
-    public boolean mFirstStart = false;
-    public boolean mStarted = false;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,12 +51,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
         if (actionBar != null) {
             actionBar.hide();
         }
-
-        instance = this;
-        mainTab = (PagerSlidingTabStrip)this.findViewById(R.id.main_pager_tab);
-        mainPager = (ViewPager)this.findViewById(R.id.main_pager);
+        mainTab = (PagerSlidingTabStrip) this.findViewById(R.id.main_pager_tab);
+        mainPager = (ViewPager) this.findViewById(R.id.main_pager);
         mainPager.setOffscreenPageLimit(3);
-        mBtnSetting = (Button)this.findViewById(R.id.btSetting);
+        mBtnSetting = (Button) this.findViewById(R.id.btSetting);
         mBtnSetting.setOnClickListener(this);
         mFragmentAdapter = new FragmentAdapter(this.getSupportFragmentManager());
         mainPager.setAdapter(mFragmentAdapter);
@@ -66,42 +63,47 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
         checkUpdate();
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mFirstStart = true;
-        mStarted = true;
+
+    public void onResume() {
+        super.onResume();
+        MobclickAgent.onResume(this);       //统计时长
     }
 
-    public static SharedPreferences getSettingPref(){
+    public void onPause() {
+        super.onPause();
+        MobclickAgent.onPause(this);
+    }
+
+    public static SharedPreferences getSettingPref() {
         return mSettingSharedPreference;
     }
 
     /**
      * 检测当前APP是否需要升级
      */
-    private void checkUpdate(){
-        String url="http://www.easydarwin.org/versions/easyclient/version.txt";
-        OkHttpUtils.get().url(url).build().execute(new VersionCallback(){
+    private void checkUpdate() {
+        String url = "http://www.easydarwin.org/versions/easyclient/version.txt";
+        MyApplication.asyncGet(url, new CallbackWrapper<RemoteVersionInfo>(RemoteVersionInfo.class) {
             @Override
             public void onError(Call call, Exception e) {
-                Log.e(TAG,"Check update faill ...");
+                Log.e(TAG, "Check update faill ...");
             }
+
             @Override
             public void onResponse(RemoteVersionInfo response) {
-                if(response == null && TextUtils.isEmpty(response.getUrl())){
+                if (response == null && TextUtils.isEmpty(response.getUrl())) {
                     return;
                 }
-                PackageManager packageManager=getPackageManager();
+                PackageManager packageManager = getPackageManager();
                 try {
-                    PackageInfo packageInfo=packageManager.getPackageInfo(getPackageName(),0);
-                    int localVersionCode=packageInfo.versionCode;
-                    int remoteVersionCode= Integer.valueOf(response.getVersionCode());
-                    if(localVersionCode<remoteVersionCode){
+                    PackageInfo packageInfo = packageManager.getPackageInfo(getPackageName(), 0);
+                    int localVersionCode = packageInfo.versionCode;
+                    int remoteVersionCode = Integer.valueOf(response.getVersionCode());
+                    if (localVersionCode < remoteVersionCode) {
                         showUpdateDialog(response.getUrl());
                     }
                 } catch (PackageManager.NameNotFoundException e) {
-                    Log.e(TAG,"Get PackageInfo error !");
+                    Log.e(TAG, "Get PackageInfo error !");
                 }
             }
         });
@@ -110,8 +112,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
     /**
      * 提示升级对话框
      */
-    private void showUpdateDialog(String linkUrl){
-        final String apkUrl=linkUrl;
+    private void showUpdateDialog(String linkUrl) {
+        final String apkUrl = linkUrl;
         new AlertDialog.Builder(this)
                 .setMessage("EasyClient可以升级到更高的版本，是否升级")
                 .setTitle("升级提示")
@@ -146,7 +148,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
 
     @Override
     public void onClick(View v) {
-        if(v.getId() == R.id.btSetting){
+        if (v.getId() == R.id.btSetting) {
             toSetting();
         }
     }

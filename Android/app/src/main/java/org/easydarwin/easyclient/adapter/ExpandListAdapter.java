@@ -1,5 +1,5 @@
 /*
-	Copyright (c) 2012-2016 EasyDarwin.ORG.  All rights reserved.
+	Copyright (c) 2012-2017 EasyDarwin.ORG.  All rights reserved.
 	Github: https://github.com/EasyDarwin
 	WEChat: EasyDarwin
 	Website: http://www.easydarwin.org
@@ -8,6 +8,8 @@ package org.easydarwin.easyclient.adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
+import android.support.v7.widget.GridLayout;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -15,104 +17,103 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.bumptech.glide.Glide;
+import com.google.gson.JsonObject;
 
 import org.easydarwin.easyclient.MyApplication;
 import org.easydarwin.easyclient.R;
 import org.easydarwin.easyclient.activity.EasyPlayerActivity;
 import org.easydarwin.easyclient.activity.MainActivity;
-import org.easydarwin.easyclient.callback.DeviceInfoCallback;
-import org.easydarwin.easyclient.callback.LiveVOCallback;
+import org.easydarwin.easyclient.callback.CallbackWrapper;
 import org.easydarwin.easyclient.config.DarwinConfig;
-import org.easydarwin.easyclient.domain.Channels;
-import org.easydarwin.easyclient.domain.Device;
-import org.easydarwin.easyclient.domain.DeviceHeader;
-import org.easydarwin.easyclient.domain.DeviceInfoWrapper;
-import org.easydarwin.easyclient.domain.LiveVO;
-import org.easydarwin.easyclient.view.NoScrollGridView;
-import org.easydarwin.okhttplibrary.OkHttpUtils;
+import org.easydarwin.easyclient.domain.Channel;
+import org.easydarwin.easyclient.domain.DeviceListBody.Device;
+import org.easydarwin.easyclient.domain.NVRInfoBody;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 import okhttp3.Call;
 import okhttp3.Request;
 
-/**
- * Created by Kim on 6/17/2016.
- */
-public class ExpandListAdapter extends BaseExpandableListAdapter implements
-        AdapterView.OnItemClickListener
-{
+public class ExpandListAdapter extends BaseExpandableListAdapter implements View.OnClickListener {
     private static final String TAG = "ExpandListAdapter";
     public static final int ItemHeight = 100;// 每项的高度
     public static final int PaddingLeft = 36;// 每项的高度
     private int myPaddingLeft = 50;
-    private NoScrollGridView toolbarGrid;
-    private OnlineChannelAdapter liveVOAdapter;
 
-    private List<TreeNode> treeNodes = new ArrayList<TreeNode>();
-    private Context mContext;
+
+    private MainActivity mContext;
     private LayoutInflater layoutInflater;
     private List<Device> mDevice;
     private String mServerIp;
     private String mServerPort;
 
-    static public class TreeNode
-    {
-        Device parent;
-        List<Channels> childs = new ArrayList<Channels>();
-    }
-
-    public ExpandListAdapter(List<Device> devices) {
-        this.mDevice = devices;
-        for(int i = 0 ; i < devices.size(); i++) {
-            TreeNode node = new TreeNode();
-            node.parent = this.mDevice.get(i);
-            treeNodes.add(node);
+    public void fetchChild(final int groupPosition) {
+        mServerIp = MyApplication.getInstance().getIp();
+        mServerPort = MyApplication.getInstance().getPort();
+        final Device group = (Device) getGroup(groupPosition);
+        if (TextUtils.isEmpty(mServerIp) || TextUtils.isEmpty(mServerPort)) {
+            return;
         }
-        mContext = MainActivity.instance;
+        String url = String.format("http://%s:%s/api/v1/getdeviceinfo?device=%s", mServerIp, mServerPort, group.getSerial());
+        Log.d(TAG, "camera url=" + url);
+        MyApplication.asyncGet(url, new CallbackWrapper<NVRInfoBody>(NVRInfoBody.class) {
+
+            @Override
+            public void onBefore(Request request) {
+                mContext.showWaitProgress("");
+            }
+
+            @Override
+            public void onAfter() {
+                mContext.hideWaitProgress();
+            }
+
+            @Override
+            public void onError(Call call, Exception e) {
+                Toast.makeText(mContext, "onError:" + e.toString(), Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onResponse(NVRInfoBody body) {
+                List<Channel> channels = body.Channels;
+                for (Channel c : channels) {
+                    c.setNVRSerial(body.Serial);
+                }
+                group.channels.clear();
+                group.channels.addAll(channels);
+                notifyDataSetChanged();
+                if (channels.size() == 0) {
+                    mContext.showToadMessage("暂无直播信息");
+                }
+            }
+        });
     }
 
-    public ExpandListAdapter(Context view, int myPaddingLeft)
-    {
-        mContext = view;
-        this.myPaddingLeft = myPaddingLeft;
+    public ExpandListAdapter(MainActivity activity, List<Device> devices) {
+        this.mDevice = devices;
+        mContext = activity;
     }
 
-    public List<TreeNode> GetTreeNode()
-    {
-        return treeNodes;
+    public Object getChild(int groupPosition, int childPosition) {
+        Device device = (Device) getGroup(groupPosition);
+        return device.channels.get(childPosition);
     }
 
-    public void UpdateTreeNode(List<TreeNode> nodes)
-    {
-        treeNodes = nodes;
-    }
-
-    public void RemoveAll()
-    {
-        treeNodes.clear();
-    }
-
-    public Object getChild(int groupPosition, int childPosition)
-    {
-        return treeNodes.get(groupPosition).childs.get(childPosition);
-    }
-
-    public int getChildrenCount(int groupPosition)
-    {
-        //return treeNodes.get(groupPosition).childs.size();
+    public int getChildrenCount(int groupPosition) {
         return 1;
     }
 
-    static public TextView getTextView(Context context)
-    {
-        AbsListView.LayoutParams lp = new AbsListView.LayoutParams(
-                ViewGroup.LayoutParams.FILL_PARENT, ItemHeight);
+    static public TextView getTextView(Context context) {
+        AbsListView.LayoutParams lp = new AbsListView.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ItemHeight);
 
         TextView textView = new TextView(context);
         textView.setLayoutParams(lp);
@@ -124,23 +125,40 @@ public class ExpandListAdapter extends BaseExpandableListAdapter implements
      * 可自定义ExpandableListView
      */
     public View getChildView(int groupPosition, int childPosition,
-                             boolean isLastChild, View convertView, ViewGroup parent)
-    {
-//        if (convertView == null)
-        {
-            layoutInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = layoutInflater.inflate(R.layout.gridview, null);
+                             boolean isLastChild, View convertView, ViewGroup parent) {
+        if (convertView == null) {
+            convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.nvr_channels, parent, false);
+        }
+        GridLayout grid = (GridLayout) convertView;
+        grid.removeAllViews();
+        Device group = (Device) getGroup(groupPosition);
 
-            toolbarGrid = (NoScrollGridView) convertView
-                    .findViewById(R.id.gridview_toolbar);
-//            toolbarGrid.setNumColumns(2);// 设置每行列数
-            toolbarGrid.setGravity(Gravity.CENTER);// 位置居中
-//            toolbarGrid.setHorizontalSpacing(10);// 水平间隔
-            toolbarGrid.setOnItemClickListener(this);
+        List<Channel> channels = new ArrayList<>();
+        channels.addAll(group.channels);
+        int size = channels.size();
+        if (size % 2 == 1) {
+            channels.add(null);
+        }
 
-            treeNodes.get(groupPosition).childs.clear();
-            String serial = treeNodes.get(groupPosition).parent.getSerial();
-            getChannels(serial, groupPosition, childPosition);
+        for (int i = 0; i < channels.size(); i++) {
+            Channel channel = channels.get(i);
+            View item = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_live_item_withphoto, grid, false);
+            item.getLayoutParams().width = 0;
+            grid.addView(item);
+            item.setTag(channel);
+            item.setOnClickListener(this);
+            if (channel == null) {
+                item.setVisibility(View.INVISIBLE);
+            } else {
+                TextView txtTitle = (TextView) item.findViewById(R.id.txt_title);
+                TextView txtTermialType = (TextView) item.findViewById(R.id.txt_terminal_type);
+                ImageView imvSnapshot = (ImageView) item.findViewById(R.id.imv_photo);
+
+                txtTitle.setText(String.format("%s（%s）", channel.getName(), channel.getStatus()));
+                txtTermialType.setVisibility(View.GONE);
+                String url = channel.getSnapURL();
+                Glide.with(mContext).load(url).placeholder(R.drawable.snap).into(imvSnapshot);
+            }
         }
         return convertView;
     }
@@ -149,153 +167,130 @@ public class ExpandListAdapter extends BaseExpandableListAdapter implements
      * 可自定义list
      */
     public View getGroupView(int groupPosition, boolean isExpanded,
-                             View convertView, ViewGroup parent)
-    {
-        Log.d(TAG, "kim getGroupView groupPosition="+groupPosition);
+                             View convertView, ViewGroup parent) {
+        Log.d(TAG, "kim getGroupView groupPosition=" + groupPosition);
         TextView textView = getTextView(mContext);//this.parentContext
-        Device nvr = (Device)getGroup(groupPosition);
+        Device nvr = (Device) getGroup(groupPosition);
         String text = String.format("%s:%s:%s", nvr.getAppType(), nvr.getName(), nvr.getSerial());
         textView.setText(text);
         textView.setPadding(myPaddingLeft + PaddingLeft, 0, 0, 0);
         return textView;
     }
 
-    public long getChildId(int groupPosition, int childPosition)
-    {
+    public long getChildId(int groupPosition, int childPosition) {
         return childPosition;
     }
 
-    public Object getGroup(int groupPosition)
-    {
-        return treeNodes.get(groupPosition).parent;
+    public Object getGroup(int groupPosition) {
+        return mDevice.get(groupPosition);
     }
 
-    public int getGroupCount()
-    {
-        return treeNodes.size();
+    public int getGroupCount() {
+        return mDevice.size();
     }
 
-    public long getGroupId(int groupPosition)
-    {
+    public long getGroupId(int groupPosition) {
         return groupPosition;
     }
 
-    public boolean isChildSelectable(int groupPosition, int childPosition)
-    {
+    public boolean isChildSelectable(int groupPosition, int childPosition) {
         return true;
     }
 
-    public boolean hasStableIds()
-    {
+    public boolean hasStableIds() {
         return true;
+    }
+
+
+    private void getDeviceRtspUrl(final String serial, final String channel) {
+        final MainActivity activity = mContext;
+        if (activity == null) return;
+        activity.showWaitProgress("正在请求EasyCMS启动视频...");
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                String url = String.format("http://%s:%s/api/v1/startdevicestream?device=%s&channel=%s&reserve=1",
+                        MyApplication.getInstance().getIp(),
+                        MyApplication.getInstance().getPort(), serial, channel);
+                FutureTask<JsonObject> futureTask = MyApplication.syncGet(url);
+                futureTask.run();
+                try {
+                    JsonObject Body = futureTask.get();
+                    String Service = Body.getAsJsonPrimitive("Service").getAsString();
+                    String[] svc = Service.split(";");
+                    String IP = svc[0];
+                    String PORT = svc[1];
+                    String Type = svc[2];
+
+                    IP = IP.split("=")[1];
+                    PORT = PORT.split("=")[1];
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            activity.showWaitProgress("正在获取RTSP地址...");
+                        }
+                    });
+//http://[ip]:[port]/api/v1/getdevicestream?device=001002000001&channel=1&protocol=rt sp&reserve=1
+                    url = String.format("http://%s:%s/api/v1/getdevicestream?device=%s&channel=%s&protocol=RTSP&reserve=1",
+                            IP,
+                            PORT,
+                            serial, channel);
+
+                    futureTask = MyApplication.syncGet(url);
+                    futureTask.run();
+                    Body = futureTask.get();
+                    Log.d(TAG, Body.toString());
+//                    Body: {
+//                        Protocol: "RTSP",
+//                                URL: "rtsp://139.199.154.127:11554/001001000099/1.sdp"
+//                    },
+
+                    String Protocal = Body.getAsJsonPrimitive("Protocol").getAsString();
+                    String streamUrl = Body.getAsJsonPrimitive("URL").getAsString();
+                    if (!TextUtils.isEmpty(streamUrl)) {
+
+                        Intent intent = new Intent(mContext, EasyPlayerActivity.class);
+                        intent.putExtra(DarwinConfig.CAM_URL, streamUrl);
+                        intent.putExtra(DarwinConfig.DEV_SERIAL, serial);
+                        intent.putExtra(DarwinConfig.DEV_TYPE, "nvr");
+                        intent.putExtra(DarwinConfig.CHANNEL_ID, channel);
+                        mContext.startActivity(intent);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                    Throwable thr = e.getCause();
+                    if (thr instanceof CallbackWrapper.HttpCodeErrorExcepetion) {
+                        final CallbackWrapper.HttpCodeErrorExcepetion exception = (CallbackWrapper.HttpCodeErrorExcepetion) thr;
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(activity, exception.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            activity.hideWaitProgress();
+                        }
+                    });
+                }
+            }
+        });
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position,
-                            long id)
-    {
-        Channels channel = (Channels) parent.getAdapter().getItem(position);
-        getDeviceRtspUrl(channel.getNVRSerial(), channel.getChannel());
-    }
-
-    /////////////////////////////////////////////////////////////
-
-    private void getChannels(String serial, int groupPosition, int childPosition) {
-        mServerIp = MyApplication.getInstance().getIp();
-        mServerPort = MyApplication.getInstance().getPort();
-        getChannels(mServerIp, mServerPort, serial, groupPosition, childPosition);
-    }
-
-    /**
-     * 获取直播地址列表
-     *
-     * @param ip   服务器地址
-     * @param port 服务器端口号
-     */
-    private void getChannels(String ip, String port, String serial, final int groupPosition, int childPosition) {
-        if (TextUtils.isEmpty(ip) || TextUtils.isEmpty(port)) {
-            return;
+    public void onClick(View v) {
+        Channel channel = (Channel) v.getTag();
+        if ("online".equals(channel.getStatus())) {
+            getDeviceRtspUrl(channel.getNVRSerial(), channel.getChannel());
+        } else {
+            Toast.makeText(v.getContext(), "通道不在线", Toast.LENGTH_SHORT).show();
         }
-
-        String url = String.format("http://%s:%s/api/getdeviceinfo?device=%s", ip, port, serial);
-        Log.d(TAG, "camera url="+url);
-        OkHttpUtils.post().url(url).build().execute(new LiveVOCallback() {
-
-            @Override
-            public void onBefore(Request request) {
-                MainActivity.instance.showWaitProgress("");
-            }
-
-            @Override
-            public void onAfter() {
-                MainActivity.instance.hideWaitProgress();
-            }
-
-            @Override
-            public void onError(Call call, Exception e) {
-                Toast.makeText(MainActivity.instance, "onError:" + e.toString(), Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onResponse(LiveVO liveVO) {
-                List<Channels> channels = liveVO.getEasyDarwin().getBody().getChannels();
-                if (channels.size() == 0) {
-                    MainActivity.instance.showToadMessage("暂无直播信息");
-                    liveVOAdapter = new OnlineChannelAdapter(new ArrayList<Channels>());
-                } else {
-                    liveVOAdapter = new OnlineChannelAdapter(channels);
-                    int screenW = mContext.getResources().getDisplayMetrics().widthPixels;
-                    int columnum = toolbarGrid.getNumColumns();
-                    int space = (int)(mContext.getResources().getDimension(R.dimen.gridview_horizontalspacing));
-                    int itemWidth = (int)((screenW-(columnum-1)*space)/columnum);
-                    int itemHeight = (int) (itemWidth * 9 / 16.0 + 0.5f);
-                    liveVOAdapter.setmSnapshotWidth(itemWidth);
-                    liveVOAdapter.setmSnapshotHeight(itemHeight);
-                }
-
-                for(int i = 0; i < channels.size(); i++) {
-                    treeNodes.get(groupPosition).childs.add(channels.get(i));
-                }
-
-                toolbarGrid.setAdapter(liveVOAdapter);
-            }
-        });
-    }
-
-    private void getDeviceRtspUrl(final String serial, final String channel){
-        String url=String.format("http://%s:%s/api/getdevicestream?device=%s&channel=%s&protocol=RTSP",
-                MyApplication.getInstance().getIp(),
-                MyApplication.getInstance().getPort(),serial,channel);
-        OkHttpUtils.post().url(url).build().execute(new DeviceInfoCallback(){
-            @Override
-            public void onBefore(Request request) {
-                MainActivity.instance.showWaitProgress("");
-            }
-
-            @Override
-            public void onAfter() {
-                MainActivity.instance.hideWaitProgress();
-            }
-            @Override
-            public void onError(Call call, Exception e) {
-                Toast.makeText(MainActivity.instance, "onError:" + e.toString(), Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onResponse(DeviceInfoWrapper deviceInfoWrapper) {
-                if(deviceInfoWrapper.getEasyDarwin().getBody()==null){
-                    DeviceHeader header=deviceInfoWrapper.getEasyDarwin().getHeader();
-                    Toast.makeText(MainActivity.instance, header.getErrorString()+"(" +header.getErrorNum()+")",
-                            Toast.LENGTH_LONG).show();
-                    return;
-                }
-                Intent intent = new Intent(MainActivity.instance, EasyPlayerActivity.class);
-                intent.putExtra(DarwinConfig.CAM_URL, deviceInfoWrapper.getEasyDarwin().getBody().getURL());
-                intent.putExtra(DarwinConfig.DEV_SERIAL, serial);
-                intent.putExtra(DarwinConfig.DEV_TYPE, "nvr");
-                intent.putExtra(DarwinConfig.CHANNEL_ID, channel);
-                MainActivity.instance.startActivity(intent);
-            }
-        });
     }
 }

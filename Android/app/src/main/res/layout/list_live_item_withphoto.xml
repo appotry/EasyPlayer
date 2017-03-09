@@ -2,6 +2,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:layout_columnWeight="0.5"
+    app:layout_gravity="fill_vertical"
     android:orientation="vertical">
 
     <RelativeLayout
@@ -14,21 +17,21 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="fitXY"
-            android:src="@drawable/setting_icon" />
+            android:src="@drawable/snap" />
 
         <TextView
             android:id="@+id/txt_apptype"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toLeftOf="@+id/txt_terminal_type"
             android:layout_alignBottom="@+id/txt_terminal_type"
+            android:layout_toLeftOf="@+id/txt_terminal_type"
             android:background="@color/colorPrimaryDark"
             android:gravity="center"
             android:padding="6dp"
             android:text="EasyCamera"
             android:textColor="#ffffff"
             android:textSize="14dp"
-            android:visibility="gone"/>
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/txt_terminal_type"
@@ -36,9 +39,9 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
+            android:layout_margin="5dp"
             android:background="@color/transparent_background"
             android:gravity="center"
-            android:layout_margin="5dp"
             android:padding="2dp"
             android:text="EasyCamera"
             android:textColor="#ffffff"
@@ -47,9 +50,9 @@
 
     <TextView
         android:id="@+id/txt_title"
-        android:background="#fff"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#fff"
         android:padding="8dp"
         android:text="Ax000000"
         android:textSize="11dp" />

@@ -1,5 +1,5 @@
 /*
-	Copyright (c) 2012-2016 EasyDarwin.ORG.  All rights reserved.
+	Copyright (c) 2012-2017 EasyDarwin.ORG.  All rights reserved.
 	Github: https://github.com/EasyDarwin
 	WEChat: EasyDarwin
 	Website: http://www.easydarwin.org
@@ -18,13 +18,10 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 
 import org.easydarwin.easyclient.R;
-import org.easydarwin.easyclient.domain.Device;
+import org.easydarwin.easyclient.domain.DeviceListBody.Device;
 
 import java.util.List;
 
-/**
- * Created by Helong on 16/3/15-22:27.
- */
 public class OnlineCameraAdapter extends BaseAdapter {
     private static final String TAG = "OnlineCameraAdapter";
     private List<Device> mDevices;
@@ -83,6 +80,7 @@ public class OnlineCameraAdapter extends BaseAdapter {
         viewHolder.txtTermialType.setText(device.getTerminalType());
         Glide.with(parent.getContext())
                 .load(device.getSnapURL())
+                .centerCrop()
                 .placeholder(R.drawable.snap)
                 .into(viewHolder.imvSnapshot);
         return convertView;

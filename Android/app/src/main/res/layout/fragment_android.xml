@@ -3,21 +3,69 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#ccc"
-    tools:context="org.easydarwin.easyclient.fragment.AndroidFragment">
+    tools:context=".fragment.CameraFragment">
 
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/swip_refersh"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_marginTop="55dp">
+
         <GridView
-            android:id="@+id/grid_live"
-            android:numColumns="2"
-            android:stretchMode="columnWidth"
+            android:id="@+id/adapter_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:verticalSpacing="@dimen/gridview_verticalspacing"
-            android:horizontalSpacing="@dimen/gridview_horizontalspacing"/>
+            android:horizontalSpacing="@dimen/gridview_horizontalspacing"
+            android:numColumns="2"
+            android:stretchMode="columnWidth"
+            android:verticalSpacing="@dimen/gridview_verticalspacing" />
 
     </android.support.v4.widget.SwipeRefreshLayout>
 
+
+    <LinearLayout
+        android:id="@+id/tip_content_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:background="@drawable/tip_background"
+        android:orientation="vertical"
+        android:paddingTop="50dp">
+
+        <TextView
+            android:id="@+id/tip_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/activity_horizontal_margin"
+            android:text="以 Android,iOS 手机做为摄像机视频源,接入到 EasyDarwin 云平台对外提供音视频服务!
+
+EasyCamera 移动端版本下载:
+1、Android：http://fir.im/EasyCamera
+2、iOS：在AppStore搜索'EasyCamera'
+
+或者通过手机扫码下载:"
+            android:textColor="#00a65a" />
+
+        <ImageView
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:src="@drawable/qr_android_ios_ipcamera_qr" />
+    </LinearLayout>
+
+
+    <TextView
+        android:id="@+id/tip_title"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:background="@drawable/tip_title_background"
+        android:drawableLeft="@drawable/ic_action_question_circle"
+        android:gravity="center_vertical"
+        android:padding="@dimen/activity_horizontal_margin"
+        android:text="EasyCamera移动单兵App接入说明:"
+        android:textColor="#00a65a" />
 </FrameLayout>
