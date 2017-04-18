@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+	@@include("./common.html")
+	<link rel="stylesheet" href="./flowplayer-7.0.2/skin/skin.css">
+	<script src="./flowplayer-7.0.2/flowplayer.min.js"></script>
+	<link href="./video-js/video-js.min.css" rel="stylesheet">
+	<script src="./video-js/video.min.js"></script>
+	<style>
+		.channel-title {
+			position: absolute;
+			left: 0;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			color: #fff;
+			text-align: center;
+			padding: 0 15px;
+			font-size: 20px;
+			line-height: 50px;
+			font-weight: 700;
+		}
+		
+		#dvplay {
+			margin: 0 auto;
+			width: 75%;
+			height: auto;
+			display: block;
+		}
+
+		.video-progress {
+			position: absolute;
+			left:0;right:0;top:0;bottom: 0;
+			background-color: rgba(0,0,0,0.8);
+			z-index: 99999;
+		}
+		.video-progress .progress {
+			border-radius: 5px;
+			position: absolute;
+			top: 45%;left:20%;right:20%;
+		}
+		.video-progress .progress .progress-bar{
+			text-align: right;
+			padding-right: 4px;
+		}		
+	</style>
+</head>
+
+<body class="hold-transition skin-green layout-top-nav">
+	<div class="wrapper">
+		<header class="main-header">
+			<nav class="navbar navbar-static-top" role="navigation">
+				<div class="channel-title"></div>
+				<div class="navbar-custom-menu pull-left">
+					<ul class="nav navbar-nav">
+						<li>
+							<a href="./index.html"><i class="fa fa-chevron-left"></i> 返回</a>
+						</li>
+					</ul>
+				</div>
+			</nav>
+		</header>
+
+		<div class="content-wrapper">
+			<section class="content">
+				<div id="dvplay" style="background-color:#999;"></div>
+				<br>
+			</section>
+		</div>
+		<!-- content-wrapper -->
+		@@include("./footer.html")
+	</div>
+	<!-- wrapper-->
+	<script>
+		if(!$.cookie("videoUrl")){
+			top.location.href = "./index.html";
+		}
+		function showProgress(cb){
+			var $vp = $(".video-progress").toggleClass("hide");
+			var $p = $(".video-progress .progress");
+			var $pb = $(".video-progress .progress .progress-bar");
+			var timeout = 5000;
+			var step = 125;
+			var cnt = 0;
+			var timer = setInterval(function(){
+				cnt += step;
+				var percent = Math.round(cnt/timeout * 100);	
+				$pb.css("width",percent + "%").attr("aria-valuenow",percent).text(percent + "%");
+				if(cnt >= timeout){
+					clearInterval(timer);
+					setTimeout(function(){
+						$vp.toggleClass("hide");
+						$pb.css("width","0%").attr("aria-valuenow","0").text("0%");
+						if(cb) cb();
+					},500);
+				}
+			},step);
+		}		
+		var player = null;
+		if(isPC()){
+			$("#dvplay").flowplayer({
+				autoplay : true,
+				poster : $.cookie("videoImg") || "./images/snap.png",
+				share : false,
+				swf : './flowplayer-7.0.2/flowplayer.swf',
+				swfHls : false,
+				rtmpt: false,
+				clip : {
+					sources : [
+						{type : 'video/flash', src : $.cookie("videoUrl")}
+					]					
+				}
+			});
+		}else{
+			$("#dvplay").hide();
+			$.ajax("./video-template.html").then(function(data){
+				var $v = $(data);
+				$v.find("video").attr("poster",$.cookie("videoImg")||"./images/snap.png").attr("id","easy-player");
+				$(".content-wrapper .content").append($v);
+				var isReady = $.cookie("isReady");
+				$.removeCookie("isReady");
+				if(isReady === "0"){
+					showProgress(function(){
+						$v.find("video source").attr("src",$.cookie("videoUrl")||"");
+						videojs("easy-player");
+						$("button.vjs-big-play-button").trigger("click");
+					});
+				} else {
+					$v.find("video source").attr("src",$.cookie("videoUrl")||"");
+					videojs("easy-player");
+					$("button.vjs-big-play-button").trigger("click");
+				}				
+			})
+		}
+
+		$(function() {
+			$(".channel-title").text($.cookie("videoTitle") || "");
+		});
+	</script>
+</body>
+
+</html>
