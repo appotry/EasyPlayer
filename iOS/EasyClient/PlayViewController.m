@@ -133,7 +133,6 @@ int RTSPClientCallBack( int _chid, int *_chPtr, int _frameType, char *_pBuf, RTS
                     vp.buffer[1] = *(pNalSize + 2);
                     vp.buffer[2] = *(pNalSize + 1);
                     vp.buffer[3] = *(pNalSize);
-                    
                 }
                 else//正确
                 {
@@ -158,6 +157,8 @@ int RTSPClientCallBack( int _chid, int *_chPtr, int _frameType, char *_pBuf, RTS
                 if(initH264Decoder(nil)) {
                     pixelBuffer =decode(vp);
                 }
+                free(vp.buffer);
+                vp.buffer = NULL;
             }
             else if (_frameInfo->type == EASY_SDK_VIDEO_FRAME_P)
             {
@@ -175,6 +176,8 @@ int RTSPClientCallBack( int _chid, int *_chPtr, int _frameType, char *_pBuf, RTS
                 if(initH264Decoder(nil)) {
                     pixelBuffer =decode(vp);
                 }
+               free(vp.buffer);
+                vp.buffer = NULL;
                 
             }
             if(pixelBuffer) {
@@ -183,12 +186,12 @@ int RTSPClientCallBack( int _chid, int *_chPtr, int _frameType, char *_pBuf, RTS
                 });
                 
                 CVPixelBufferRelease(pixelBuffer);
-                if(!_pps)
+                if(_pps)
                 {
                     free(_pps);
                     _pps=NULL;
                 }
-                if(!_sps)
+                if(_sps)
                 {
                     free(_sps);
                     _sps=NULL;
@@ -364,7 +367,9 @@ void configPlayer(NSString *urlString) {
         }
         destroyAudio();
     });
-    
+    if (pvc) {
+        pvc = nil;
+    }
 }
 
 - (void)viewDidLoad {

@@ -47,11 +47,29 @@
     
 }
 
+static inline BOOL isEmpty(id thing) {
+    return thing == nil
+    || [thing isKindOfClass:[NSNull class]]
+    || ([thing respondsToSelector:@selector(length)]
+        && [(NSData *)thing length] == 0)
+    || ([thing respondsToSelector:@selector(count)]
+        && [(NSArray *)thing count] == 0);
+}
 
 - (void)produceCellInfoModel:(EasyInfo *)model
 {
     [self.imageView sd_setImageWithURL:[NSURL URLWithString:model.snapURL] placeholderImage:[UIImage imageNamed:@"snap"]];
-    self.titleLab.text = [NSString stringWithFormat:@" %@ (%@)",model.name,model.serial];
+    if(isEmpty(model.status)){//NVR
+        [self.appType setHidden:TRUE];
+        self.titleLab.text = [NSString stringWithFormat:@" %@",model.name];
+    }else {
+        self.titleLab.text = [NSString stringWithFormat:@" %@ (%@)",model.name,model.status];
+        [self.appType setHidden:FALSE];
+        self.appType.text = model.terminalType;
+        [self.appType sizeToFit];
+        [self.appType setFrame:CGRectMake(self.contentView.frame.size.width - self.appType.frame.size.width - 7, self.appType.frame.origin.y, self.appType.frame.size.width + 5, 20)];
+    }
+
 }
 
 @end
