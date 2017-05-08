@@ -129,6 +129,7 @@
 #define EASY_TAG_AUDIO_TYPE								"AudioType"
 #define EASY_TAG_AUDIO_DATA								"AudioData"
 #define EASY_TAG_PTS									"Pts"
+#define EASY_TAG_SERVICE								"Service"
 
 /*!
 \}
@@ -178,6 +179,9 @@
 #define MSG_SC_HLS_SESSION_LIST_ACK							0x0011
 #define MSG_SC_LIST_RECORD_ACK								0x0012
 #define MSG_SC_RMS_ASSOCIATE_ACK							0x0013
+
+#define MSG_CS_STRAT_STREAM_REQ								0x0014//EasyClient向EasyCMS请求流
+#define MSG_SC_STRAT_STREAM_ACK								0xe015
 
 //保留
 #define MSG_SC_RTSP_PUSH_SESSION_LIST_ACK					0xeee0

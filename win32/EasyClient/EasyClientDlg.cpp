@@ -316,14 +316,24 @@ void CEasyClientDlg::ProcessReqDevListThread()
 
 		//1. 请求设备列表
 		CString strReqURL =_T(""); 
-		strReqURL.Format(_T("http://%s:%d/API/getdevicelist"), m_strCMSIP, m_nCMSPort);
+		strReqURL.Format(_T("http://%s:%d/api/v1/getdevicelist"), m_strCMSIP, m_nCMSPort);
 		if (!m_pSession)
 		{
 			m_pSession = new CInternetSession(/*_T("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)")*/);
 		}
 
 		std::string strData;
-		CHttpFile *pFile = (CHttpFile *)m_pSession->OpenURL(strReqURL, 1, INTERNET_FLAG_TRANSFER_ASCII | INTERNET_FLAG_RELOAD);
+		CHttpFile *pFile = NULL;
+		try
+		{
+			pFile = (CHttpFile *)m_pSession->OpenURL(strReqURL, 1, INTERNET_FLAG_TRANSFER_ASCII | INTERNET_FLAG_RELOAD);
+		}
+		catch(...)
+		{
+			MessageBox( _T("Get getdevicelist exception!" )) ;
+			return;
+		}
+
 		if (pFile)
 		{
 			char ch;
@@ -393,7 +403,7 @@ void CEasyClientDlg::ProcessReqDevListThread()
 				{
 					//获取设备信息
 					CString strReqURL =_T(""); 
-					strReqURL.Format(_T("http://%s:%d/API/getdeviceinfo?device=%s"), m_strCMSIP, m_nCMSPort, strSerial);
+					strReqURL.Format(_T("http://%s:%d/api/v1/getdeviceinfo?device=%s"), m_strCMSIP, m_nCMSPort, strSerial);
 					if (!m_pSession)
 					{
 						m_pSession = new CInternetSession(/*_T("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)")*/);
@@ -550,23 +560,14 @@ void CEasyClientDlg::OnNMDBClickListDevices(NMHDR *pNMHDR, LRESULT *pResult)
 			CString strChannel =  (CString)pData;
 			if (strChannel.IsEmpty())
 			{
-				strChannel = _T("0");
+				strChannel = _T("1");
 			}
 			if (strDeviceId)
 			{
-				//http请求设备推流
-				//http://121.40.50.44:10000/api/getdevicestream?device=001001000010&channel=01&protocol=RTSP&reserve=1
+				//http://121.40.50.44:10000/api/v1/startdevicestream?device=001001000kim&channel=1&reserve=1
 				CString strReqURL =_T(""); 
-				if (pData ==NULL)
-				{
-					strReqURL.Format(_T("http://%s:%d/API/getdevicestream?device=%s&channel=%s&protocol=RTSP&reserve=1"), m_strCMSIP, m_nCMSPort, strDeviceId,strChannel);
-				}
-				else
-				{
-					strReqURL.Format(_T("http://%s:%d/API/getdevicestream?device=%s&channel=%s&protocol=RTSP&reserve=1"), m_strCMSIP, m_nCMSPort, strDeviceId, strChannel);
-				}
-
-				std::string strData;
+				std::string strData = "";
+				strReqURL.Format(_T("http://%s:%d/api/v1/startdevicestream?device=%s&channel=%s&reserve=1"), m_strCMSIP, m_nCMSPort, strDeviceId,strChannel);
 				CHttpFile *pFile = (CHttpFile *)m_pSession->OpenURL(strReqURL, 1, INTERNET_FLAG_TRANSFER_ASCII | INTERNET_FLAG_RELOAD);
 				if (pFile)
 				{
@@ -582,20 +583,60 @@ void CEasyClientDlg::OnNMDBClickListDevices(NMHDR *pNMHDR, LRESULT *pResult)
 				if (!strData.empty())
 				{
 					//解析Json字串
-					EasyDarwin::Protocol::EasyMsgSCGetStreamACK getSreamAck(strData.c_str());
-					std::string strURL = getSreamAck.GetBodyValue("URL");
-					if(!strURL.empty())
+					EasyDarwin::Protocol::EasyMsgSCStartDeviceStreamACK startDeviceStreamAck(strData.c_str());
+					std::string serverIP = startDeviceStreamAck.getServerIP();
+					std::string serverPort = startDeviceStreamAck.getServerPort();
+					if(!serverIP.empty() && !serverPort.empty())
 					{
-						int nSelWnd = m_nCurSelWnd;
-						if (nSelWnd <  0)
+						//http请求设备推流
+						//http://[ip]:[port]/api/v1/getdevicestream?device=001002000001&channel=1&protocol=RTSP&reserve=1
+						//const char* ip = serverIP.c_str();
+						//const char* port = serverPort.c_str();
+						TCHAR ip[256] = {0};
+						TCHAR port[32] = {0};
+						strData = "";
+						#ifdef _UNICODE
+						DWORD dwNum = MultiByteToWideChar (CP_ACP, 0, serverIP.c_str(), -1, NULL, 0);
+						MultiByteToWideChar (CP_ACP, 0, serverIP.c_str(), -1, ip, dwNum);
+						dwNum = MultiByteToWideChar (CP_ACP, 0, serverPort.c_str(), -1, NULL, 0);
+						MultiByteToWideChar (CP_ACP, 0, serverPort.c_str(), -1, port, dwNum);
+						#else
+						sprintf(ip, "%s", serverIP.c_str());
+						sprintf(port, "%s", serverPort.c_str());
+						#endif
+						strReqURL.Format(_T("http://%s:%s/api/v1/getdevicestream?device=%s&channel=%s&protocol=RTSP&reserve=1"), ip, port, strDeviceId, strChannel);
+						pFile = (CHttpFile *)m_pSession->OpenURL(strReqURL, 1, INTERNET_FLAG_TRANSFER_ASCII | INTERNET_FLAG_RELOAD);
+						if (pFile)
 						{
-							nSelWnd = 0;
+							char ch;
+							while (pFile->Read(&ch, 1))
+							{
+								strData += ch;
+							}
+							pFile->Close();
+							delete pFile;
+							pFile = NULL;
 						}
-						pVideoWindow->pDlgVideo[nSelWnd].SetDeviceSerial(strDeviceId, strChannel);
-						pVideoWindow->pDlgVideo[nSelWnd].SetURL((char*)strURL.c_str());
-						if (!pVideoWindow->pDlgVideo[nSelWnd].Preview())
+
+						if (!strData.empty())
 						{
-							pVideoWindow->pDlgVideo[nSelWnd].Preview();
+							//解析Json字串
+							EasyDarwin::Protocol::EasyMsgSCGetStreamACK getSreamAck(strData.c_str());
+							std::string strURL = getSreamAck.GetBodyValue("URL");
+							if(!strURL.empty())
+							{
+								int nSelWnd = m_nCurSelWnd;
+								if (nSelWnd <  0)
+								{
+									nSelWnd = 0;
+								}
+								pVideoWindow->pDlgVideo[nSelWnd].SetDeviceSerial(strDeviceId, strChannel);
+								pVideoWindow->pDlgVideo[nSelWnd].SetURL((char*)strURL.c_str());
+								if (!pVideoWindow->pDlgVideo[nSelWnd].Preview())
+								{
+									pVideoWindow->pDlgVideo[nSelWnd].Preview();
+								}
+							}
 						}
 					}
 				}
@@ -1301,7 +1342,7 @@ LRESULT CEasyClientDlg::HandleButtonMessage(WPARAM wParam, LPARAM lParam)
 		strChannel = pVideoWindow->pDlgVideo[m_nCurSelWnd].GetDeviceChannel();
 		//http://[ip]:[port]/api/ptzcontrol?device=001001000058&channel=0&actiontype=single&c ommand=down&speed=5&protocol=onvif
 		CString strReqURL =_T(""); //Continuous / single
-		strReqURL.Format(_T("http://%s:%d/api/ptzcontrol?device=%s&channel=%s&actiontype=Continuous&command=%s&speed=5&protocol=onvif"), 
+		strReqURL.Format(_T("http://%s:%d/api/v1/ptzcontrol?device=%s&channel=%s&actiontype=Continuous&command=%s&speed=5&protocol=onvif"), 
 			m_strCMSIP, m_nCMSPort, strDeviceId, strChannel, sPtzCmd);
 		if (!m_pSession)
 		{

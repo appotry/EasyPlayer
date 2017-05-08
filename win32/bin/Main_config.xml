@@ -5,7 +5,7 @@
 	<Font name="微软雅黑" size="15" bold="true"/>
 
 	<String text="EasyClient" font="1" color="#FFFFFF" pos="0,0,40,7,300,42" id="1"/>
-	<String text="Version: 1.0.16.0815 Powered by SwordTwelve QQ交流群：544917793" font="2" color="#FFFFFF" pos="3,3,810,25,0,0" id="2"/>
+	<String text="Version: 1.1.17.0508 Powered by SwordTwelve QQ交流群：544917793" font="2" color="#FFFFFF" pos="3,3,810,25,0,0" id="2"/>
 	<String text="PTZ摄像机控制" font="3" color="#000000" pos="2,2,60,340,180,310" id="3"/>
 
 	<Image path="Res\Skin\header.png" pos="0,3,0,0,0,0" id="1"/>

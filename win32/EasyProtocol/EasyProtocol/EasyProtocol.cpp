@@ -302,6 +302,26 @@ namespace EasyDarwin { namespace Protocol
 		}
 	}
 
+	EasyMsgSCStartDeviceStreamACK::EasyMsgSCStartDeviceStreamACK(const string& msg)
+		: EasyProtocol(msg, MSG_SC_STRAT_STREAM_ACK)
+	{
+		string server = root[EASY_TAG_ROOT][EASY_TAG_BODY][EASY_TAG_SERVICE].asString();
+		if(!server.empty())
+		{//IP=114.55.107.180;Port=10008;Type=EasyDarwin
+			char * split = "=;";
+			char* tokenPtr = strtok(const_cast<char*>(server.c_str()), split);
+			tokenPtr=strtok(NULL, split);
+			ip_ = tokenPtr;
+			tokenPtr=strtok(NULL, split);
+			tokenPtr=strtok(NULL, split);
+			port_ = tokenPtr;
+			tokenPtr=strtok(NULL, split);
+			tokenPtr=strtok(NULL, split);
+			type_ = tokenPtr;
+		}
+	}
+
+
 	EasyMsgSCDeviceInfoACK::EasyMsgSCDeviceInfoACK(EasyDevices& cameras, const string& device_serial, size_t cseq, size_t error)
 		: EasyProtocol(MSG_SC_CAMERA_LIST_ACK)
 	{

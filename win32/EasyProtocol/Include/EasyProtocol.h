@@ -161,6 +161,22 @@ private:
 	EasyDevices devices_;
 };
 
+// startdevicestream
+class EasyMsgSCStartDeviceStreamACK : public EasyProtocol
+{
+public:
+	EasyMsgSCStartDeviceStreamACK(const string& msg);
+	virtual ~EasyMsgSCStartDeviceStreamACK() {}
+
+	string& getServerIP() {return ip_;}
+	string& getServerPort() {return port_;}
+	string& getServerType() {return type_;}
+private:
+	string ip_;
+	string port_;
+	string type_;
+};
+
 // MSG_SC_DEVICE_INFO_ACK
 class EasyMsgSCDeviceInfoACK : public EasyProtocol
 {
