@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	@@include("./common.html")
-	<link rel="stylesheet" href="./video-js-5.19.2/video-js.css"/>
+	<link rel="stylesheet" href="./video-js-5.19.2/video-js.css" />
 	<script src="./video-js-5.19.2/video.js"></script>
 	<script src="./video-js-5.19.2/videojs-contrib-hls4.js"></script>
 	<style>
@@ -19,7 +20,7 @@
 			line-height: 50px;
 			font-weight: 700;
 		}
-		
+
 		#dvplay {
 			margin: 0 auto;
 			width: 80%;
@@ -28,19 +29,26 @@
 
 		.video-progress {
 			position: absolute;
-			left:0;right:0;top:0;bottom: 0;
-			background-color: rgba(0,0,0,0.8);
+			left: 0;
+			right: 0;
+			top: 0;
+			bottom: 0;
+			background-color: rgba(0, 0, 0, 0.8);
 			z-index: 99999;
 		}
+
 		.video-progress .progress {
 			border-radius: 5px;
 			position: absolute;
-			top: 45%;left:20%;right:20%;
+			top: 45%;
+			left: 20%;
+			right: 20%;
 		}
-		.video-progress .progress .progress-bar{
+
+		.video-progress .progress .progress-bar {
 			text-align: right;
 			padding-right: 4px;
-		}		
+		}
 	</style>
 </head>
 
@@ -69,66 +77,100 @@
 	</div>
 	<!-- wrapper-->
 	<script>
-		if(!$.cookie("videoUrl")){
+		if (!$.cookie("videoUrl")) {
 			top.location.href = "./index.html";
 		}
-		function showProgress(cb){
+		function showProgress(cb) {
 			var $vp = $(".video-progress").toggleClass("hide");
 			var $p = $(".video-progress .progress");
 			var $pb = $(".video-progress .progress .progress-bar");
 			var timeout = 5000;
 			var step = 125;
 			var cnt = 0;
-			var timer = setInterval(function(){
+			var timer = setInterval(function () {
 				cnt += step;
-				var percent = Math.round(cnt/timeout * 100);	
-				$pb.css("width",percent + "%").attr("aria-valuenow",percent).text(percent + "%");
-				if(cnt >= timeout){
+				var percent = Math.round(cnt / timeout * 100);
+				$pb.css("width", percent + "%").attr("aria-valuenow", percent).text(percent + "%");
+				if (cnt >= timeout) {
 					clearInterval(timer);
-					setTimeout(function(){
+					setTimeout(function () {
 						$vp.toggleClass("hide");
-						$pb.css("width","0%").attr("aria-valuenow","0").text("0%");
-						if(cb) cb();
-					},500);
+						$pb.css("width", "0%").attr("aria-valuenow", "0").text("0%");
+						if (cb) cb();
+					}, 500);
 				}
-			},step);
-		}		
+			}, step);
+		}
+
+		function showProgress2(src, cb) {
+			var $vp = $(".video-progress").toggleClass("hide");
+			var $p = $(".video-progress .progress");
+			var $pb = $(".video-progress .progress .progress-bar");
+			var timeout = 5000;
+			var step = 125;
+			var cnt = 0;
+			var timer = setInterval(function () {
+				cnt += step;
+				var percent = Math.round(cnt / timeout * 100);
+				var percent = percent > 100 ? 100 : percent;
+				$.ajax(src,{
+					type : 'HEAD'
+				}).fail(function(){
+					console.log("video is no ready, waiting...");
+				}).done(function(){
+					clearInterval(timer);
+					setTimeout(function () {
+						$vp.toggleClass("hide");
+						$pb.css("width", "0%").attr("aria-valuenow", "0").text("0%");
+						if (cb) cb();
+					}, 500);
+				}).always(function(){
+					$pb.css("width", percent + "%").attr("aria-valuenow", percent).text(percent + "%");
+				})
+			}, step);
+		}
+
 		$("#dvplay").hide();
-		var src = $.cookie("videoUrl")||"";
+		var src = $.cookie("videoUrl") || "";
 		var type = "application/x-mpegURL";
-		var techOrder = ["html5","flash"];
-		if(src.indexOf("rtmp") === 0){
+		var techOrder = ["html5", "flash"];
+		if (src.indexOf("rtmp") === 0) {
 			type = "rtmp/mp4";
 			techOrder = ["flash"];
-		}			
-		$.ajax("./video-template.html").then(function(data){
+		}
+		$.ajax("./video-template.html").then(function (data) {
 			var $v = $(data);
-			$v.find("video").attr("poster",$.cookie("videoImg")||"./images/snap.png").attr("id","easy-player");
+			$v.find("video").attr("poster", $.cookie("videoImg") || "./images/snap.png").attr("id", "easy-player");
 			$(".content-wrapper .content").append($v);
-			if(!isPC()){
-				var isReady = $.cookie("isReady");
-				$.removeCookie("isReady");
-				if(isReady === "0") {
-					showProgress(function(){
-						$v.find("video source").attr("src",src).attr("type",type);
-						videojs("easy-player");
-						$("button.vjs-big-play-button").trigger("click");
-					});
-				} else {
-					$v.find("video source").attr("src",src).attr("type",type);
+			if (!isPC()) {
+				showProgress2(src, function () {
+					$v.find("video source").attr("src", src).attr("type", type);
 					videojs("easy-player");
 					$("button.vjs-big-play-button").trigger("click");
-				}				
+				});				
+				// var isReady = $.cookie("isReady");
+				// $.removeCookie("isReady");
+				// if (isReady === "0") {
+				// 	showProgress(function () {
+				// 		$v.find("video source").attr("src", src).attr("type", type);
+				// 		videojs("easy-player");
+				// 		$("button.vjs-big-play-button").trigger("click");
+				// 	});
+				// } else {
+				// 	$v.find("video source").attr("src", src).attr("type", type);
+				// 	videojs("easy-player");
+				// 	$("button.vjs-big-play-button").trigger("click");
+				// }
 			} else {
-				$v.find("video source").attr("src",src).attr("type",type);
-				videojs("easy-player",{
-					autoplay : true,
-					techOrder : techOrder
+				$v.find("video source").attr("src", src).attr("type", type);
+				videojs("easy-player", {
+					autoplay: true,
+					techOrder: techOrder
 				})
 			}
 		})
 
-		$(function() {
+		$(function () {
 			$(".channel-title").text($.cookie("videoTitle") || "");
 		});
 	</script>
