@@ -151,7 +151,7 @@
 	</div>
 	<!-- wrapper-->
 	<script>
-		var _url = "http://121.40.50.44:10000/api/v1";
+		var _url = "http://121.40.50.44:10015/api/v1";
 		function renderCamera($camera){
 			var camera = $camera.data("camera");
 			var snap = camera["SnapURL"] || "./images/snap.png";
@@ -411,7 +411,8 @@
 				}).then(function(data){
 					$("body").unmask();
 					try{
-						var ret = JSON.parse(data);
+						//var ret = JSON.parse(data);
+						var ret = data;
 						if(ret.EasyDarwin.Header.ErrorNum !== "200"){
 							msg += ret.EasyDarwin.Header.ErrorString;
 							return $.Deferred().reject();
@@ -421,9 +422,10 @@
 						$.cookie("videoTitle",camera["Name"]);
 						$.cookie("videoImg",camera["SnapURL"]);
 						$.cookie("isReady",ret.EasyDarwin.Body.IsReady);
-						top.location.href = "./play.html";
+						top.location.href = "./vplay.html";
 					}catch(e){
-						console.log(msg + " data : " + data);
+						console.log(e);
+						console.log(data);
 						return $.Deferred().reject();
 					}
 				}).fail(function(){
