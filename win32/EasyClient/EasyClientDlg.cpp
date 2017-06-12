@@ -68,7 +68,7 @@ CEasyClientDlg::CEasyClientDlg(CWnd* pParent /*=NULL*/)
 
 	SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)CrashHandler_Player);
 	m_pSession = NULL;
-	m_strCMSIP = _T("121.40.50.44"); //121.40.50.44 192.168.1.121 124.193.152.42
+	m_strCMSIP = _T("121.40.210.97");
 	m_nCMSPort = 10000;
 	m_nCurSelWnd = -1;
 	m_hReqDeviceListThread = INVALID_HANDLE_VALUE;
@@ -199,7 +199,7 @@ BOOL CEasyClientDlg::OnInitDialog()
 	CSkinEdit* pCMSEdit = (CSkinEdit*)GetDlgItem(5100);
 	if (pCMSEdit)
 	{
-		pCMSEdit->SetWindowText(_T("121.40.50.44"));
+		pCMSEdit->SetWindowText(_T("121.40.210.97"));
 	}
 	CSkinEdit* pCMSPort= (CSkinEdit*)GetDlgItem(5101);
 	if (pCMSPort)
@@ -328,7 +328,7 @@ void CEasyClientDlg::ProcessReqDevListThread()
 		{
 			pFile = (CHttpFile *)m_pSession->OpenURL(strReqURL, 1, INTERNET_FLAG_TRANSFER_ASCII | INTERNET_FLAG_RELOAD);
 		}
-		catch(...)
+		catch (...)
 		{
 			MessageBox( _T("Get getdevicelist exception!" )) ;
 			return;

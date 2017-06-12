@@ -24,7 +24,7 @@ public class DarwinConfig {
 
     public static final String CAM_URL ="cam_url";
     //默认IP地址
-    public static final String DEFAULT_SERVER_IP="121.40.50.44";
+    public static final String DEFAULT_SERVER_IP="cloud.easydarwin.org";
     public static final String DEFAULT_SERVER_PORT="10000";
 
     public static final String DEV_SERIAL = "serial";
