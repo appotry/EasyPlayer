@@ -38,7 +38,8 @@
 
 	<link rel="stylesheet" href="./css/common.css">
 	<script src="./js/common.js"></script>
-	<script src="./cyberplayer/cyberplayer.js"></script>
+	<link rel="stylesheet" href="./flowplayer-7.0.2/skin/skin.css">
+	<script src="./flowplayer-7.0.2/flowplayer.min.js"></script>
 	<link href="./video-js/video-js.min.css" rel="stylesheet">
 	<script src="./video-js/video.min.js"></script>
 	<style>
@@ -58,8 +59,9 @@
 		
 		#dvplay {
 			margin: 0 auto;
-			width: 80%;
+			width: 75%;
 			height: auto;
+			display: block;
 		}
 
 		.video-progress {
@@ -97,7 +99,7 @@
 
 		<div class="content-wrapper">
 			<section class="content">
-				<div id="dvplay"></div>
+				<div id="dvplay" style="background-color:#999;"></div>
 				<br>
 			</section>
 		</div>
@@ -162,22 +164,19 @@
 		}		
 		var player = null;
 		if(isPC()){
-			player = cyberplayer("dvplay").setup({
-				flashplayer: "./cyberplayer/cyberplayer.flash.swf",
-				stretching: "uniform",
-				file: $.cookie("videoUrl")||"",
-				image: $.cookie("videoImg") || "./images/snap.png",
-				width: $("#dvplay").width(),
-				height: $("#dvplay").width() * 3 / 5,
-				autostart: true,
-				repeat: false,
-				volume: 100,
-				controls: true,
-				controlbar: {
-					barLogo: false
-				},
-				ak: '515d61b893134f40bd4297b75a03494b' // 公有云平台注册即可获得accessKey
-			});			
+			$("#dvplay").flowplayer({
+				autoplay : true,
+				poster : $.cookie("videoImg") || "./images/snap.png",
+				share : false,
+				swf : './flowplayer-7.0.2/flowplayer.swf',
+				swfHls : false,
+				rtmpt: false,
+				clip : {
+					sources : [
+						{type : 'video/flash', src : $.cookie("videoUrl")}
+					]					
+				}
+			});
 		}else{
 			$("#dvplay").hide();
 			$.ajax("./video-template.html").then(function(data){
@@ -200,17 +199,7 @@
 			})
 		}
 
-		function onWindowResize() {
-			var w = $(window).width();
-			if(isPC()) {
-				player.resize(w * 0.8, w * 0.8 * 3 / 5);
-			}
-		}
-
 		$(function() {
-			onWindowResize();
-			var resizeEvt = "orientationchange" in window ? "orientationchange" : "resize";
-			window.addEventListener(resizeEvt, onWindowResize, false);
 			$(".channel-title").text($.cookie("videoTitle") || "");
 		});
 	</script>
