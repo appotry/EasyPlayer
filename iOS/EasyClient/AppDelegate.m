@@ -25,10 +25,16 @@
     self.window.rootViewController = rootNavVC;
     [self.window makeKeyAndVisible];
     
-    NSDictionary *defaultValues = [NSDictionary dictionaryWithObjectsAndKeys: LOGIN_CMS_ADDRESS, @"cms_ip", LOGIN_CMS_ADDRESS_PORT, @"cms_port", nil];
+    NSString *host = [[NSUserDefaults standardUserDefaults] objectForKey:@"cms_ip"];
     
-    [[NSUserDefaults standardUserDefaults] registerDefaults:defaultValues];
-    [[NSUserDefaults standardUserDefaults] synchronize];
+    if (!host || [host isEqualToString:@"121.40.50.44"]) {
+        //        NSDictionary *defaultValues = [NSDictionary dictionaryWithObjectsAndKeys: @"cloud.easydarwin.org", @"cms_ip", @"10000", @"cms_port", nil];
+        
+        [[NSUserDefaults standardUserDefaults] setValue:@"cloud.easydarwin.org" forKey:@"cms_ip"];
+        [[NSUserDefaults standardUserDefaults] setValue:@"10000" forKey:@"cms_port"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    }
+
     return YES;
 }
 
