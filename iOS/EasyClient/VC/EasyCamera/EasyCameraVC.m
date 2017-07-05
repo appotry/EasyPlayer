@@ -124,11 +124,18 @@ static NSString *cellIdentifier1 = @"Cell1";
     NSString *cmsPort = [[NSUserDefaults standardUserDefaults] stringForKey:@"cms_port"];
     
     AFHTTPSessionManager * manager = [AFHTTPSessionManager manager];
-    manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"html/text",@"text/plain", nil];
+//    manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"html/text",@"text/plain", nil];
+    manager.responseSerializer = [AFHTTPResponseSerializer serializer];
     NSString *urlStr =[NSString stringWithFormat:@"http://%@:%@/api/v1/startdevicestream?device=%@&channel=0&protocol=RTSP&reserve=1",cmsIp,cmsPort, deviceStr];
     
-    [manager POST:urlStr parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSDictionary *easyDic = [responseObject objectForKey:@"EasyDarwin"];
+    [manager GET:urlStr parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSDictionary *easyDic;
+        if ([responseObject isKindOfClass:[NSDictionary class]]) {
+            easyDic = [responseObject objectForKey:@"EasyDarwin"];
+        }else{
+            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:responseObject options:NSJSONReadingMutableContainers error:nil];
+            easyDic = [dict objectForKey:@"EasyDarwin"];
+        }
         NSDictionary *headerDic =  [easyDic objectForKey:@"Header"];
         NSDictionary *bodyDic =  [easyDic objectForKey:@"Body"];
         if ([[headerDic objectForKey:@"ErrorNum"] isEqualToString:@"200"]) {

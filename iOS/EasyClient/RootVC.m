@@ -46,7 +46,7 @@
         _VC1.urlStr = [NSString stringWithFormat:@"http://%@:%@/api/v1/getdevicelist?AppType=EasyCamera&TerminalType=ARM_Linux",cmsIp, cmsPort];
         [_VC1 requestListData];
     }else if(currentPage == 1){
-        NSString *urlString= @"http://%@:%@/api/v1/getdevicelist?AppType=EasyCamera&TerminalType=Android";
+        NSString *urlString= @"http://%@:%@/api/v1/getdevicelist?AppType=EasyCamera&TerminalType=iOS|Android";
         _VC2.urlStr = [NSString stringWithFormat:urlString, cmsIp,cmsPort];
         [_VC2 requestListData];
     }else{
