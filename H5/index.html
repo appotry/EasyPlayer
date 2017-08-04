@@ -189,7 +189,7 @@
 			var devs = [];
 			$.get(_url + "/getdevicelist?AppType=EasyCamera&TerminalType=ARM_Linux").then(function(data){
 				try{
-					var ret = JSON.parse(data);
+					var ret = data;
 					devs = ret.EasyDarwin.Body.Devices||[];
 					devs.sort(function(a,b){
 						if((a["Serial"]||"") < (b["Serial"]||"")){
@@ -220,7 +220,7 @@
 			var devs = [];
 			$.get(_url + "/getdevicelist?AppType=EasyCamera&TerminalType=iOS|Android").then(function(data){
 				try{
-					var ret = JSON.parse(data);
+					var ret = data;
 					devs = ret.EasyDarwin.Body.Devices||[];
 					devs.sort(function(a,b){
 						if((a["Serial"]||"") < (b["Serial"]||"")){
@@ -251,7 +251,7 @@
 			var devs = [];
 			$.get(_url + "/getdevicelist?AppType=EasyNVR").then(function(data){
 				try{
-					var ret = JSON.parse(data);
+					var ret = data;
 					devs = ret.EasyDarwin.Body.Devices||[];
 					devs.sort(function(a,b){
 						if((a["Serial"]||"") < (b["Serial"]||"")){
@@ -325,7 +325,7 @@
 							$("body").unmask();
 						}).done(function(data){
 							try{
-								var ret = JSON.parse(data);
+								var ret = data;
 								var channels = ret.EasyDarwin.Body.Channels||[];
 								channels.sort(function(a,b){
 									if((a["Name"]||"") < (b["Name"]||"")){
@@ -382,7 +382,7 @@
 				}).then(function(data){
 					$("body").unmask();
 					try{
-						var ret = JSON.parse(data);
+						var ret = data;
 						if(ret.EasyDarwin.Header.ErrorNum !== "200"){
 							msg += ret.EasyDarwin.Header.ErrorString;
 							return $.Deferred().reject();
@@ -411,7 +411,6 @@
 				}).then(function(data){
 					$("body").unmask();
 					try{
-						//var ret = JSON.parse(data);
 						var ret = data;
 						if(ret.EasyDarwin.Header.ErrorNum !== "200"){
 							msg += ret.EasyDarwin.Header.ErrorString;
